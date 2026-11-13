@@ -925,6 +925,7 @@ async function showDashboard() {
     <p id="dashRole"></p>
     <p id="dashApproval"></p>
     <p id="dashStatus"></p>
+    <div id="sellerNotice"></div>
     <button class="btn primary" id="logoutBtn">Sign out</button>
   `;
 
@@ -939,7 +940,13 @@ async function showDashboard() {
 
   document.getElementById("dashStatus").textContent =
     error ? error.message : "You are signed in.";
+  const notice = document.getElementById("sellerNotice");
 
+  if (profile?.role === "seller") {
+    notice.textContent = profile.approval_status === "approved"
+      ? "Your seller account is approved. You can manage your listings."
+      : "Your seller account is awaiting admin approval. You cannot publish listings yet.";
+  }
   document.getElementById("logoutBtn").onclick = async () => {
     await db.auth.signOut();
     location.reload();
