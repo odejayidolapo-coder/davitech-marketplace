@@ -905,6 +905,7 @@ window.showMessage = function(type) {
   document.getElementById("messageModal").classList.add("show");
 };
 </script>
+<script>
 async function showDashboard() {
   const { data: { user } } = await db.auth.getUser();
 
