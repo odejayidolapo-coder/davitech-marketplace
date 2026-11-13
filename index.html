@@ -381,10 +381,7 @@ window.showMessage = function(type) {
       <input id="fullName" placeholder="Full name" style="width:100%;padding:12px;margin:8px 0">
       <input id="email" type="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0">
       <input id="password" type="password" placeholder="Password (minimum 8 characters)" style="width:100%;padding:12px;margin:8px 0">
-      <select id="accountRole" style="width:100%;padding:12px;margin:8px 0">
-        <option value="${role}">${role === "seller" ? "Seller" : "Buyer"}</option>
-        ${role === "buyer" ? '<option value="seller">Seller</option>' : ''}
-      </select>
+      
       <p id="authStatus"></p>
       <button class="btn primary" id="registerBtn">Create account</button>
       <button class="btn outline" id="loginBtn" style="margin-top:8px">Sign in instead</button>
@@ -396,7 +393,7 @@ window.showMessage = function(type) {
     const name = document.getElementById("fullName").value.trim();
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
-    const selectedRole = document.getElementById("accountRole").value;
+    
     const status = document.getElementById("authStatus");
 
     if (!name || !email || password.length < 8) {
@@ -409,7 +406,7 @@ window.showMessage = function(type) {
       email,
       password,
       options: {
-        data: { full_name: name, role: selectedRole },
+        data: { full_name: name, role: "buyer" },
         emailRedirectTo: window.location.origin
       }
     });
