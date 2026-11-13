@@ -888,6 +888,7 @@ async function showDashboard() {
     <p id="dashApproval"></p>
     <p id="dashStatus"></p>
     <div id="sellerNotice"></div>
+    <div id="sellerListingArea"></div>
     <button class="btn primary" id="logoutBtn">Sign out</button>
   `;
 
@@ -908,6 +909,50 @@ async function showDashboard() {
     notice.textContent = profile.approval_status === "approved"
       ? "Your seller account is approved. You can manage your listings."
       : "Your seller account is awaiting admin approval. You cannot publish listings yet.";
+  }
+    const listingArea = document.getElementById("sellerListingArea");
+
+  if (profile?.role === "seller" && profile.approval_status === "approved") {
+    listingArea.innerHTML = `
+      <h3>Add a new listing</h3>
+      <form id="listingForm">
+        <input id="listingTitle" placeholder="Product or property name" required>
+        <textarea id="listingDescription" placeholder="Description" required></textarea>
+        <input id="listingPrice" type="number" min="0" step="0.01" placeholder="Price in Naira" required>
+        <input id="listingCategory" placeholder="Category" required>
+        <select id="listingType">
+          <option value="product">Product</option>
+          <option value="property">Property</option>
+        </select>
+        <input id="listingLocation" placeholder="Location" required>
+        <button class="btn primary" type="submit">Submit for review</button>
+      </form>
+      <p id="listingStatus"></p>
+    `;
+
+    document.getElementById("listingForm").onsubmit = async (event) => {
+      event.preventDefault();
+
+      const status = document.getElementById("listingStatus");
+      status.textContent = "Submitting listing...";
+
+      const { error } = await db.from("listings").insert({
+        seller_id: user.id,
+        title: document.getElementById("listingTitle").value.trim(),
+        description: document.getElementById("listingDescription").value.trim(),
+        price: Number(document.getElementById("listingPrice").value),
+        category: document.getElementById("listingCategory").value.trim(),
+        listing_type: document.getElementById("listingType").value,
+        location: document.getElementById("listingLocation").value.trim(),
+        status: "pending"
+      });
+
+      status.textContent = error
+        ? error.message
+        : "Listing submitted! Awaiting admin review.";
+
+      if (!error) document.getElementById("listingForm").reset();
+    };
   }
   document.getElementById("logoutBtn").onclick = async () => {
     await db.auth.signOut();
