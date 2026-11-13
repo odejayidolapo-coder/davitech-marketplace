@@ -929,7 +929,7 @@ async function showDashboard() {
   
     const listingArea = document.getElementById("sellerListingArea");
 
-  if (profile?.role === "seller" && profile.approval_status === "approved") {
+  if (profile?.seller_status === "approved") {
     listingArea.innerHTML = `
       <h3>Add a new listing</h3>
       <form id="listingForm">
