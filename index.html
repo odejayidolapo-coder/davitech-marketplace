@@ -432,45 +432,7 @@ if (!error) await showDashboard();
   document.getElementById("messageModal").classList.add("show");
 };
 </script>
-async function showDashboard() {
-  const { data: { user } } = await db.auth.getUser();
 
-  if (!user) return;
-
-  const { data: profile, error } = await db
-    .from("profiles")
-    .select("full_name, role, approval_status")
-    .eq("id", user.id)
-    .single();
-
-  const box = document.querySelector(".modal-box");
-
-  box.innerHTML = `
-    <h3>Welcome to DAVIMART!</h3>
-    <p id="dashName"></p>
-    <p id="dashRole"></p>
-    <p id="dashApproval"></p>
-    <p id="dashStatus"></p>
-    <button class="btn primary" id="logoutBtn">Sign out</button>
-  `;
-
-  document.getElementById("dashName").textContent =
-    profile?.full_name || user.email;
-
-  document.getElementById("dashRole").textContent =
-    "Account type: " + (profile?.role || "Not found");
-
-  document.getElementById("dashApproval").textContent =
-    "Seller status: " + (profile?.approval_status || "Not available");
-
-  document.getElementById("dashStatus").textContent =
-    error ? error.message : "You are signed in.";
-
-  document.getElementById("logoutBtn").onclick = async () => {
-    await db.auth.signOut();
-    location.reload();
-  };
-}
 <!DOCTYPE html>
 <html lang="en">
 <head>
