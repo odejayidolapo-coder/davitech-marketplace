@@ -898,12 +898,35 @@ async function showDashboard() {
   document.getElementById("dashStatus").textContent =
     error ? error.message : "You are signed in.";
   const notice = document.getElementById("sellerNotice");
+  if (profile?.seller_status === "not_applied") {
+    notice.innerHTML = `
+      <p>You can shop and sell with one DAVIMART account.</p>
+      <button class="btn primary" id="applySellerBtn">Become a Seller</button>
+    `;
 
-  if (profile?.role === "seller") {
-    notice.textContent = profile.approval_status === "approved"
-      ? "Your seller account is approved. You can manage your listings."
-      : "Your seller account is awaiting admin approval. You cannot publish listings yet.";
+    document.getElementById("applySellerBtn").onclick = async () => {
+      const { error } = await db.rpc("apply_to_become_seller");
+      notice.textContent = error
+        ? error.message
+        : "Application submitted! Awaiting admin approval.";
+    };
+  } else if (profile?.seller_status === "pending") {
+    notice.textContent = "Your seller application is awaiting admin approval.";
+  } else if (profile?.seller_status === "approved") {
+    notice.textContent = "Your seller application is approved. You can now submit listings.";
+  } else if (profile?.seller_status === "rejected") {
+    notice.textContent = "Your seller application was not approved. You may apply again.";
+    notice.innerHTML += `
+      <button class="btn primary" id="applySellerBtn">Apply Again</button>
+    `;
+    document.getElementById("applySellerBtn").onclick = async () => {
+      const { error } = await db.rpc("apply_to_become_seller");
+      notice.textContent = error
+        ? error.message
+        : "Application submitted! Awaiting admin approval.";
+    };
   }
+  
     const listingArea = document.getElementById("sellerListingArea");
 
   if (profile?.role === "seller" && profile.approval_status === "approved") {
