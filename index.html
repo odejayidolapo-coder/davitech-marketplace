@@ -364,3 +364,71 @@ document.getElementById("year").textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const db = window.supabase.createClient(
+  "https://vaghptbqfjvfhjdhpxrz.supabase.co",
+  "sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p"
+);
+
+window.showMessage = function(type) {
+  const role = type === "seller" ? "seller" : "buyer";
+  const box = document.querySelector(".modal-box");
+
+  box.innerHTML = `
+    <h3>DAVIMART Account</h3>
+    <div id="authForm">
+      <input id="fullName" placeholder="Full name" style="width:100%;padding:12px;margin:8px 0">
+      <input id="email" type="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0">
+      <input id="password" type="password" placeholder="Password (minimum 8 characters)" style="width:100%;padding:12px;margin:8px 0">
+      <select id="accountRole" style="width:100%;padding:12px;margin:8px 0">
+        <option value="${role}">${role === "seller" ? "Seller" : "Buyer"}</option>
+        ${role === "buyer" ? '<option value="seller">Seller</option>' : ''}
+      </select>
+      <p id="authStatus"></p>
+      <button class="btn primary" id="registerBtn">Create account</button>
+      <button class="btn outline" id="loginBtn" style="margin-top:8px">Sign in instead</button>
+      <button class="btn outline" onclick="closeMessage()" style="margin-top:8px">Close</button>
+    </div>
+  `;
+
+  document.getElementById("registerBtn").onclick = async () => {
+    const name = document.getElementById("fullName").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const selectedRole = document.getElementById("accountRole").value;
+    const status = document.getElementById("authStatus");
+
+    if (!name || !email || password.length < 8) {
+      status.textContent = "Enter your name, email and a password of at least 8 characters.";
+      return;
+    }
+
+    status.textContent = "Creating account...";
+    const { error } = await db.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: name, role: selectedRole },
+        emailRedirectTo: window.location.origin
+      }
+    });
+
+    status.textContent = error
+      ? error.message
+      : "Registration submitted! Check your email for confirmation.";
+  };
+
+  document.getElementById("loginBtn").onclick = async () => {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const status = document.getElementById("authStatus");
+
+    status.textContent = "Signing in...";
+    const { error } = await db.auth.signInWithPassword({ email, password });
+    status.textContent = error ? error.message : "Signed in successfully!";
+  };
+
+  document.getElementById("messageModal").classList.add("show");
+};
+</script>
