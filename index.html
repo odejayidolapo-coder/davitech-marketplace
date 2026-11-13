@@ -869,7 +869,7 @@ async function showDashboard() {
 
   const { data: profile, error } = await db
     .from("profiles")
-    .select("full_name, role, approval_status")
+    .select("full_name, role, approval_status, seller_status")
     .eq("id", user.id)
     .single();
 
