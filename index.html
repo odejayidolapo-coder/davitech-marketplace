@@ -892,8 +892,8 @@ async function showDashboard() {
   document.getElementById("dashRole").textContent =
     "Account type: " + (profile?.role || "Not found");
 
-  document.getElementById("dashApproval").textContent =
-    "Seller status: " + (profile?.approval_status || "Not available");
+    document.getElementById("dashApproval").textContent =
+    "Seller application: " + (profile?.seller_status || "Not applied");
 
   document.getElementById("dashStatus").textContent =
     error ? error.message : "You are signed in.";
