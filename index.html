@@ -612,7 +612,24 @@ async function loadNotifications() {
     return;
   }
 
-  count.textContent = String(data.filter(n => !n.is_read).length);
+    const unreadIds = data
+    .filter(n => !n.is_read)
+    .map(n => n.id);
+
+  if (unreadIds.length) {
+    const { error: updateError } = await db
+      .from("notifications")
+      .update({ is_read: true })
+      .in("id", unreadIds)
+      .eq("user_id", user.id);
+
+    if (updateError) {
+      panel.textContent = "Could not mark notifications as read.";
+      return;
+    }
+  }
+
+  count.textContent = "0";
   panel.textContent = data.length
     ? data.map(n => n.title + ": " + n.message).join("\n")
     : "No notifications yet.";
