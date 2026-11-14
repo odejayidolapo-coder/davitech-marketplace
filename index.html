@@ -125,6 +125,7 @@ nav a:hover { color: var(--blue); }
   height: 42px;
   font-size: 20px;
   cursor: pointer;
+    margin-left: auto;
 }
 
 .account-action {
@@ -293,8 +294,9 @@ footer a { color: var(--gold); }
     <span>ACCOUNT</span>
   </button>
     
-      <button id="headerNotificationBell" class="notification-bell" onclick="document.getElementById('headerNotificationPanel').hidden = !document.getElementById('headerNotificationPanel').hidden">🔔</button>
   </div>
+  
+      <button id="headerNotificationBell" class="notification-bell" onclick="document.getElementById('headerNotificationPanel').hidden = !document.getElementById('headerNotificationPanel').hidden">🔔</button>
   <div id="headerNotificationPanel" hidden>
     <p>No notifications yet.</p>
   </div>
