@@ -424,6 +424,15 @@ db.auth.onAuthStateChange(() => {
 });
 
 updateAccountButtons();
+  async function handleSellClick() {
+  const { data: { session } } = await db.auth.getSession();
+
+  if (session) {
+    await showDashboard();
+  } else {
+    showMessage("seller");
+  }
+  }
 window.showMessage = function(type) {
   const role = type === "seller" ? "seller" : "buyer";
   const box = document.querySelector(".modal-box");
