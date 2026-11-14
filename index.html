@@ -575,6 +575,10 @@ async function showDashboard() {
 
   box.innerHTML = `
     <h3>Welcome to DAVIMART!</h3>
+    <button class="btn primary" id="notificationBell">🔔 Notifications</button>
+<div id="notificationPanel" style="display:none;">
+  <p>No notifications yet.</p>
+</div>
     <p id="dashName"></p>
     <p id="dashRole"></p>
     <p id="dashApproval"></p>
