@@ -616,7 +616,16 @@ async function loadNotifications() {
   panel.textContent = data.length
     ? data.map(n => n.title + ": " + n.message).join("\n")
     : "No notifications yet.";
-}  
+} 
+document.getElementById("headerNotificationBell").onclick = async () => {
+  const panel = document.getElementById("headerNotificationPanel");
+
+  panel.hidden = !panel.hidden;
+
+  if (!panel.hidden) {
+    await loadNotifications();
+  }
+};  
 async function showDashboard() {
   const { data: { user } } = await db.auth.getUser();
 
