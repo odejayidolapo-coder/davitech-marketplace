@@ -397,6 +397,10 @@ function chooseCategory(category) {
   document.getElementById("listingMessage").scrollIntoView({behavior:"smooth"});
 }
 document.getElementById("year").textContent = new Date().getFullYear();
+  document.getElementById("accountBtn").onclick = () => {
+  const menu = document.getElementById("accountMenu");
+  menu.hidden = !menu.hidden;
+};
 </script>
 </body>
 </html>
