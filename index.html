@@ -424,6 +424,18 @@ db.auth.onAuthStateChange(() => {
 });
 
 updateAccountButtons();
+  document.getElementById("signoutBtn").onclick = async () => {
+  const { error } = await db.auth.signOut();
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  document.getElementById("accountMenu").hidden = true;
+  await updateAccountButtons();
+  location.reload();
+};
   async function handleSellClick() {
   const { data: { session } } = await db.auth.getSession();
 
