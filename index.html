@@ -282,7 +282,7 @@ footer a { color: var(--gold); }
     <span>ACCOUNT</span>
   </button>
     
-      <button id="headerNotificationBell">🔔</button>
+      <button id="headerNotificationBell" class="notification-bell" onclick="document.getElementById('headerNotificationPanel').hidden = !document.getElementById('headerNotificationPanel').hidden">🔔</button>
   </div>
   <div id="headerNotificationPanel" hidden>
     <p>No notifications yet.</p>
