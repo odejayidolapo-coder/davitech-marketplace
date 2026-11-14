@@ -471,8 +471,9 @@ document.getElementById("signoutBtn").hidden = !session;
   document.getElementById("accountMenu").hidden = true;
 }
 
-db.auth.onAuthStateChange(() => {
-  updateAccountButtons();
+db.auth.onAuthStateChange((event, session) => {
+  document.getElementById("menuSignInBtn").hidden = !!session;
+  document.getElementById("signoutBtn").hidden = !session;
 });
 
 updateAccountButtons();
