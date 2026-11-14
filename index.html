@@ -588,6 +588,35 @@ window.showMessage = function(type) {
 };
 </script>
 <script>
+async function loadNotifications() {
+  const { data: { user } } = await db.auth.getUser();
+
+  const count = document.getElementById("notificationCount");
+  const panel = document.getElementById("headerNotificationPanel");
+
+  if (!user) {
+    count.textContent = "0";
+    panel.textContent = "Sign in to view notifications.";
+    return;
+  }
+
+  const { data, error } = await db
+    .from("notifications")
+    .select("id, title, message, is_read, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error) {
+    panel.textContent = "Could not load notifications.";
+    return;
+  }
+
+  count.textContent = String(data.filter(n => !n.is_read).length);
+  panel.textContent = data.length
+    ? data.map(n => n.title + ": " + n.message).join("\n")
+    : "No notifications yet.";
+}  
 async function showDashboard() {
   const { data: { user } } = await db.auth.getUser();
 
