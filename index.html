@@ -411,7 +411,19 @@ const db = window.supabase.createClient(
   "https://vaghptbqfjvfhjdhpxrz.supabase.co",
   "sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p"
 );
+async function updateAccountButtons() {
+  const { data: { session } } = await db.auth.getSession();
 
+  document.getElementById("signInBtn").hidden = !!session;
+  document.getElementById("accountBtn").hidden = !session;
+  document.getElementById("accountMenu").hidden = true;
+}
+
+db.auth.onAuthStateChange(() => {
+  updateAccountButtons();
+});
+
+updateAccountButtons();
 window.showMessage = function(type) {
   const role = type === "seller" ? "seller" : "buyer";
   const box = document.querySelector(".modal-box");
