@@ -466,8 +466,8 @@ const db = window.supabase.createClient(
 async function updateAccountButtons() {
   const { data: { session } } = await db.auth.getSession();
 
-  document.getElementById("signInBtn").hidden = !!session;
-  document.getElementById("accountBtn").hidden = !session;
+  document.getElementById("menuSignInBtn").hidden = !!session;
+document.getElementById("signoutBtn").hidden = !session;
   document.getElementById("accountMenu").hidden = true;
 }
 
