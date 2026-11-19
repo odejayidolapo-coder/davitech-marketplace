@@ -220,7 +220,11 @@ async function loadAccount(){
 
  authPanel.hidden = true;
  profilePanel.hidden = false;
+document.getElementById("welcomeName").textContent =
+"Welcome " + (user.user_metadata?.full_name || "DAVIMART Member") + "!";
 
+document.getElementById("welcomeEmail").textContent =
+user.email || "";
  document.getElementById("profileEmail").textContent =
  "Email: " + (user.email || "");
 
