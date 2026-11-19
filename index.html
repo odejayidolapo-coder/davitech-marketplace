@@ -670,6 +670,94 @@ main > .hero {
   }
 }
   
+/* DAVIMART PRODUCT MARKETPLACE */
+#products {
+  max-width: 1400px;
+  margin: 35px auto;
+  padding: 28px 20px;
+  background: #fff;
+  border-radius: 14px;
+}
+
+#products h2 {
+  color: #102b55;
+  font-size: 26px;
+}
+
+#products > .container > p {
+  color: #777;
+}
+
+#products .search {
+  display: flex;
+  gap: 10px;
+  margin: 22px 0;
+  padding: 15px;
+  background: #f4f6fa;
+  border-radius: 10px;
+}
+
+#products .search input,
+#products .search select {
+  min-width: 0;
+  flex: 1;
+  padding: 14px;
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  background: white;
+}
+
+#products .categories {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+#products .category {
+  padding: 20px 12px;
+  background: #f8f9fc;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+}
+
+#products .category:hover {
+  border-color: #d9ad48;
+  transform: translateY(-3px);
+}
+
+#products .category .emoji {
+  font-size: 36px;
+}
+
+#products .category h3 {
+  color: #102b55;
+}
+
+#products .empty {
+  margin-top: 25px;
+  padding: 35px 15px;
+  background: #f8f9fc;
+  border-radius: 12px;
+  text-align: center;
+}
+
+@media(max-width:600px) {
+  #products {
+    margin: 20px 12px;
+    padding: 18px 12px;
+  }
+
+  #products .search {
+    flex-direction: column;
+  }
+
+  #products .categories {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+  
 </style>
 </head>
 <body>
