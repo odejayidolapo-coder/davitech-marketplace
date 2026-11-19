@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Real Estate | DAVIMART by DAVITECH</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding-bottom:85px;font-family:Arial,sans-serif;background:#f5f7fa;color:#17243a}
+header{background:#102b55;color:white;padding:18px;font-size:22px;font-weight:bold}
+header span{color:#e4b449}
+.hero{background:linear-gradient(120deg,#102b55,#2874bd);color:white;text-align:center;padding:45px 18px}
+.hero h1{font-size:29px;margin:0 0 12px}
+.hero p{line-height:1.6}
+.search{background:white;padding:20px 15px;text-align:center}
+.search form{display:flex;gap:8px;max-width:650px;margin:12px auto}
+input,select{padding:13px;border:1px solid #ccd3dd;border-radius:7px;font-size:15px;min-width:0}
+input{flex:1}
+button{background:#102b55;color:white;border:0;border-radius:7px;padding:13px 18px;font-weight:bold}
+.categories{padding:20px 15px;max-width:950px;margin:auto}
+.categories h2{color:#102b55}
+.category-links{display:flex;flex-wrap:wrap;gap:10px}
+.category-links a{background:white;padding:12px 15px;border-radius:9px;text-decoration:none;color:#102b55;border:1px solid #e1e5eb;font-size:14px}
+.results{background:white;margin:15px;padding:30px 16px;border-radius:12px;text-align:center}
+.results h2{color:#102b55}
+.empty-icon{font-size:52px}
+.note{color:#667085;line-height:1.6}
+.bottom-nav{position:fixed;bottom:0;left:0;width:100%;display:flex;background:white;border-top:2px solid #e4b449;z-index:10}
+.bottom-nav a{flex:1;text-align:center;text-decoration:none;color:#102b55;font-size:11px;font-weight:900;padding:10px 2px}
+.bottom-nav span{display:block;font-size:21px;margin-bottom:4px}
+#loader{position:fixed;inset:0;background:white;display:grid;place-items:center;z-index:100;color:#102b55;font-weight:bold}
+@media(max-width:450px){.search form{flex-wrap:wrap}.search form input,.search form select{width:100%;flex-basis:100%}.search form button{width:100%}}
+</style>
+</head>
+<body>
+<div id="loader">Loading DAVIMART Real Estate...</div>
+
+<header>DAVIMART <span>by DAVITECH</span></header>
+
+<section class="hero">
+<h1>Find Your Next Property</h1>
+<p>Discover land, houses, apartments and commercial properties on DAVIMART.</p>
+</section>
+
+<section class="search">
+<h2>Search Properties</h2>
+<form id="propertySearch">
+<input id="propertyQuery" type="search" placeholder="Search by property or location">
+<select id="propertyType">
+<option value="">All Property Types</option>
+<option value="Land">Land</option>
+<option value="House">Houses</option>
+<option value="Apartment">Apartments</option>
+<option value="Commercial">Commercial Properties</option>
+<option value="Rent">Properties for Rent</option>
+</select>
+<button type="submit">SEARCH</button>
+</form>
+</section>
+
+<section class="categories">
+<h2>Explore Property Categories</h2>
+<div class="category-links">
+<a href="real-estate.html?type=Land">🌳 Land</a>
+<a href="real-estate.html?type=House">🏠 Houses</a>
+<a href="real-estate.html?type=Apartment">🏢 Apartments</a>
+<a href="real-estate.html?type=Commercial">🏬 Commercial</a>
+<a href="real-estate.html?type=Rent">🔑 For Rent</a>
+<a href="real-estate.html?type=Sale">🏡 For Sale</a>
+</div>
+</section>
+
+<section class="results">
+<div class="empty-icon">🏡</div>
+<h2 id="resultHeading">Available Properties</h2>
+<p id="resultDescription">There are no approved property listings available yet. Please check back soon.</p>
+<p class="note">Property listings will appear here after they have been submitted and approved.</p>
+</section>
+
+<nav class="bottom-nav">
+<a href="index.html"><span>🏠</span>Home</a>
+<a href="categories.html"><span>☰</span>Categories</a>
+<a href="shop.html"><span>🛍️</span>Shop</a>
+<a href="real-estate.html"><span>🏡</span>Real Estate</a>
+<a href="account.html"><span>👤</span>Account</a>
+</nav>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const type = params.get("type");
+const query = params.get("q");
+
+if(type){
+ document.getElementById("resultHeading").textContent = type + " Properties";
+ document.getElementById("resultDescription").textContent =
+ "There are no approved " + type + " property listings available yet.";
+}
+
+if(query){
+ document.getElementById("resultHeading").textContent =
+ 'Property search results for "' + query + '"';
+}
+
+document.getElementById("propertySearch").addEventListener("submit",function(event){
+ event.preventDefault();
+ const query = document.getElementById("propertyQuery").value.trim();
+ const type = document.getElementById("propertyType").value;
+ let url = "real-estate.html";
+ const params = new URLSearchParams();
+ if(query) params.set("q",query);
+ if(type) params.set("type",type);
+ if(params.toString()) url += "?" + params.toString();
+ window.location.href = url;
+});
+
+window.addEventListener("load",function(){
+ document.getElementById("loader").style.display="none";
+});
+</script>
+</body>
+  </html>
+  
