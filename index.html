@@ -1139,7 +1139,16 @@ function searchProducts() {
   document.getElementById("searchResults").style.display = "block";
   window.scrollTo(0, 0);
 }
-function chooseCategory(category) {
+function closeSearchResults() {
+  document.getElementById("searchResults").style.display = "none";
+
+  Array.from(document.getElementById("home").children).forEach(section => {
+    section.style.display = "";
+  });
+
+  window.scrollTo(0, 0);
+}
+  function chooseCategory(category) {
   document.getElementById("categorySelect").value = category;
   document.getElementById("listingMessage").querySelector("p").textContent =
     "No published listings in " + category + " yet.";
