@@ -340,6 +340,21 @@ db.auth.onAuthStateChange(function(){
 loadAccount().finally(function(){
  document.getElementById("loader").style.display = "none";
 });
+function openAccountSection(section){
+
+ if(section === "Close Account"){
+  alert("To request account closure, please contact DAVIMART support on WhatsApp: +2349068847614");
+  window.open("https://wa.me/2349068847614","_blank");
+  return;
+ }
+
+ if(section === "Privacy Policy"){
+  alert("The DAVIMART Privacy Policy will be published before the marketplace launch.");
+  return;
+ }
+
+ alert(section + " is coming soon. We are preparing this feature for DAVIMART.");
+}
 </script>
 
 </body>
