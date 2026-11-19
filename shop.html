@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop | DAVIMART by DAVITECH</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding-bottom:85px;font-family:Arial,sans-serif;background:#f5f7fa;color:#17243a}
+header{background:#102b55;color:white;padding:18px;font-size:22px;font-weight:bold}
+header span{color:#e4b449}
+.search-area{background:white;padding:22px 16px;text-align:center}
+h1{color:#102b55}
+.search-box{display:flex;gap:8px;max-width:650px;margin:20px auto}
+input,select{padding:13px;border:1px solid #ccd3dd;border-radius:7px;font-size:15px;min-width:0}
+input{flex:1}
+button{background:#102b55;color:white;border:0;border-radius:7px;padding:13px 20px;font-weight:bold}
+.filters{padding:18px;max-width:900px;margin:auto}
+.filters h3{color:#102b55}
+.filter-links{display:flex;flex-wrap:wrap;gap:9px}
+.filter-links a{background:white;padding:11px 14px;border-radius:20px;text-decoration:none;color:#102b55;border:1px solid #e1e5eb;font-size:13px}
+.results{background:white;margin:15px;padding:25px 16px;border-radius:12px;text-align:center}
+.results h2{color:#102b55}
+.empty-icon{font-size:48px}
+.bottom-nav{position:fixed;bottom:0;left:0;width:100%;display:flex;background:white;border-top:2px solid #e4b449;z-index:10}
+.bottom-nav a{flex:1;text-align:center;text-decoration:none;color:#102b55;font-size:11px;font-weight:900;padding:10px 2px}
+.bottom-nav span{display:block;font-size:21px;margin-bottom:4px}
+#loader{position:fixed;inset:0;background:white;display:grid;place-items:center;z-index:100;color:#102b55;font-weight:bold}
+@media(max-width:450px){.search-box{flex-wrap:wrap}.search-box input{width:100%;flex-basis:100%}.search-box button{flex:1}}
+</style>
+</head>
+<body>
+
+<div id="loader">Loading DAVIMART Shop...</div>
+
+<header>DAVIMART <span>by DAVITECH</span></header>
+
+<section class="search-area">
+<h1>Explore the Marketplace</h1>
+<p>Search for products and discover what you need.</p>
+<form class="search-box" id="searchForm">
+<input id="searchInput" type="search" placeholder="Search products, brands..." >
+<button type="submit">SEARCH</button>
+</form>
+</section>
+
+<section class="filters">
+<h3>Browse Categories</h3>
+<div class="filter-links">
+<a href="shop.html?category=Phones">📱 Phones</a>
+<a href="shop.html?category=Computing">💻 Computing</a>
+<a href="shop.html?category=Electronics">📺 Electronics</a>
+<a href="shop.html?category=Home">🏠 Home & Living</a>
+<a href="shop.html?category=Fashion">👗 Fashion</a>
+<a href="shop.html?category=Beauty">💄 Beauty</a>
+<a href="shop.html?category=Other">🛍️ Other Products</a>
+</div>
+</section>
+
+<section class="results">
+<div class="empty-icon">🛍️</div>
+<h2 id="resultHeading">All Products</h2>
+<p id="resultDescription">There are no approved product listings available yet. Please check back soon.</p>
+</section>
+
+<nav class="bottom-nav">
+<a href="index.html"><span>🏠</span>Home</a>
+<a href="categories.html"><span>☰</span>Categories</a>
+<a href="shop.html"><span>🛍️</span>Shop</a>
+<a href="real-estate.html"><span>🏡</span>Real Estate</a>
+<a href="account.html"><span>👤</span>Account</a>
+</nav>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const category = params.get("category");
+const query = params.get("q");
+
+if(category){
+ document.getElementById("resultHeading").textContent = category + " Products";
+ document.getElementById("resultDescription").textContent =
+ "No approved listings are available in " + category + " yet.";
+}
+
+if(query){
+ document.getElementById("resultHeading").textContent = 'Search results for "' + query + '"';
+}
+
+document.getElementById("searchForm").addEventListener("submit",function(event){
+ event.preventDefault();
+ const value = document.getElementById("searchInput").value.trim();
+ if(value){
+  window.location.href = "shop.html?q=" + encodeURIComponent(value);
+ }
+});
+
+window.addEventListener("load",function(){
+ document.getElementById("loader").style.display="none";
+});
+</script>
+
+</body>
+</html>
