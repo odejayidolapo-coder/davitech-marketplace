@@ -378,6 +378,152 @@ footer {
     padding: 16px;
   }
          }
+
+/* DAVIMART JUMIA STYLE HOMEPAGE */
+.jumia-home {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 220px;
+  gap: 15px;
+  max-width: 1400px;
+  margin: 25px auto;
+  padding: 0 20px;
+  align-items: stretch;
+}
+
+.jumia-categories,
+.jumia-promos > div {
+  background: white;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 3px 12px rgba(0,0,0,.06);
+}
+
+.jumia-categories h3 {
+  color: #102b55;
+  font-size: 14px;
+  margin: 0 0 15px;
+}
+
+.jumia-categories a {
+  display: block;
+  padding: 11px 4px;
+  font-size: 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.jumia-categories a:hover {
+  color: #174b91;
+  background: #f5f7fb;
+}
+
+.jumia-banner {
+  min-height: 340px;
+  padding: 45px 35px;
+  border-radius: 10px;
+  color: white;
+  background: linear-gradient(120deg, #102b55, #2874bd);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.jumia-banner span {
+  color: #f2c65e;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.jumia-banner h1 {
+  font-size: clamp(28px, 4vw, 46px);
+  max-width: 500px;
+  margin: 18px 0;
+}
+
+.jumia-banner p {
+  line-height: 1.7;
+}
+
+.jumia-banner a,
+.jumia-promos a,
+.jumia-promos button {
+  display: inline-block;
+  width: fit-content;
+  background: #e4b449;
+  color: #102b55;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 5px;
+  font-weight: bold;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+.jumia-promos {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.jumia-promos h3 {
+  color: #102b55;
+  margin-top: 5px;
+}
+
+.jumia-promos p {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.jumia-promos button {
+  font-size: 12px;
+}
+
+@media(max-width: 900px) {
+  .jumia-home {
+    grid-template-columns: 190px 1fr;
+  }
+  .jumia-promos {
+    grid-column: 1 / -1;
+    flex-direction: row;
+  }
+  .jumia-promos > div {
+    flex: 1;
+  }
+}
+
+@media(max-width: 600px) {
+  .jumia-home {
+    display: flex;
+    flex-direction: column;
+    padding: 0 12px;
+    margin: 15px auto;
+  }
+  .jumia-categories {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+  }
+  .jumia-categories h3 {
+    grid-column: 1 / -1;
+  }
+  .jumia-categories a {
+    font-size: 12px;
+    padding: 9px 3px;
+  }
+  .jumia-banner {
+    min-height: 280px;
+    padding: 28px 22px;
+  }
+  .jumia-promos {
+    flex-direction: column;
+  }
+}
+
+/* Hide the old hero while the new homepage is being built */
+main > .hero {
+  display: none;
+}
+  
 </style>
 </head>
 <body>
@@ -429,7 +575,42 @@ footer {
 </header>
 
 <main id="home">
-<section class="hero">
+
+<section class="jumia-home">
+  <aside class="jumia-categories">
+    <h3>SHOP BY CATEGORY</h3>
+    <a href="#products">📱 Phones & Accessories</a>
+    <a href="#products">💻 Computing</a>
+    <a href="#products">📺 Electronics</a>
+    <a href="#products">🏠 Home & Living</a>
+    <a href="#products">👗 Fashion</a>
+    <a href="#products">💄 Beauty</a>
+    <a href="#properties">🏡 Real Estate</a>
+    <a href="#products">🛍️ Other Products</a>
+  </aside>
+
+  <div class="jumia-banner">
+    <span>WELCOME TO DAVIMART</span>
+    <h1>Everything you need, all in one place.</h1>
+    <p>Shop products, discover great deals and find properties.</p>
+    <a href="#products">SHOP NOW →</a>
+  </div>
+
+  <aside class="jumia-promos">
+    <div>
+      <h3>Become a Seller</h3>
+      <p>Reach more customers with DAVIMART.</p>
+      <button onclick="handleSellClick()">START SELLING</button>
+    </div>
+    <div>
+      <h3>Find Your Property</h3>
+      <p>Explore properties in one marketplace.</p>
+      <a href="#properties">EXPLORE →</a>
+    </div>
+  </aside>
+</section>
+  
+  <section class="hero">
   <div class="hero-content">
     <div class="eyebrow">YOUR MARKETPLACE, MADE SIMPLE</div>
     <h1>Find what you need. Sell with confidence.</h1>
