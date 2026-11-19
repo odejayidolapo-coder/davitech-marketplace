@@ -342,7 +342,14 @@ db.auth.onAuthStateChange(function(){
 });
 
 loadAccount().finally(function(){
- document.getElementById("loader").style.display = "none";
+  document.getElementById("loader").style.display = "none";
+
+  if(new URLSearchParams(window.location.search).get("section") === "Wishlist"){
+    document.getElementById("wishlistSection").scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }
 });
 function openAccountSection(section){
 
