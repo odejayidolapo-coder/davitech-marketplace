@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Categories | DAVIMART by DAVITECH</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding-bottom: 85px;
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      color: #17243a;
+    }
+    header {
+      background: #102b55;
+      color: white;
+      padding: 18px;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    header span { color: #e4b449; }
+    .intro {
+      background: white;
+      padding: 25px 16px;
+      text-align: center;
+    }
+    .intro h1 { color: #102b55; }
+    .categories {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      padding: 18px;
+    }
+    .category {
+      background: white;
+      padding: 24px 10px;
+      border-radius: 12px;
+      text-align: center;
+      text-decoration: none;
+      color: #102b55;
+      border: 1px solid #e5e8ee;
+      box-shadow: 0 2px 8px #0000000c;
+    }
+    .category span {
+      display: block;
+      font-size: 38px;
+      margin-bottom: 12px;
+    }
+    .category b { font-size: 14px; }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      background: white;
+      border-top: 2px solid #e4b449;
+      z-index: 10;
+    }
+    .bottom-nav a {
+      flex: 1;
+      text-align: center;
+      text-decoration: none;
+      color: #102b55;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 10px 2px;
+    }
+    .bottom-nav span {
+      display: block;
+      font-size: 21px;
+      margin-bottom: 4px;
+    }
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: white;
+      display: grid;
+      place-items: center;
+      z-index: 100;
+      color: #102b55;
+      font-weight: bold;
+    }
+    @media (min-width: 700px) {
+      .categories { grid-template-columns: repeat(4, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="loader">Loading DAVIMART Categories...</div>
+
+<header>DAVIMART <span>by DAVITECH</span></header>
+
+<section class="intro">
+  <h1>Shop by Category</h1>
+  <p>Explore products from different categories on DAVIMART.</p>
+</section>
+
+<main class="categories">
+  <a class="category" href="shop.html?category=Phones">
+    <span>📱</span><b>Phones & Accessories</b>
+  </a>
+  <a class="category" href="shop.html?category=Computing">
+    <span>💻</span><b>Computing</b>
+  </a>
+  <a class="category" href="shop.html?category=Electronics">
+    <span>📺</span><b>Electronics</b>
+  </a>
+  <a class="category" href="shop.html?category=Home">
+    <span>🏠</span><b>Home & Living</b>
+  </a>
+  <a class="category" href="shop.html?category=Fashion">
+    <span>👗</span><b>Fashion</b>
+  </a>
+  <a class="category" href="shop.html?category=Beauty">
+    <span>💄</span><b>Beauty</b>
+  </a>
+  <a class="category" href="shop.html?category=Other">
+    <span>🛍️</span><b>Other Products</b>
+  </a>
+  <a class="category" href="real-estate.html">
+    <span>🏡</span><b>Real Estate</b>
+  </a>
+</main>
+
+<nav class="bottom-nav">
+  <a href="index.html"><span>🏠</span>Home</a>
+  <a href="categories.html"><span>☰</span>Categories</a>
+  <a href="shop.html"><span>🛍️</span>Shop</a>
+  <a href="real-estate.html"><span>🏡</span>Real Estate</a>
+  <a href="account.html"><span>👤</span>Account</a>
+</nav>
+
+<script>
+window.addEventListener("load", function() {
+  document.getElementById("loader").style.display = "none";
+});
+</script>
+
+</body>
+  </html>
+  
