@@ -271,6 +271,113 @@ footer a { color: var(--gold); }
   .steps { grid-template-columns: 1fr; }
   .search { flex-direction: column; }
 }
+/* DAVIMART visual upgrade */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #f4f6fa;
+}
+
+header {
+  box-shadow: 0 3px 15px rgba(16, 43, 85, 0.07);
+  position: sticky;
+  top: 0;
+  z-index: 900;
+}
+
+.logo {
+  letter-spacing: -0.7px;
+}
+
+nav a {
+  transition: color 0.2s ease;
+}
+
+.btn,
+.market-action {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn:hover,
+.market-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(16, 43, 85, 0.15);
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 85% 20%, rgba(228,180,73,0.2), transparent 28%),
+    linear-gradient(120deg, #102b55, #205b9d);
+}
+
+.hero h1 {
+  letter-spacing: -1.2px;
+}
+
+.category,
+.step,
+.empty {
+  box-shadow: 0 4px 16px rgba(16, 43, 85, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.category:hover,
+.step:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 9px 22px rgba(16, 43, 85, 0.1);
+}
+
+.category {
+  border-radius: 15px;
+}
+
+.category .emoji {
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.search input:focus,
+.search select:focus {
+  outline: 2px solid #e4b449;
+  border-color: #e4b449;
+}
+
+.property {
+  background: linear-gradient(120deg, #eaf1fa, #f7f9fc);
+}
+
+footer {
+  background: linear-gradient(120deg, #0b1e3b, #102b55);
+}
+
+@media (max-width: 700px) {
+  header {
+    position: relative;
+  }
+
+  .market-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .market-action {
+    flex: 1;
+    min-width: 75px;
+  }
+
+  .hero h1 {
+    font-size: 35px;
+  }
+
+  .category {
+    padding: 16px;
+  }
+         }
 </style>
 </head>
 <body>
