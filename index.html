@@ -1019,7 +1019,44 @@ header nav {
     min-width: 100%;
   }
 }
-  
+ /* FIX DAVIMART MOBILE HEADER POSITIONS */
+header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "logo bell account"
+    "search search search";
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 10px;
+}
+
+.logo {
+  grid-area: logo;
+}
+
+.notification-bell {
+  grid-area: bell;
+  margin-left: 0;
+  justify-self: end;
+}
+
+.account-action {
+  grid-area: account;
+  justify-self: end;
+}
+
+.dm-header-search {
+  grid-area: search;
+  width: 100%;
+  min-width: 0;
+}
+
+@media(max-width:700px) {
+  .dm-header-search {
+    min-width: 0;
+  }
+} 
 </style>
 </head>
 <body>
