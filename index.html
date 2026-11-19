@@ -1143,7 +1143,9 @@ function closeSearchResults() {
   document.getElementById("searchResults").style.display = "none";
 
   Array.from(document.getElementById("home").children).forEach(section => {
-    section.style.display = "";
+    if (section.id !== "searchResults") {
+      section.style.display = "";
+    }
   });
 
   window.scrollTo(0, 0);
