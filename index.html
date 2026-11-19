@@ -894,36 +894,44 @@ main > .hero {
     bottom: 0;
     left: 0;
     width: 100%;
-    justify-content: space-around;
+    box-sizing: border-box;
+    justify-content: space-between;
     align-items: center;
     background: #ffffff;
     border-top: 2px solid #e4b449;
-    padding: 9px 3px;
+    padding: 8px 0;
     z-index: 2000;
-    box-shadow: 0 -3px 12px rgba(0,0,0,0.10);
+    box-shadow: 0 -3px 12px rgba(0,0,0,0.12);
   }
 
   .dm-bottom-nav a,
   .dm-bottom-nav button {
+    flex: 1;
+    width: 20%;
+    min-width: 0;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     color: #102b55;
-    font-size: 10px;
-    font-weight: bold;
+    font-size: 11px;
+    font-weight: 900;
+    text-align: center;
+    white-space: nowrap;
     text-decoration: none;
     background: none;
     border: none;
-    padding: 3px;
+    padding: 5px 0;
+    margin: 0;
   }
 
   .dm-bottom-nav span {
-    font-size: 20px;
+    font-size: 21px;
   }
 
   body {
-    padding-bottom: 65px;
+    padding-bottom: 75px;
   }
 }
 </style>
