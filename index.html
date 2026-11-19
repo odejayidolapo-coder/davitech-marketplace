@@ -1122,11 +1122,22 @@ function closeMessage() {
 function searchProducts() {
   const query = document.getElementById("searchInput").value.trim();
   const category = document.getElementById("categorySelect").value;
-  const message = query || category
-    ? "No published listings match this search yet."
-    : "There are no published product listings here yet.";
-  document.getElementById("listingMessage").querySelector("p").textContent = message;
-  document.getElementById("listingMessage").scrollIntoView({behavior:"smooth"});
+
+  document.getElementById("searchResultTitle").textContent =
+    query ? 'Results for "' + query + '"' :
+    category ? "Category: " + category : "All products";
+
+  document.getElementById("searchResultList").innerHTML =
+    "<p>No approved products are available yet. Please check back soon.</p>";
+
+  Array.from(document.getElementById("home").children).forEach(section => {
+    if (section.id !== "searchResults") {
+      section.style.display = "none";
+    }
+  });
+
+  document.getElementById("searchResults").style.display = "block";
+  window.scrollTo(0, 0);
 }
 function chooseCategory(category) {
   document.getElementById("categorySelect").value = category;
