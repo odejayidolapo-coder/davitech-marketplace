@@ -883,6 +883,49 @@ main > .hero {
     gap: 10px;
   }
 }
+.dm-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .dm-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    justify-content: space-around;
+    align-items: center;
+    background: #ffffff;
+    border-top: 2px solid #e4b449;
+    padding: 9px 3px;
+    z-index: 2000;
+    box-shadow: 0 -3px 12px rgba(0,0,0,0.10);
+  }
+
+  .dm-bottom-nav a,
+  .dm-bottom-nav button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: #102b55;
+    font-size: 10px;
+    font-weight: bold;
+    text-decoration: none;
+    background: none;
+    border: none;
+    padding: 3px;
+  }
+
+  .dm-bottom-nav span {
+    font-size: 20px;
+  }
+
+  body {
+    padding-bottom: 65px;
+  }
+}
 </style>
 </head>
 <body>
