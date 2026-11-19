@@ -1,0 +1,266 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Account | DAVIMART by DAVITECH</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding-bottom:85px;font-family:Arial,sans-serif;background:#f5f7fa;color:#17243a}
+header{background:#102b55;color:white;padding:18px;font-size:22px;font-weight:bold}
+header span{color:#e4b449}
+.hero{background:linear-gradient(120deg,#102b55,#2874bd);color:white;padding:35px 18px;text-align:center}
+.hero h1{margin:0 0 10px}
+.container{max-width:850px;margin:20px auto;padding:0 15px}
+.panel{background:white;padding:22px 17px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 9px #0000000b}
+.panel h2{color:#102b55;margin-top:0}
+input{width:100%;padding:13px;margin:7px 0;border:1px solid #ccd3dd;border-radius:7px;font-size:15px}
+button{background:#102b55;color:white;border:0;border-radius:7px;padding:13px 18px;font-weight:bold;cursor:pointer}
+button.secondary{background:#e8edf5;color:#102b55}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+#authStatus,#accountStatus{line-height:1.5;overflow-wrap:anywhere}
+.features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.feature{border:1px solid #e1e5eb;border-radius:10px;padding:17px;background:#fff}
+.feature strong{display:block;color:#102b55;margin-bottom:7px}
+.feature p{font-size:13px;color:#667085;line-height:1.5;margin:0}
+.status{font-size:12px;color:#8a5b00;margin-top:10px}
+.bottom-nav{position:fixed;bottom:0;left:0;width:100%;display:flex;background:white;border-top:2px solid #e4b449;z-index:10}
+.bottom-nav a{flex:1;text-align:center;text-decoration:none;color:#102b55;font-size:11px;font-weight:900;padding:10px 2px}
+.bottom-nav span{display:block;font-size:21px;margin-bottom:4px}
+#loader{position:fixed;inset:0;background:white;display:grid;place-items:center;z-index:100;color:#102b55;font-weight:bold}
+[hidden]{display:none!important}
+@media(max-width:450px){.features{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="loader">Loading DAVIMART Account...</div>
+
+<header>DAVIMART <span>by DAVITECH</span></header>
+
+<section class="hero">
+<h1>My DAVIMART Account</h1>
+<p>Manage your marketplace account in one place.</p>
+</section>
+
+<main class="container">
+
+<section class="panel" id="authPanel">
+<h2>Sign in or Create an Account</h2>
+<p>Register as a buyer or sign in to your existing DAVIMART account.</p>
+<input id="fullName" type="text" placeholder="Full name">
+<input id="email" type="email" placeholder="Email address">
+<input id="password" type="password" placeholder="Password (minimum 8 characters)">
+<div class="actions">
+<button id="registerBtn">Create Account</button>
+<button class="secondary" id="loginBtn">Sign In</button>
+</div>
+<p id="authStatus" aria-live="polite"></p>
+</section>
+
+<section class="panel" id="profilePanel" hidden>
+<h2>Welcome to DAVIMART!</h2>
+<p id="profileName"></p>
+<p id="profileEmail"></p>
+<p id="profileRole"></p>
+<p id="sellerStatus"></p>
+<p id="accountStatus" aria-live="polite"></p>
+<div class="actions">
+<button id="applySellerBtn" hidden>Apply to Become a Seller</button>
+<button class="secondary" id="signOutBtn">Sign Out</button>
+</div>
+</section>
+
+<section class="panel">
+<h2>My Account Services</h2>
+<div class="features">
+<div class="feature">
+<strong>👤 My Profile</strong>
+<p>Your account information and personal details.</p>
+<div class="status">Profile details are being connected.</div>
+</div>
+<div class="feature">
+<strong>📦 My Orders</strong>
+<p>View and track your marketplace purchases.</p>
+<div class="status">Order tracking is coming soon.</div>
+</div>
+<div class="feature">
+<strong>❤️ My Wishlist</strong>
+<p>Keep products and properties you like.</p>
+<div class="status">Wishlist is coming soon.</div>
+</div>
+<div class="feature">
+<strong>💬 My Inbox</strong>
+<p>Manage conversations with sellers and buyers.</p>
+<div class="status">Messaging is coming soon.</div>
+</div>
+<div class="feature">
+<strong>🔔 My Notifications</strong>
+<p>Stay informed about account and marketplace updates.</p>
+<div class="status">Notifications are coming soon.</div>
+</div>
+<div class="feature">
+<strong>🏪 Seller Dashboard</strong>
+<p>Manage your seller application and listings.</p>
+<div class="status">Seller dashboard connection is being prepared.</div>
+</div>
+</div>
+</section>
+
+</main>
+
+<nav class="bottom-nav">
+<a href="index.html"><span>🏠</span>Home</a>
+<a href="categories.html"><span>☰</span>Categories</a>
+<a href="shop.html"><span>🛍️</span>Shop</a>
+<a href="real-estate.html"><span>🏡</span>Real Estate</a>
+<a href="account.html"><span>👤</span>Account</a>
+</nav>
+
+<script>
+const db = window.supabase.createClient(
+"https://vaghptbqfjvfhjdhpxrz.supabase.co",
+"sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p"
+);
+
+const authPanel = document.getElementById("authPanel");
+const profilePanel = document.getElementById("profilePanel");
+const authStatus = document.getElementById("authStatus");
+
+async function loadAccount(){
+ const {data:{user},error} = await db.auth.getUser();
+
+ if(error || !user){
+  authPanel.hidden = false;
+  profilePanel.hidden = true;
+  return;
+ }
+
+ authPanel.hidden = true;
+ profilePanel.hidden = false;
+
+ document.getElementById("profileEmail").textContent =
+ "Email: " + (user.email || "");
+
+ const {data:profile,error:profileError} = await db
+ .from("profiles")
+ .select("full_name,role,seller_status")
+ .eq("id",user.id)
+ .single();
+
+ document.getElementById("profileName").textContent =
+ "Name: " + (profile?.full_name || user.user_metadata?.full_name || "DAVIMART Member");
+
+ document.getElementById("profileRole").textContent =
+ "Account type: " + (profile?.role || "Not available");
+
+ document.getElementById("sellerStatus").textContent =
+ "Seller application: " + (profile?.seller_status || "Not available");
+
+ const applyButton = document.getElementById("applySellerBtn");
+ applyButton.hidden = profileError || !profile ||
+ !["not_applied","rejected"].includes(profile.seller_status);
+
+ if(profileError){
+  document.getElementById("accountStatus").textContent =
+  "Your account is signed in, but profile details could not be loaded.";
+ }else{
+  document.getElementById("accountStatus").textContent =
+  "You are signed in successfully.";
+ }
+}
+
+document.getElementById("registerBtn").onclick = async function(){
+ const name = document.getElementById("fullName").value.trim();
+ const email = document.getElementById("email").value.trim();
+ const password = document.getElementById("password").value;
+
+ if(!name || !email || password.length < 8){
+  authStatus.textContent =
+  "Enter your full name, email and a password of at least 8 characters.";
+  return;
+ }
+
+ authStatus.textContent = "Creating your account...";
+
+ const {data,error} = await db.auth.signUp({
+  email,
+  password,
+  options:{
+   data:{full_name:name,role:"buyer"},
+   emailRedirectTo:window.location.origin + "/account.html"
+  }
+ });
+
+ authStatus.textContent = error
+ ? error.message
+ : data.session
+ ? "Account created successfully!"
+ : "Registration submitted. Check your email for confirmation.";
+
+ if(!error && data.session) await loadAccount();
+};
+
+document.getElementById("loginBtn").onclick = async function(){
+ const email = document.getElementById("email").value.trim();
+ const password = document.getElementById("password").value;
+
+ if(!email || !password){
+  authStatus.textContent = "Enter your email and password.";
+  return;
+ }
+
+ authStatus.textContent = "Signing in...";
+
+ const {error} = await db.auth.signInWithPassword({
+  email,
+  password
+ });
+
+ if(error){
+  authStatus.textContent = error.message;
+ }else{
+  authStatus.textContent = "Signed in successfully!";
+  await loadAccount();
+ }
+};
+
+document.getElementById("signOutBtn").onclick = async function(){
+ const {error} = await db.auth.signOut();
+
+ if(error){
+  document.getElementById("accountStatus").textContent = error.message;
+ }else{
+  location.reload();
+ }
+};
+
+document.getElementById("applySellerBtn").onclick = async function(){
+ const button = this;
+ button.disabled = true;
+ document.getElementById("accountStatus").textContent =
+ "Submitting seller application...";
+
+ const {error} = await db.rpc("apply_to_become_seller");
+
+ button.disabled = false;
+ document.getElementById("accountStatus").textContent = error
+ ? error.message
+ : "Your seller application has been submitted. Await admin approval.";
+
+ if(!error) await loadAccount();
+};
+
+db.auth.onAuthStateChange(function(){
+ setTimeout(loadAccount,0);
+});
+
+loadAccount().finally(function(){
+ document.getElementById("loader").style.display = "none";
+});
+</script>
+
+</body>
+</html>
