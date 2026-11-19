@@ -758,6 +758,51 @@ main > .hero {
   }
 }
   
+/* DAVIMART PROFESSIONAL HEADER SEARCH */
+.dm-header-search {
+  display: flex;
+  flex: 1;
+  max-width: 520px;
+  min-width: 220px;
+  height: 46px;
+  border: 2px solid #e4b449;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.dm-header-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 0 14px;
+  border: none;
+  outline: none;
+  color: #17243a;
+  font-size: 14px;
+}
+
+.dm-header-search button {
+  padding: 0 20px;
+  border: none;
+  background: #e4b449;
+  color: #102b55;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.dm-header-search button:hover {
+  background: #f0c45e;
+}
+
+@media(max-width: 700px) {
+  .dm-header-search {
+    order: 3;
+    flex: 1 1 100%;
+    max-width: 100%;
+    min-width: 100%;
+  }
+  }
+  
 </style>
 </head>
 <body>
@@ -768,7 +813,16 @@ main > .hero {
 
 <header>
   <a class="logo" href="#home">DAVI<span>MART</span></a>
-  <nav>
+  
+  <na<div class="dm-header-search">
+  <input id="headerSearchInput" type="search"
+    placeholder="Search products, brands and categories...">
+  <button type="button" onclick="
+    document.getElementById('searchInput').value =
+    document.getElementById('headerSearchInput').value;
+    searchProducts();
+  ">SEARCH</button>
+  </div>v>
     <a href="#home">Home</a>
     <a href="#products">Products</a>
     <a href="#properties">Real Estate</a>
