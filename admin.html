@@ -82,10 +82,10 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <div class="actions"><button class="btn btn-gold" id="sendNotification">Send notification</button></div>
 <p id="notifyStatus" role="status"></p>
 </section>
-<section class="panel" id="bannerPanel"><h2>Homepage banner manager</h2><p>Upload several promotional banners together. DAVIMART will display them in a full-size rotating slideshow on the homepage. Supported: JPG, PNG, WEBP or GIF, maximum 10 MB per image.</p>
-<div class="drop"><b>Select one or more banner images</b><br><input id="bannerFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple><div id="previewGrid"></div></div>
+<section class="panel" id="bannerPanel"><h2>Homepage banner manager</h2><p>Upload several promotional banners together. DAVIMART will display them in a full-size rotating slideshow on the homepage. Supported: JPG, PNG, WEBP, GIF, MP4 or WEBM, maximum 10 MB per file.</p>
+<div class="drop"><b>Select promotional images or videos</b><br><input id="bannerFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple><div id="previewGrid"></div></div>
 <div class="actions"><button class="btn btn-gold" id="publish">Upload selected banners</button><button class="btn btn-light" id="removeAll">Remove all and restore default artwork</button></div>
-<p id="status" role="status">Choose one or more images to preview them before uploading.</p>
+<p id="status" role="status">Choose images or videos to preview them before uploading.</p>
 <div class="notice">Each banner fills the promotional image area. If you upload more than one, they rotate automatically every 5 seconds. You can remove individual banners below.</div>
 <h2 style="margin-top:24px">Published homepage banners</h2><div id="bannerGallery">Loading banners…</div>
 </section>
@@ -109,17 +109,18 @@ const fileInput=document.getElementById("bannerFile");
 const previewGrid=document.getElementById("previewGrid");
 const status=document.getElementById("status");
 const gallery=document.getElementById("bannerGallery");
-const allowedTypes=["image/jpeg","image/png","image/webp","image/gif"];
+const allowedTypes=["image/jpeg","image/png","image/webp","image/gif","video/mp4","video/webm"];
 fileInput.onchange=()=>{
   previewGrid.innerHTML="";
   const files=Array.from(fileInput.files||[]);
   for(const file of files){
     if(!allowedTypes.includes(file.type)||file.size>10*1024*1024){
-      status.textContent="One or more files are not supported or exceed 10 MB. Please select JPG, PNG, WEBP or GIF files under 10 MB each.";
+      status.textContent="One or more files are not supported or exceed 10 MB. Use JPG, PNG, WEBP, GIF, MP4 or WEBM files under 10 MB each.";
       fileInput.value="";previewGrid.innerHTML="";return;
     }
-    const img=document.createElement("img");
-    img.alt=file.name;img.src=URL.createObjectURL(file);previewGrid.appendChild(img);
+    const url=URL.createObjectURL(file);
+    if(file.type.startsWith("video/")){const video=document.createElement("video");video.src=url;video.muted=true;video.controls=true;video.playsInline=true;video.style.cssText="width:100%;height:100px;object-fit:cover;border-radius:9px;background:#e7edf6";previewGrid.appendChild(video);}
+    else{const img=document.createElement("img");img.alt=file.name;img.src=url;previewGrid.appendChild(img);}
   }
   status.textContent=files.length?files.length+" banner image(s) ready to upload.":"Choose one or more images.";
 };
@@ -134,7 +135,11 @@ async function loadBannerGallery(){
   for(const file of banners){
     const {data}=db.storage.from(BUCKET).getPublicUrl(file.name);
     const card=document.createElement("div");card.className="banner-card";
-    const img=document.createElement("img");img.src=data.publicUrl+"?v="+encodeURIComponent(file.updated_at||file.created_at||Date.now());img.alt="Published homepage banner";
+    const mediaUrl=data.publicUrl+"?v="+encodeURIComponent(file.updated_at||file.created_at||Date.now());
+    const isVideo=/\\.(mp4|webm)$/i.test(file.name);
+    let img;
+    if(isVideo){img=document.createElement("video");img.src=mediaUrl;img.muted=true;img.controls=true;img.playsInline=true;}
+    else{img=document.createElement("img");img.src=mediaUrl;img.alt="Published homepage banner";}
     const label=document.createElement("small");label.textContent=file.name;
     const removeButton=document.createElement("button");removeButton.type="button";removeButton.textContent="Remove banner";
     removeButton.onclick=()=>removeOneBanner(file.name);
@@ -233,9 +238,9 @@ loadBannerGallery();
 }
 document.getElementById("publish").onclick=async()=>{
   const files=Array.from(fileInput.files||[]);
-  if(!files.length){status.textContent="Choose at least one image first.";return;}
+  if(!files.length){status.textContent="Choose at least one image or video first.";return;}
   const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_ID){status.textContent="Access denied.";return;}
-  status.textContent="Uploading "+files.length+" banner image(s)…";
+  status.textContent="Uploading "+files.length+" banner file(s)…";
   let uploaded=0;
   for(const file of files){
     const safeName="slide-"+Date.now()+"-"+Math.random().toString(36).slice(2,9)+"."+file.name.split(".").pop().toLowerCase();
@@ -243,7 +248,7 @@ document.getElementById("publish").onclick=async()=>{
     if(error){status.textContent="Uploaded "+uploaded+" of "+files.length+". Upload error: "+error.message;await loadBannerGallery();return;}
     uploaded++;
   }
-  status.textContent=uploaded+" banner image(s) uploaded successfully. They will rotate on the homepage.";
+  status.textContent=uploaded+" banner file(s) uploaded successfully. They will rotate on the homepage.";
   fileInput.value="";previewGrid.innerHTML="";await loadBannerGallery();
 };
 document.getElementById("removeAll").onclick=async()=>{
