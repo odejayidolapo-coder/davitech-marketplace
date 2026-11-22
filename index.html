@@ -1664,21 +1664,31 @@ async function loadHomepageBanner() {
 loadHomepageProducts();
 loadHomepageBanner();
 
+async function updateSellerDashboardVisibility(session) {
+  const button = document.getElementById("sellerDashboardBtn");
+  button.hidden = true;
+  if (!session) return;
+  const { data, error } = await db.from("profiles")
+    .select("seller_status").eq("id", session.user.id).maybeSingle();
+  button.hidden = !!error || data?.seller_status !== "approved";
+}
+
 async function updateAccountButtons() {
   const { data: { session } } = await db.auth.getSession();
 
   document.getElementById("menuSignInBtn").hidden = !!session;
   document.getElementById("signoutBtn").hidden = !session;
-  document.getElementById("sellerDashboardBtn").hidden = !session;
   document.getElementById("menuAdminBtn").hidden = !(session && session.user.id === DAVIMART_ADMIN_ID);
+  await updateSellerDashboardVisibility(session);
   document.getElementById("accountMenu").hidden = true;
 }
 
 db.auth.onAuthStateChange((event, session) => {
   document.getElementById("menuSignInBtn").hidden = !!session;
   document.getElementById("signoutBtn").hidden = !session;
-  document.getElementById("sellerDashboardBtn").hidden = !session;
   document.getElementById("menuAdminBtn").hidden = !(session && session.user.id === DAVIMART_ADMIN_ID);
+  document.getElementById("sellerDashboardBtn").hidden = true;
+  if (session) setTimeout(() => updateSellerDashboardVisibility(session), 0);
 });
 
 updateAccountButtons();
