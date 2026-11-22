@@ -1592,7 +1592,7 @@ async function loadHomepageBanner() {
     const file = slides[current];
     const { data } = db.storage.from(DAVIMART_BANNER_BUCKET).getPublicUrl(file.name);
     const url = data.publicUrl + "?v=" + encodeURIComponent(file.updated_at || file.created_at || Date.now());
-    const isVideo = /\\.(mp4|webm)$/i.test(file.name);
+    const isVideo = /\.(mp4|webm)$/i.test(file.name);
     const media = document.createElement(isVideo ? "video" : "img");
     media.className = "dm-custom-banner-image";
     media.style.opacity = "0";
