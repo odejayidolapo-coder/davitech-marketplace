@@ -136,7 +136,7 @@ async function loadBannerGallery(){
     const {data}=db.storage.from(BUCKET).getPublicUrl(file.name);
     const card=document.createElement("div");card.className="banner-card";
     const mediaUrl=data.publicUrl+"?v="+encodeURIComponent(file.updated_at||file.created_at||Date.now());
-    const isVideo=/\\.(mp4|webm)$/i.test(file.name);
+    const isVideo=/\.(mp4|webm)$/i.test(file.name);
     let img;
     if(isVideo){img=document.createElement("video");img.src=mediaUrl;img.muted=true;img.controls=true;img.playsInline=true;}
     else{img=document.createElement("img");img.src=mediaUrl;img.alt="Published homepage banner";}
