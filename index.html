@@ -1275,6 +1275,7 @@ body.dm-modal-open{overflow:hidden}
   </div>
 <div id="accountMenu" class="account-menu" hidden>
   <button id="menuSignInBtn" onclick="showMessage('signin')">Sign In</button>
+  <button onclick="window.location.href='settings.html'">⚙️ Settings</button>
   <button>My Profile</button>
   <button>My Orders</button>
   <button>My Wishlist</button>
@@ -1494,16 +1495,7 @@ body.dm-modal-open{overflow:hidden}
   <a href="real-estate.html"><span>🏡</span>Real Estate</a>
   <a href="account.html"><span>👤</span>Account</a>
 </nav>
-  
-<footer>
-  <div class="container">
-    <h2 style="color:white">DAVIMART by DAVITECH</h2>
-    <p>Fast Reliable Affordable.</p>
-    <p>Products and properties in one marketplace.</p>
-    <p><a href="https://wa.me/2349068847614">Contact DAVITECH on WhatsApp</a></p>
-    <p>© <span id="year"></span> DAVITECH. All rights reserved.</p>
-  </div>
-</footer>
+
 
 <div class="modal" id="messageModal">
   <div class="modal-box">
@@ -1587,37 +1579,13 @@ function closeSearchResults() {
     "No published listings in " + category + " yet.";
   document.getElementById("listingMessage").scrollIntoView({behavior:"smooth"});
 }
-document.getElementById("year").textContent = new Date().getFullYear();
   document.getElementById("accountBtn").onclick = () => {
   const menu = document.getElementById("accountMenu");
   menu.hidden = !menu.hidden;
 };
 </script>
 
-<script>
-(async()=>{
- const url="https://vaghptbqfjvfhjdhpxrz.supabase.co/storage/v1/object/public/homepage-banners/homepage-content.json?v="+Date.now();
- try{
-  const response=await fetch(url,{cache:"no-store"});
-  if(!response.ok)return;
-  const cfg=await response.json();
-  const set=(el,value)=>{if(el&&typeof value==="string")el.textContent=value;};
-  const how=document.querySelector("#how .container");
-  if(how&&Array.isArray(cfg.steps)){
-   set(how.querySelector("h2"),cfg.howHeading);
-   cfg.steps.slice(0,3).forEach((step,index)=>{const card=how.querySelectorAll(".step")[index];if(card){set(card.querySelector("h3"),step.title);set(card.querySelector("p"),step.description);}});
-  }
-  const footer=document.querySelector("footer .container");
-  if(footer&&cfg.footer){
-   const f=cfg.footer,ps=footer.querySelectorAll("p"),heading=footer.querySelector("h2");
-   set(heading,f.heading);set(ps[0],f.tagline);set(ps[1],f.description);
-   const link=footer.querySelector('a[href*="wa.me"]');if(link){set(link,f.whatsappLabel);if(typeof f.whatsapp==="string"&&/^https:\/\/wa\.me\//i.test(f.whatsapp))link.href=f.whatsapp;}
-   const copyright=footer.querySelector("p:last-child");
-   if(copyright){copyright.textContent="© "+new Date().getFullYear()+" "+(f.copyright||"DAVITECH. All rights reserved.");}
-  }
- }catch(error){console.warn("DAVIMART homepage content settings unavailable; showing default content.",error);}
-})();
-</script>
+
 
 </body>
 </html>
