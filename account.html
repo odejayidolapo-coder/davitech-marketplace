@@ -26,6 +26,14 @@ button.secondary{background:#e8edf5;color:#102b55}
 .feature strong{display:block;color:#102b55;margin-bottom:7px}
 .feature p{font-size:13px;color:#667085;line-height:1.5;margin:0}
 .status{font-size:12px;color:#8a5b00;margin-top:10px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.form-field{display:flex;flex-direction:column;gap:6px}
+.form-field label{font-size:13px;font-weight:bold;color:#102b55}
+.form-field input,.form-field select,.form-field textarea{width:100%;padding:12px;border:1px solid #ccd3dd;border-radius:7px;font:inherit}
+.form-field textarea{min-height:85px;resize:vertical}
+.form-help{font-size:12px;color:#667085;line-height:1.5}
+.form-message{line-height:1.5;overflow-wrap:anywhere}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}}
 .bottom-nav{position:fixed;bottom:0;left:0;width:100%;display:flex;background:white;border-top:2px solid #e4b449;z-index:10}
 .bottom-nav a{flex:1;text-align:center;text-decoration:none;color:#102b55;font-size:11px;font-weight:900;padding:10px 2px}
 .bottom-nav span{display:block;font-size:21px;margin-bottom:4px}
@@ -88,6 +96,29 @@ button.secondary{background:#e8edf5;color:#102b55}
 <button id="applySellerBtn" hidden>Apply to Become a Seller</button>
 <button class="secondary" id="signOutBtn">Sign Out</button>
 </div>
+</section>
+
+<section class="panel" id="sellerVerificationPanel" hidden>
+<h2>Seller Verification Application</h2>
+<p>Complete the details below. Your documents are stored privately and are visible only to you and authorized DAVIMART verification administrators.</p>
+<form id="sellerVerificationForm">
+<div class="form-grid">
+<div class="form-field"><label for="sellerType">Seller type</label><select id="sellerType" required><option value="individual">Individual seller</option><option value="business">Registered business</option></select></div>
+<div class="form-field"><label for="sellerPhone">Phone number</label><input id="sellerPhone" type="tel" required placeholder="Active phone number"></div>
+<div class="form-field"><label for="sellerAddress">Residential or business address</label><input id="sellerAddress" required placeholder="Full address"></div>
+<div class="form-field"><label for="identityType">Identity document</label><select id="identityType" required><option value="nin">NIN</option><option value="international_passport">International passport</option><option value="drivers_license">Driver's licence</option></select></div>
+<div class="form-field" id="businessNameField" hidden><label for="businessName">Registered business name</label><input id="businessName" placeholder="Business name"></div>
+<div class="form-field" id="cacNumberField" hidden><label for="cacNumber">CAC registration number</label><input id="cacNumber" placeholder="CAC number"></div>
+<div class="form-field"><label for="identityFile">Identity document image or PDF</label><input id="identityFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required></div>
+<div class="form-field"><label for="selfieFile">Your selfie</label><input id="selfieFile" type="file" accept="image/jpeg,image/png,image/webp" required></div>
+<div class="form-field"><label for="addressFile">Proof of address</label><input id="addressFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required></div>
+<div class="form-field" id="cacFileField" hidden><label for="cacFile">CAC certificate/document</label><input id="cacFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></div>
+<div class="form-field" style="grid-column:1/-1"><label for="regulatedDetails">Do you sell regulated products or services? (Optional)</label><textarea id="regulatedDetails" placeholder="Mention category and any relevant permit or licence details, if applicable."></textarea></div>
+</div>
+<p class="form-help">Accepted documents: JPG, PNG, WEBP or PDF. Maximum 10 MB per file. Business applicants must provide CAC details. Individual sellers do not need CAC registration. Category-specific licences may be requested where legally required.</p>
+<div class="actions"><button id="submitSellerVerification" type="submit">Submit for Verification</button><button class="secondary" id="cancelSellerVerification" type="button">Cancel</button></div>
+<p class="form-message" id="sellerVerificationMessage" aria-live="polite"></p>
+</form>
 </section>
 
 <section class="panel">
@@ -245,9 +276,21 @@ user.email || "";
  document.getElementById("sellerStatus").textContent =
  "Seller application: " + (profile?.seller_status || "Not available");
 
+ const {data:verificationApps,error:verificationError} = await db
+  .from("seller_verification_applications")
+  .select("status,verified_level,submitted_at")
+  .eq("user_id",user.id)
+  .order("created_at",{ascending:false})
+  .limit(1);
+ const latestApplication = verificationApps && verificationApps[0];
+ const sellerLabel = latestApplication
+  ? "Seller verification: " + latestApplication.status.replace("_"," ")
+  : "Seller application: " + (profile?.seller_status || "Not available");
+ document.getElementById("sellerStatus").textContent = sellerLabel;
  const applyButton = document.getElementById("applySellerBtn");
  applyButton.hidden = profileError || !profile ||
- !["not_applied","rejected"].includes(profile.seller_status);
+  profile.seller_status === "approved" ||
+  (latestApplication && ["pending","reviewing","more_info"].includes(latestApplication.status));
 
  if(profileError){
   document.getElementById("accountStatus").textContent =
@@ -323,21 +366,96 @@ document.getElementById("signOutBtn").onclick = async function(){
  }
 };
 
-document.getElementById("applySellerBtn").onclick = async function(){
- const button = this;
- button.disabled = true;
- document.getElementById("accountStatus").textContent =
- "Submitting seller application...";
+const verificationPanel = document.getElementById("sellerVerificationPanel");
+const verificationForm = document.getElementById("sellerVerificationForm");
+const verificationMessage = document.getElementById("sellerVerificationMessage");
+const sellerType = document.getElementById("sellerType");
 
- const {error} = await db.rpc("apply_to_become_seller");
+function updateSellerTypeFields(){
+ const isBusiness = sellerType.value === "business";
+ document.getElementById("businessNameField").hidden = !isBusiness;
+ document.getElementById("cacNumberField").hidden = !isBusiness;
+ document.getElementById("cacFileField").hidden = !isBusiness;
+ document.getElementById("businessName").required = isBusiness;
+ document.getElementById("cacNumber").required = isBusiness;
+ document.getElementById("cacFile").required = isBusiness;
+}
+sellerType.addEventListener("change",updateSellerTypeFields);
+updateSellerTypeFields();
 
- button.disabled = false;
- document.getElementById("accountStatus").textContent = error
- ? error.message
- : "Your seller application has been submitted. Await admin approval.";
-
- if(!error) await loadAccount();
+document.getElementById("applySellerBtn").onclick = function(){
+ verificationPanel.hidden = false;
+ verificationPanel.scrollIntoView({behavior:"smooth",block:"start"});
 };
+document.getElementById("cancelSellerVerification").onclick = function(){
+ verificationPanel.hidden = true;
+ verificationMessage.textContent = "";
+};
+
+function safeFileName(file){
+ const ext = (file.name.split(".").pop() || "file").toLowerCase().replace(/[^a-z0-9]/g,"");
+ return Date.now() + "-" + Math.random().toString(36).slice(2) + "." + ext;
+}
+async function uploadVerificationFile(userId,file){
+ if(!file) throw new Error("Please select all required verification documents.");
+ const allowed = ["image/jpeg","image/png","image/webp","application/pdf"];
+ if(!allowed.includes(file.type)) throw new Error("One of your files has an unsupported format.");
+ if(file.size > 10 * 1024 * 1024) throw new Error("Each document must be 10 MB or smaller.");
+ const path = userId + "/" + safeFileName(file);
+ const {error} = await db.storage.from("seller-verification-docs").upload(path,file,{upsert:false,contentType:file.type});
+ if(error) throw error;
+ return path;
+}
+
+verificationForm.addEventListener("submit",async function(event){
+ event.preventDefault();
+ const {data:{user},error:userError} = await db.auth.getUser();
+ if(userError || !user){
+  verificationMessage.textContent = "Please sign in again before submitting.";
+  return;
+ }
+ const isBusiness = sellerType.value === "business";
+ const submitButton = document.getElementById("submitSellerVerification");
+ submitButton.disabled = true;
+ verificationMessage.textContent = "Uploading your documents securely...";
+ const uploadedPaths = [];
+ try{
+  const identityPath = await uploadVerificationFile(user.id,document.getElementById("identityFile").files[0]); uploadedPaths.push(identityPath);
+  const selfiePath = await uploadVerificationFile(user.id,document.getElementById("selfieFile").files[0]); uploadedPaths.push(selfiePath);
+  const addressPath = await uploadVerificationFile(user.id,document.getElementById("addressFile").files[0]); uploadedPaths.push(addressPath);
+  let cacPath = null;
+  if(isBusiness){
+   cacPath = await uploadVerificationFile(user.id,document.getElementById("cacFile").files[0]); uploadedPaths.push(cacPath);
+  }
+  verificationMessage.textContent = "Documents uploaded. Submitting your application...";
+  const application = {
+   user_id:user.id,
+   seller_type:sellerType.value,
+   contact_phone:document.getElementById("sellerPhone").value.trim(),
+   seller_address:document.getElementById("sellerAddress").value.trim(),
+   business_name:isBusiness ? document.getElementById("businessName").value.trim() : null,
+   cac_registration_number:isBusiness ? document.getElementById("cacNumber").value.trim() : null,
+   identity_document_type:document.getElementById("identityType").value,
+   identity_document_path:identityPath,
+   selfie_path:selfiePath,
+   proof_of_address_path:addressPath,
+   cac_document_path:cacPath,
+   regulated_category_details:{details:document.getElementById("regulatedDetails").value.trim()}
+  };
+  const {error:insertError} = await db.from("seller_verification_applications").insert(application);
+  if(insertError) throw insertError;
+  verificationMessage.textContent = "Your seller verification application has been submitted. DAVIMART will review it and update your account.";
+  verificationForm.reset();
+  updateSellerTypeFields();
+  verificationPanel.hidden = true;
+  await loadAccount();
+ }catch(error){
+  if(uploadedPaths.length) await db.storage.from("seller-verification-docs").remove(uploadedPaths);
+  verificationMessage.textContent = error.message || "We could not submit your application. Please try again.";
+ }finally{
+  submitButton.disabled = false;
+ }
+});
 
 db.auth.onAuthStateChange(function(){
  setTimeout(loadAccount,0);
