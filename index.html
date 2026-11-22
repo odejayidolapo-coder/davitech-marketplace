@@ -1643,7 +1643,7 @@ function openProductDetails(productId) {
     modal.className = "dm-product-modal";
     modal.innerHTML = '<div class="dm-product-modal-card" role="dialog" aria-modal="true" aria-labelledby="dmProductTitle"><button type="button" class="dm-product-close" aria-label="Close">×</button><div class="dm-product-content"></div></div>';
     modal.addEventListener("click", event => {
-      if (event.target === modal || event.target.closest(".dm-product-close")) modal.classList.remove("show");
+      if (event.target === modal || event.target.closest(".dm-product-close")) { modal.classList.remove("show"); document.body.style.overflow = ""; }
     });
     document.body.appendChild(modal);
   }
