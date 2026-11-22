@@ -1757,8 +1757,8 @@ window.showMessage = function(type) {
       <input id="fullName" placeholder="Full name" style="width:100%;padding:12px;margin:8px 0">
       <input id="email" type="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0">
       <div style="position:relative;width:100%;margin:8px 0">
-        <input id="password" type="password" placeholder="Password (minimum 8 characters)" style="width:100%;padding:12px;padding-right:76px;box-sizing:border-box">
-        <button type="button" id="togglePasswordBtn" class="btn outline" aria-label="Show password" aria-pressed="false" style="position:absolute;right:6px;top:6px;padding:6px 10px">Show</button>
+        <input id="password" type="password" placeholder="Password (minimum 8 characters)" style="width:100%;padding:12px;padding-right:44px;box-sizing:border-box">
+        <button type="button" id="togglePasswordBtn" aria-label="Show password" aria-pressed="false" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;padding:5px 7px;font-size:19px;line-height:1;cursor:pointer">👁️</button>
       </div>
       
       <p id="authStatus"></p>
@@ -1773,7 +1773,7 @@ window.showMessage = function(type) {
   togglePasswordBtn.onclick = () => {
     const showing = passwordInput.type === "password";
     passwordInput.type = showing ? "text" : "password";
-    togglePasswordBtn.textContent = showing ? "Hide" : "Show";
+    togglePasswordBtn.textContent = showing ? "🙈" : "👁️";
     togglePasswordBtn.setAttribute("aria-label", showing ? "Hide password" : "Show password");
     togglePasswordBtn.setAttribute("aria-pressed", String(showing));
   };
