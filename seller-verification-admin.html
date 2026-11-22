@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Seller Verification Admin | DAVIMART</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6fa;color:#17243a;font-family:Arial,sans-serif}
+header{background:#071f50;color:white;padding:18px 5%;font-weight:900;font-size:22px}header span{color:#ffbd00}
+main{max-width:1100px;margin:25px auto;padding:0 15px}.panel,.application{background:white;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 12px #102b5510}
+h1,h2,h3{color:#102b55}.application h3{margin-top:0}.muted{color:#667085;font-size:13px;line-height:1.5}
+input,select,textarea{width:100%;padding:11px;border:1px solid #ccd3dd;border-radius:7px;margin:6px 0 12px;font:inherit}
+button{background:#102b55;color:white;border:0;border-radius:7px;padding:11px 15px;font-weight:bold;cursor:pointer;margin:4px}
+button.gold{background:#e4b449;color:#102b55}button.red{background:#a92727}
+.docs{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.docs a{background:#eef2f8;padding:9px 12px;border-radius:7px;color:#102b55;text-decoration:none;font-size:13px;font-weight:bold}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.status{font-weight:bold;color:#8a5b00}
+[hidden]{display:none!important}@media(max-width:600px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<header>DAVIMART <span>Seller Verification</span></header>
+<main>
+<section class="panel" id="loginPanel"><h1>Administrator Sign In</h1><p class="muted">Only authorized DAVIMART administrators can review seller documents and applications.</p>
+<input id="email" type="email" placeholder="Admin email"><input id="password" type="password" placeholder="Password">
+<button id="loginBtn">Sign In</button><p id="loginMessage" class="muted" aria-live="polite"></p></section>
+<section class="panel" id="dashboard" hidden><h1>Seller Applications</h1><p id="adminMessage" class="muted" aria-live="polite"></p><button id="refreshBtn">Refresh Applications</button><button id="logoutBtn">Sign Out</button><div id="applications"></div></section>
+</main>
+<script>
+const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
+const ADMIN_ID="4aa054c0-97c2-45c3-8c3a-9bf87f2c365c";
+const loginPanel=document.getElementById("loginPanel"),dashboard=document.getElementById("dashboard");
+const msg=document.getElementById("adminMessage"),list=document.getElementById("applications");
+document.getElementById("loginBtn").onclick=async()=>{
+ const {error}=await db.auth.signInWithPassword({email:document.getElementById("email").value.trim(),password:document.getElementById("password").value});
+ document.getElementById("loginMessage").textContent=error?error.message:"Signed in. Checking administrator access...";
+ if(!error) await checkAdmin();
+};
+async function checkAdmin(){
+ const {data:{user}}=await db.auth.getUser();
+ if(!user){loginPanel.hidden=false;dashboard.hidden=true;return}
+ if(user.id!==ADMIN_ID){document.getElementById("loginMessage").textContent="This account is not authorized to access seller verification.";await db.auth.signOut();return}
+ loginPanel.hidden=true;dashboard.hidden=false;await loadApplications();
+}
+async function signedLink(path){
+ if(!path)return null;
+ const {data,error}=await db.storage.from("seller-verification-docs").createSignedUrl(path,300);
+ return error?null:data.signedUrl;
+}
+function addLink(container,label,url){
+ if(!url)return;
+ const a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.textContent=label+" (5 min link)";container.appendChild(a);
+}
+async function loadApplications(){
+ msg.textContent="Loading applications...";
+ const {data,error}=await db.from("seller_verification_applications").select("*").order("submitted_at",{ascending:false});
+ if(error){msg.textContent="Unable to load applications: "+error.message;return}
+ list.replaceChildren();
+ if(!data.length){msg.textContent="No seller verification applications yet.";return}
+ msg.textContent=data.length+" application(s) found.";
+ for(const app of data){
+  const card=document.createElement("article");card.className="application";
+  const title=document.createElement("h3");title.textContent=(app.business_name||"Individual seller")+" — "+app.seller_type;card.appendChild(title);
+  const details=document.createElement("p");details.className="muted";details.textContent="Application: "+app.id+" | User: "+app.user_id+" | Phone: "+app.contact_phone+" | Address: "+app.seller_address+" | Submitted: "+new Date(app.submitted_at).toLocaleString();card.appendChild(details);
+  const state=document.createElement("p");state.className="status";state.textContent="Status: "+app.status+" | Verification level: "+(app.verified_level||"Not assigned");card.appendChild(state);
+  const docs=document.createElement("div");docs.className="docs";card.appendChild(docs);
+  for(const [label,path] of [["Identity document",app.identity_document_path],["Selfie",app.selfie_path],["Proof of address",app.proof_of_address_path],["CAC certificate",app.cac_document_path]]){
+   const url=await signedLink(path);addLink(docs,label,url);
+  }
+  if(app.regulated_category_details?.details){const note=document.createElement("p");note.className="muted";note.textContent="Regulated category details: "+app.regulated_category_details.details;card.appendChild(note)}
+  const grid=document.createElement("div");grid.className="grid";
+  const status=document.createElement("select");for(const val of ["pending","reviewing","more_info","approved","rejected"]){const o=document.createElement("option");o.value=val;o.textContent=val;o.selected=val===app.status;status.appendChild(o)}
+  const level=document.createElement("select");for(const [val,label] of [["","No verification level"],["basic_verified","Level 1 — Basic Verified"],["verified_business","Level 2 — Verified Business"],["premium_trusted","Level 3 — Premium Trusted"]]){const o=document.createElement("option");o.value=val;o.textContent=label;o.selected=(app.verified_level||"")===val;level.appendChild(o)}
+  const notes=document.createElement("textarea");notes.placeholder="Private admin review notes";notes.value=app.admin_notes||"";
+  const left=document.createElement("div"),right=document.createElement("div");left.append("Application status",status);right.append("Verification level",level);grid.append(left,right);card.appendChild(grid);card.append("Internal review notes",notes);
+  const save=document.createElement("button");save.className="gold";save.textContent="Save Review";
+  save.onclick=async()=>{
+   if(status.value==="approved"&&!level.value){msg.textContent="Choose a verification level before approving.";return}
+   save.disabled=true;msg.textContent="Saving review...";
+   const {data:{user}}=await db.auth.getUser();
+   const {error:saveError}=await db.from("seller_verification_applications").update({status:status.value,verified_level:level.value||null,admin_notes:notes.value.trim()||null,reviewed_by:user.id,reviewed_at:new Date().toISOString()}).eq("id",app.id);
+   save.disabled=false;
+   if(saveError){msg.textContent="Could not save: "+saveError.message;return}
+   msg.textContent="Review saved.";await loadApplications();
+  };
+  card.appendChild(save);list.appendChild(card);
+ }
+}
+document.getElementById("refreshBtn").onclick=loadApplications;
+document.getElementById("logoutBtn").onclick=async()=>{await db.auth.signOut();dashboard.hidden=true;loginPanel.hidden=false};
+db.auth.getUser().then(({data})=>{if(data.user)checkAdmin()});
+</script></body></html>
