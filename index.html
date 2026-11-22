@@ -1193,6 +1193,22 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
 .dm-float-tag{position:absolute;padding:8px 11px;border:1px solid #ffffff45;border-radius:30px;background:#ffffffeb;color:#122a51;font-size:8px;font-weight:900;letter-spacing:.4px;box-shadow:0 8px 20px #00143b55;z-index:4}.dm-tag-one{top:10px;right:5%}.dm-tag-two{bottom:9px;left:0}
 @media(max-width:700px){.dm-device-hero{grid-template-columns:1fr;gap:5px;padding:28px 20px 22px;min-height:0}.dm-device-hero .dm-hero-copy h1{font-size:42px;margin:12px 0}.dm-device-hero .dm-hero-copy p{font-size:13px}.dm-hero-highlights{gap:6px;margin-top:15px}.dm-hero-highlights span{font-size:8px;padding:7px 8px}.dm-device-stage{height:235px;margin-top:3px}.dm-laptop{width:78%;left:3%;top:35px}.dm-laptop-screen{border-width:5px;border-bottom-width:7px;padding:6px 7px}.dm-screen-banner{margin-top:4px;padding:7px 9px}.dm-screen-banner strong{font-size:18px}.dm-screen-cats span{font-size:8px}.dm-screen-cats b{font-size:5px}.dm-smartphone{width:25%;min-width:82px;right:4%;bottom:2px}.dm-phone-screen{min-height:174px;padding:7px 5px 4px}.dm-phone-promo{height:65px}.dm-phone-promo b{font-size:11px}.dm-float-tag{font-size:7px;padding:7px 9px}.dm-tag-one{right:2%;top:8px}.dm-tag-two{left:1%;bottom:0}}
 
+
+/* DAVIMART admin homepage banner manager */
+.dm-device-stage.has-custom-banner{height:auto;min-height:260px;perspective:none}
+.dm-device-stage.has-custom-banner>.dm-device-glow,
+.dm-device-stage.has-custom-banner>.dm-device-orbit,
+.dm-device-stage.has-custom-banner>.dm-laptop,
+.dm-device-stage.has-custom-banner>.dm-smartphone,
+.dm-device-stage.has-custom-banner>.dm-float-tag{display:none}
+.dm-custom-banner-image{display:block;width:100%;max-height:300px;aspect-ratio:16/10;object-fit:contain;border-radius:14px;filter:drop-shadow(0 18px 24px #0007)}
+.dm-admin-banner-tools{margin:14px 0;padding:16px;border:1px solid #d9e2f1;border-radius:14px;background:#f7f9fd;color:#14294d}
+.dm-admin-banner-tools h3{margin:0 0 8px}.dm-admin-banner-tools p{font-size:13px;line-height:1.5}
+.dm-admin-banner-tools input[type=file]{display:block;width:100%;margin:12px 0;padding:10px;background:white;border:1px solid #cbd6e6;border-radius:8px;color:#14294d}
+.dm-admin-banner-tools button{margin:6px 6px 6px 0}
+#dmBannerPreviewWrap{margin:12px 0}#dmBannerPreview{display:block;width:100%;max-height:220px;object-fit:contain;border-radius:10px;background:#e7edf6}
+@media(max-width:700px){.dm-device-stage.has-custom-banner{min-height:0}.dm-custom-banner-image{max-height:220px}}
+
 </style>
 </head>
 <body>
@@ -1555,6 +1571,33 @@ const db = window.supabase.createClient(
   "https://vaghptbqfjvfhjdhpxrz.supabase.co",
   "sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p"
 );
+const DAVIMART_ADMIN_ID = "4aa054c0-97c2-45c3-8c3a-9bf87f2c365c";
+const DAVIMART_BANNER_BUCKET = "homepage-banners";
+
+async function loadHomepageBanner() {
+  const stage = document.querySelector(".dm-device-stage");
+  if (!stage) return;
+  const { data: files, error } = await db.storage.from(DAVIMART_BANNER_BUCKET)
+    .list("", { search: "homepage-banner", limit: 10 });
+  if (error || !files || !files.length) return;
+  const file = files.find(item => item.name === "homepage-banner");
+  if (!file) return;
+  const { data } = db.storage.from(DAVIMART_BANNER_BUCKET)
+    .getPublicUrl("homepage-banner");
+  const imageUrl = data.publicUrl + "?v=" + encodeURIComponent(file.updated_at || file.created_at || Date.now());
+  let image = stage.querySelector(".dm-custom-banner-image");
+  if (!image) {
+    image = document.createElement("img");
+    image.className = "dm-custom-banner-image";
+    image.alt = "DAVIMART promotional banner";
+    stage.appendChild(image);
+  }
+  image.src = imageUrl;
+  image.hidden = false;
+  stage.classList.add("has-custom-banner");
+}
+loadHomepageBanner();
+
 async function updateAccountButtons() {
   const { data: { session } } = await db.auth.getSession();
 
@@ -1730,6 +1773,7 @@ async function showDashboard() {
     <p id="dashStatus"></p>
     <div id="sellerNotice"></div>
     <div id="sellerListingArea"></div>
+    ${user.id === DAVIMART_ADMIN_ID ? '<button class="btn primary" id="adminBannerBtn" style="margin:12px 0">🖼️ Manage homepage banner</button><div id="adminBannerPanel" hidden></div>' : ''}
     <button class="btn primary" id="okayBtn">Okay, start shopping</button>
   `;
   document.getElementById("notificationBell").onclick = () => {
@@ -1737,6 +1781,61 @@ async function showDashboard() {
     panel.style.display =
       panel.style.display === "none" ? "block" : "none";
   };
+  if (user.id === DAVIMART_ADMIN_ID) {
+    document.getElementById("adminBannerBtn").onclick = async () => {
+      const panel = document.getElementById("adminBannerPanel");
+      panel.hidden = false;
+      panel.innerHTML = `
+        <div class="dm-admin-banner-tools">
+          <h3>Homepage banner manager</h3>
+          <p>Upload an image to replace the banner artwork on the DAVIMART homepage. JPG, PNG, WEBP or GIF · Maximum 10 MB.</p>
+          <input id="dmBannerFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+          <div id="dmBannerPreviewWrap" hidden><img id="dmBannerPreview" alt="Selected banner preview"></div>
+          <button class="btn primary" id="dmBannerUpload" type="button">Upload and publish banner</button>
+          <button class="btn outline" id="dmBannerRemove" type="button">Remove custom banner</button>
+          <p id="dmBannerStatus" role="status"></p>
+        </div>`;
+      const fileInput = document.getElementById("dmBannerFile");
+      const previewWrap = document.getElementById("dmBannerPreviewWrap");
+      const preview = document.getElementById("dmBannerPreview");
+      const status = document.getElementById("dmBannerStatus");
+      fileInput.onchange = () => {
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) { previewWrap.hidden = true; return; }
+        if (!["image/jpeg","image/png","image/webp","image/gif"].includes(file.type) || file.size > 10 * 1024 * 1024) {
+          status.textContent = "Choose a JPG, PNG, WEBP or GIF image under 10 MB.";
+          fileInput.value = "";
+          previewWrap.hidden = true;
+          return;
+        }
+        preview.src = URL.createObjectURL(file);
+        previewWrap.hidden = false;
+        status.textContent = "Preview ready. Select Upload and publish banner when satisfied.";
+      };
+      document.getElementById("dmBannerUpload").onclick = async () => {
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) { status.textContent = "Choose an image first."; return; }
+        status.textContent = "Uploading banner...";
+        const { error } = await db.storage.from(DAVIMART_BANNER_BUCKET)
+          .upload("homepage-banner", file, { upsert: true, contentType: file.type, cacheControl: "0" });
+        if (error) { status.textContent = "Upload failed: " + error.message; return; }
+        status.textContent = "Banner published successfully. Refreshing homepage preview...";
+        await loadHomepageBanner();
+        setTimeout(() => { if (preview.src.startsWith("blob:")) URL.revokeObjectURL(preview.src); }, 1000);
+      };
+      document.getElementById("dmBannerRemove").onclick = async () => {
+        status.textContent = "Removing custom banner...";
+        const { error } = await db.storage.from(DAVIMART_BANNER_BUCKET).remove(["homepage-banner"]);
+        if (error) { status.textContent = "Could not remove banner: " + error.message; return; }
+        const stage = document.querySelector(".dm-device-stage");
+        const custom = stage && stage.querySelector(".dm-custom-banner-image");
+        if (custom) custom.remove();
+        if (stage) stage.classList.remove("has-custom-banner");
+        status.textContent = "Custom banner removed. The default laptop and phone artwork is restored.";
+      };
+    };
+  }
+
   document.getElementById("dashName").textContent =
     profile?.full_name || user.email;
 
