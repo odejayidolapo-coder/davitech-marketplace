@@ -1345,7 +1345,7 @@ body.dm-modal-open{overflow:hidden}
   <div class="dm-flash-panel">
     <div class="dm-section-head dm-flash-head">
       <div><small>DON'T MISS WHAT'S NEXT</small><h2><span class="dm-lightning">ϟ</span> Flash Sale</h2></div>
-      <div class="dm-countdown-wrap"><span>SALE COUNTDOWN</span><div class="dm-countdown"><b>--</b><i>:</i><b>--</b><i>:</i><b>--</b></div></div>
+      <div class="dm-countdown-wrap"><span>SALE COUNTDOWN</span><div class="dm-countdown" id="dmSaleCountdown"><b>--</b><i>:</i><b>--</b><i>:</i><b>--</b><i>:</i><b>--</b></div></div>
     </div>
     <div class="dm-deal-grid" id="dmFlashSaleGrid">
       <article class="dm-deal-card dm-deal-placeholder"><div class="dm-deal-art">📱</div><span class="dm-deal-tag">ELECTRONICS</span><b>Featured tech deals</b><small>Offers coming soon</small></article>
@@ -1646,6 +1646,47 @@ async function loadHomepageProducts(){
  host.innerHTML="";
  data.forEach(item=>renderProductCard(item,host));
 }
+const DAVIMART_FLASH_CONFIG_FILE = "flash-sale-countdown.png";
+async function loadFlashSaleCountdown() {
+  const display = document.getElementById("dmSaleCountdown");
+  const note = document.querySelector(".dm-sale-note");
+  if (!display) return;
+  const url = db.storage.from(DAVIMART_BANNER_BUCKET).getPublicUrl(DAVIMART_FLASH_CONFIG_FILE).data.publicUrl;
+  let endTime = null;
+  try {
+    const response = await fetch(url + "?v=" + Date.now(), { cache: "no-store" });
+    if (response.ok) {
+      const config = await response.json();
+      const parsed = new Date(config.endsAt).getTime();
+      if (Number.isFinite(parsed)) endTime = parsed;
+    }
+  } catch (error) {
+    console.warn("Flash sale countdown settings could not be loaded.", error);
+  }
+  if (!endTime) {
+    display.innerHTML = "<b>--</b><i>:</i><b>--</b><i>:</i><b>--</b><i>:</i><b>--</b>";
+    if (note) note.textContent = "The countdown will begin when a sale campaign is scheduled.";
+    return;
+  }
+  if (note) note.textContent = "Hurry! Shop available offers before this sale ends.";
+  const tick = () => {
+    const remaining = endTime - Date.now();
+    if (remaining <= 0) {
+      display.innerHTML = '<b style="min-width:auto">Sale Ended</b>';
+      if (note) note.textContent = "This flash sale has ended. Watch this space for the next offer.";
+      return false;
+    }
+    const days = Math.floor(remaining / 86400000);
+    const hours = Math.floor((remaining % 86400000) / 3600000);
+    const minutes = Math.floor((remaining % 3600000) / 60000);
+    const seconds = Math.floor((remaining % 60000) / 1000);
+    display.innerHTML = [days,hours,minutes,seconds].map(n => "<b>" + String(n).padStart(2,"0") + "</b>").join("<i>:</i>");
+    return true;
+  };
+  if (tick()) {
+    const timer = window.setInterval(() => { if (!tick()) window.clearInterval(timer); }, 1000);
+  }
+}
 async function loadFlashSaleImages() {
   const grid=document.getElementById("dmFlashSaleGrid");
   if(!grid)return;
@@ -1719,6 +1760,7 @@ async function loadHomepageBanner() {
 loadHomepageProducts();
 loadHomepageBanner();
 loadFlashSaleImages();
+loadFlashSaleCountdown();
 
 async function updateSellerDashboardVisibility(session) {
   const button = document.getElementById("sellerDashboardBtn");
