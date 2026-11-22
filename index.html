@@ -1584,24 +1584,43 @@ async function loadHomepageBanner() {
     .filter(item => item.name === "homepage-banner" || item.name.startsWith("slide-"))
     .sort((a,b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
   if (!slides.length) return;
-  const image = document.createElement("img");
-  image.className = "dm-custom-banner-image";
-  image.alt = "DAVIMART homepage promotional banner";
-  stage.appendChild(image);
   stage.classList.add("has-custom-banner");
   let current = 0;
-  const showSlide = () => {
+  let timer = null;
+  function showNext() {
+    if (timer) window.clearTimeout(timer);
     const file = slides[current];
     const { data } = db.storage.from(DAVIMART_BANNER_BUCKET).getPublicUrl(file.name);
-    image.style.opacity = "0";
-    window.setTimeout(() => {
-      image.src = data.publicUrl + "?v=" + encodeURIComponent(file.updated_at || file.created_at || Date.now());
-      image.style.opacity = "1";
-    }, 250);
+    const url = data.publicUrl + "?v=" + encodeURIComponent(file.updated_at || file.created_at || Date.now());
+    const isVideo = /\\.(mp4|webm)$/i.test(file.name);
+    const media = document.createElement(isVideo ? "video" : "img");
+    media.className = "dm-custom-banner-image";
+    media.style.opacity = "0";
+    if (isVideo) {
+      media.muted = true;
+      media.autoplay = true;
+      media.playsInline = true;
+      media.controls = false;
+      media.preload = "metadata";
+      media.addEventListener("ended", advance, { once: true });
+    } else {
+      media.alt = "DAVIMART homepage promotional banner";
+    }
+    const previous = stage.querySelector(".dm-custom-banner-image");
+    if (previous) previous.remove();
+    stage.appendChild(media);
+    media.src = url;
+    requestAnimationFrame(() => { media.style.opacity = "1"; });
     current = (current + 1) % slides.length;
-  };
-  showSlide();
-  if (slides.length > 1) window.setInterval(showSlide, 5000);
+    if (slides.length > 1) {
+      timer = window.setTimeout(advance, isVideo ? 20000 : 5000);
+    }
+    if (isVideo) media.play().catch(() => { /* muted autoplay may be restricted */ });
+  }
+  function advance() {
+    if (slides.length > 1) showNext();
+  }
+  showNext();
 }
 loadHomepageBanner();
 
