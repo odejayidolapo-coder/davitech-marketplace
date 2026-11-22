@@ -65,6 +65,15 @@ async function loadApplications(){
    const url=await signedLink(path);addLink(docs,label,url);
   }
   if(app.regulated_category_details?.details){const note=document.createElement("p");note.className="muted";note.textContent="Regulated category details: "+app.regulated_category_details.details;card.appendChild(note)}
+  if(app.regulated_category_details?.ai_screening){
+   const ai=app.regulated_category_details.ai_screening;
+   const panel=document.createElement("section");panel.className="feature";
+   const heading=document.createElement("strong");heading.textContent="AI screening: "+(ai.decision||"not available");panel.appendChild(heading);
+   const summary=document.createElement("p");summary.textContent=ai.summary||"No AI summary supplied.";panel.appendChild(summary);
+   const checks=document.createElement("ul");(ai.checks||[]).forEach(item=>{const li=document.createElement("li");li.textContent=(item.item||"Check")+": "+(item.result||"manual_review")+" — "+(item.explanation||"");checks.appendChild(li)});panel.appendChild(checks);
+   const actions=document.createElement("ul");(ai.required_actions||[]).forEach(item=>{const li=document.createElement("li");li.textContent=item;actions.appendChild(li)});panel.appendChild(actions);
+   const stamp=document.createElement("p");stamp.className="muted";stamp.textContent="AI screening is advisory only. Human review is required. Screened: "+(ai.screened_at||"unknown");panel.appendChild(stamp);card.appendChild(panel);
+  }
   const grid=document.createElement("div");grid.className="grid";
   const status=document.createElement("select");for(const val of ["pending","reviewing","more_info","approved","rejected"]){const o=document.createElement("option");o.value=val;o.textContent=val;o.selected=val===app.status;status.appendChild(o)}
   const level=document.createElement("select");for(const [val,label] of [["","No verification level"],["basic_verified","Level 1 — Basic Verified"],["verified_business","Level 2 — Verified Business"],["premium_trusted","Level 3 — Premium Trusted"]]){const o=document.createElement("option");o.value=val;o.textContent=label;o.selected=(app.verified_level||"")===val;level.appendChild(o)}
