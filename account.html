@@ -288,8 +288,7 @@ user.email || "";
   : "Seller application: " + (profile?.seller_status || "Not available");
  document.getElementById("sellerStatus").textContent = sellerLabel;
  const applyButton = document.getElementById("applySellerBtn");
- applyButton.hidden = profileError || !profile ||
-  profile.seller_status === "approved" ||
+ applyButton.hidden = profile?.seller_status === "approved" ||
   (latestApplication && ["pending","reviewing","more_info"].includes(latestApplication.status));
 
  if(profileError){
