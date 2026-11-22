@@ -113,6 +113,12 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <div class="drop"><b>Choose flash sale images</b><br><input id="flashSaleFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple><div id="flashSalePreview"></div></div>
 <div class="actions"><button class="btn btn-gold" id="uploadFlashSale" type="button">Upload flash sale images</button></div>
 <p id="flashSaleStatus" role="status">Choose up to four images.</p>
+<h2 style="margin-top:26px">Flash sale countdown settings</h2>
+<p>Choose the exact date and local time when this sale should end. The homepage countdown will use this setting.</p>
+<label for="flashSaleEndTime">Sale end date and time</label>
+<input id="flashSaleEndTime" type="datetime-local" style="display:block;width:100%;max-width:420px;padding:12px;margin:8px 0 12px;border:1px solid #dbe2ed;border-radius:8px">
+<div class="actions"><button class="btn btn-gold" id="saveFlashSaleCountdown" type="button">Save countdown</button><button class="btn btn-light" id="clearFlashSaleCountdown" type="button">Clear countdown</button></div>
+<p id="flashSaleCountdownStatus" role="status">Loading countdown settings…</p>
 <h2 style="margin-top:24px">Published flash sale images</h2><div id="flashSaleGallery">Loading images…</div>
 </section>
 </div></div></div>
@@ -249,6 +255,48 @@ document.getElementById("uploadFlashSale").onclick=async()=>{
   flashSaleFiles.value="";flashSalePreview.innerHTML="";
   await loadFlashSaleGallery();
 };
+const flashSaleEndInput=document.getElementById("flashSaleEndTime");
+const flashSaleCountdownStatus=document.getElementById("flashSaleCountdownStatus");
+const FLASH_COUNTDOWN_FILE="flash-sale-countdown.png";
+async function loadFlashSaleCountdownSettings(){
+  if(!flashSaleEndInput)return;
+  flashSaleCountdownStatus.textContent="Loading countdown settings…";
+  const url=db.storage.from(BUCKET).getPublicUrl(FLASH_COUNTDOWN_FILE).data.publicUrl;
+  try{
+    const response=await fetch(url+"?v="+Date.now(),{cache:"no-store"});
+    if(response.status===404){flashSaleCountdownStatus.textContent="No countdown has been scheduled yet.";return;}
+    if(!response.ok)throw new Error("Could not load saved settings.");
+    const config=await response.json();
+    const date=new Date(config.endsAt);
+    if(!Number.isFinite(date.getTime()))throw new Error("Saved countdown date is invalid.");
+    const local=new Date(date.getTime()-date.getTimezoneOffset()*60000);
+    flashSaleEndInput.value=local.toISOString().slice(0,16);
+    flashSaleCountdownStatus.textContent="Saved sale end: "+date.toLocaleString();
+  }catch(error){flashSaleCountdownStatus.textContent="Could not load countdown: "+error.message;}
+}
+async function saveFlashSaleCountdown(){
+  const {data:{user}}=await db.auth.getUser();
+  if(!user||user.id!==ADMIN_ID){flashSaleCountdownStatus.textContent="Access denied.";return;}
+  if(!flashSaleEndInput.value){flashSaleCountdownStatus.textContent="Choose the sale end date and time.";return;}
+  const endDate=new Date(flashSaleEndInput.value);
+  if(!Number.isFinite(endDate.getTime())||endDate.getTime()<=Date.now()){flashSaleCountdownStatus.textContent="Choose a future date and time.";return;}
+  flashSaleCountdownStatus.textContent="Saving countdown…";
+  const config={endsAt:endDate.toISOString(),updatedAt:new Date().toISOString()};
+  const file=new Blob([JSON.stringify(config)],{type:"image/png"});
+  const {error}=await db.storage.from(BUCKET).upload(FLASH_COUNTDOWN_FILE,file,{upsert:true,contentType:"image/png",cacheControl:"0"});
+  flashSaleCountdownStatus.textContent=error?"Could not save countdown: "+error.message:"Countdown saved successfully. The homepage will now count down to "+endDate.toLocaleString()+".";
+}
+async function clearFlashSaleCountdown(){
+  const {data:{user}}=await db.auth.getUser();
+  if(!user||user.id!==ADMIN_ID){flashSaleCountdownStatus.textContent="Access denied.";return;}
+  if(!confirm("Clear the scheduled flash sale countdown?"))return;
+  const {error}=await db.storage.from(BUCKET).remove([FLASH_COUNTDOWN_FILE]);
+  flashSaleCountdownStatus.textContent=error?"Could not clear countdown: "+error.message:"Countdown cleared. The homepage will show that no sale is scheduled.";
+  if(!error)flashSaleEndInput.value="";
+}
+document.getElementById("saveFlashSaleCountdown").onclick=saveFlashSaleCountdown;
+document.getElementById("clearFlashSaleCountdown").onclick=clearFlashSaleCountdown;
+loadFlashSaleCountdownSettings();
 function showAdminPanel(id){
  document.querySelectorAll(".content > section").forEach(p=>{p.hidden=p.id!==id;});
  document.querySelectorAll("aside button[data-panel]").forEach(b=>b.classList.toggle("active",b.dataset.panel===id));
