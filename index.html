@@ -1209,6 +1209,7 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
 #dmBannerPreviewWrap{margin:12px 0}#dmBannerPreview{display:block;width:100%;max-height:220px;object-fit:contain;border-radius:10px;background:#e7edf6}
 @media(max-width:700px){.dm-device-stage.has-custom-banner{height:230px;min-height:230px}.dm-custom-banner-image{height:100%}}
 
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin:20px 0}.product-card{background:#fff;border:1px solid #e4e9f2;border-radius:14px;padding:12px;box-shadow:0 5px 18px rgba(8,31,80,.07);display:flex;flex-direction:column;gap:8px}.product-card img{width:100%;height:165px;object-fit:cover;border-radius:10px;background:#f1f4f8}.product-card h3{font-size:16px;margin:4px 0}.product-card p{font-size:13px;color:#65728a;flex:1}.product-card strong{color:#071f50;font-size:17px}.product-card small{color:#65728a}
 </style>
 </head>
 <body>
@@ -1265,7 +1266,7 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
   <button>My Wishlist</button>
   <button>My Inbox</button>
   <button>My Notifications</button>
-  <button>Seller Dashboard</button>
+  <button id="sellerDashboardBtn" hidden>🏪 Seller Dashboard</button>
   <button id="menuAdminBtn" hidden>🔐 Admin Dashboard</button>
   <button id="signoutBtn">Sign Out</button>
 </div>
@@ -1529,8 +1530,28 @@ function searchProducts() {
     query ? 'Results for "' + query + '"' :
     category ? "Category: " + category : "All products";
 
-  document.getElementById("searchResultList").innerHTML =
-    "<p>No approved products are available yet. Please check back soon.</p>";
+  const results=document.getElementById("searchResultList");
+  results.innerHTML="<p>Loading products…</p>";
+  let request=db.from("listings").select("id,title,description,price,category,location,image_url").eq("status","approved").eq("listing_type","product").order("created_at",{ascending:false});
+  if(query) request=request.or("title.ilike.%"+query.replace(/[%_,]/g," ")+"%,description.ilike.%"+query.replace(/[%_,]/g," ")+"%,category.ilike.%"+query.replace(/[%_,]/g," ")+"%");
+  if(category) request=request.ilike("category","%"+category+"%");
+  const {data,error}=await request.limit(60);
+  if(error){results.textContent="Could not load products: "+error.message;}
+  else if(!data?.length){results.textContent="No approved products match your search yet.";}
+  else{
+    results.innerHTML="";
+    const grid=document.createElement("div");grid.className="product-grid";
+    data.forEach(item=>{
+      const card=document.createElement("article");card.className="product-card";
+      if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt=item.title;img.loading="lazy";card.appendChild(img);}
+      const h=document.createElement("h3");h.textContent=item.title;
+      const p=document.createElement("p");p.textContent=item.description||item.category;
+      const price=document.createElement("strong");price.textContent="₦"+Number(item.price).toLocaleString("en-NG");
+      const loc=document.createElement("small");loc.textContent=item.location||"Nigeria";
+      card.append(h,p,price,loc);grid.appendChild(card);
+    });
+    results.appendChild(grid);
+  }
 
   Array.from(document.getElementById("home").children).forEach(section => {
     if (section.id !== "searchResults") {
@@ -1629,6 +1650,7 @@ async function updateAccountButtons() {
 
   document.getElementById("menuSignInBtn").hidden = !!session;
   document.getElementById("signoutBtn").hidden = !session;
+  document.getElementById("sellerDashboardBtn").hidden = !session;
   document.getElementById("menuAdminBtn").hidden = !(session && session.user.id === DAVIMART_ADMIN_ID);
   document.getElementById("accountMenu").hidden = true;
 }
@@ -1636,11 +1658,13 @@ async function updateAccountButtons() {
 db.auth.onAuthStateChange((event, session) => {
   document.getElementById("menuSignInBtn").hidden = !!session;
   document.getElementById("signoutBtn").hidden = !session;
+  document.getElementById("sellerDashboardBtn").hidden = !session;
   document.getElementById("menuAdminBtn").hidden = !(session && session.user.id === DAVIMART_ADMIN_ID);
 });
 
 updateAccountButtons();
   document.getElementById("menuAdminBtn").onclick = () => { window.location.href = "admin.html"; };
+  document.getElementById("sellerDashboardBtn").onclick = () => { window.location.href = "seller-dashboard.html"; };
   document.getElementById("signoutBtn").onclick = async () => {
   const { error } = await db.auth.signOut();
 
