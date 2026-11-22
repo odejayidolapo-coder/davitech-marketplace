@@ -1192,6 +1192,46 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
  .dm-floating-gift{left:8%;top:5px;width:36px;height:36px;font-size:21px}
 }
 
+
+/* Approved DAVIMART marketplace homepage — refined preview */
+.dm-promo-art{height:270px;min-width:0;position:relative;display:flex;align-items:center;justify-content:center;isolation:isolate}
+.dm-promo-glow{position:absolute;width:310px;height:250px;border-radius:50%;background:radial-gradient(ellipse,#5ca5ff66,transparent 68%);filter:blur(8px);z-index:-1}
+.dm-promo-main{width:min(78%,350px);min-height:205px;padding:25px 25px 22px;border:1px solid #ffffff65;border-radius:22px;background:linear-gradient(145deg,#ffffff2e,#ffffff0c);backdrop-filter:blur(10px);box-shadow:0 20px 45px #00133c55;transform:rotate(-4deg);display:flex;flex-direction:column;justify-content:center}
+.dm-promo-label{font-size:9px;letter-spacing:1.7px;font-weight:900;color:#ffda67}
+.dm-promo-main strong{font-size:clamp(25px,3vw,39px);line-height:1.02;letter-spacing:-1.4px;color:white;margin:12px 0}
+.dm-promo-main strong em{font-style:normal;color:var(--dm-gold)}
+.dm-promo-tags{display:flex;flex-wrap:wrap;gap:6px}
+.dm-promo-tags span{font-size:8px;letter-spacing:1px;font-weight:900;padding:7px 9px;border-radius:30px;background:#ffffff20;border:1px solid #ffffff35;color:#fff}
+.dm-promo-tile{position:absolute;z-index:2;min-width:95px;padding:10px 12px;border-radius:14px;background:#fff;color:#102044;box-shadow:0 10px 25px #00133c55;display:flex;align-items:center;gap:8px;font-size:10px}
+.dm-promo-tile span{font-size:22px}.dm-promo-tile b{font-size:10px}
+.dm-tile-electronics{top:9px;right:1%}.dm-tile-fashion{bottom:9px;left:0}.dm-tile-home{right:0;bottom:24px}
+.dm-promo-spark{position:absolute;color:#ffda67;font-size:28px}.dm-promo-spark-one{left:8%;top:12px}.dm-promo-spark-two{right:12%;bottom:0}
+.dm-flash-head{align-items:center}
+.dm-countdown-wrap{display:flex;align-items:center;gap:10px;color:#fff}
+.dm-countdown-wrap>span{font-size:9px;letter-spacing:1px;font-weight:800;color:#dce7ff}
+.dm-countdown{display:flex;align-items:center;gap:5px}
+.dm-countdown b{min-width:30px;padding:8px 5px;text-align:center;border-radius:7px;background:#fff;color:#09265c;font-size:16px}
+.dm-countdown i{font-style:normal;color:#ffc400;font-weight:900}
+.dm-deal-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-top:16px}
+.dm-deal-placeholder{background:#fff;border:1px solid #e9edf5;border-radius:13px;padding:10px;text-align:left;min-width:0}
+.dm-deal-placeholder .dm-deal-art{height:100px;margin:0 0 10px;border-radius:9px;background:linear-gradient(145deg,#f0f4fb,#e3ebf8);font-size:42px}
+.dm-deal-tag{display:block;color:#9a7100;font-size:8px;font-weight:900;letter-spacing:1px;margin-bottom:5px}
+.dm-deal-placeholder>b{display:block;color:#102044;font-size:12px}
+.dm-deal-placeholder>small{display:block;color:#71809a;font-size:10px;margin-top:5px}
+.dm-sale-note{margin:13px 0 0;color:#d3e0fa;font-size:10px}
+@media(max-width:700px){
+ .dm-promo-art{height:205px;margin-top:14px}
+ .dm-promo-main{width:76%;min-height:155px;padding:18px}
+ .dm-promo-main strong{font-size:29px}
+ .dm-promo-tile{min-width:0;padding:8px;font-size:9px}
+ .dm-promo-tile span{font-size:18px}
+ .dm-tile-electronics{right:0;top:0}.dm-tile-fashion{left:0;bottom:0}.dm-tile-home{right:0;bottom:3px}
+ .dm-countdown-wrap{align-items:flex-end;flex-direction:column;gap:5px}
+ .dm-deal-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .dm-deal-placeholder .dm-deal-art{height:82px}
+ .dm-deal-placeholder>b{font-size:11px}
+}
+
 </style>
 </head>
 <body>
@@ -1262,30 +1302,19 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
     <p>Discover products, trusted services and property opportunities in one convenient marketplace.</p>
     <a class="dm-primary-cta" href="#products">Explore the marketplace <span>→</span></a>
   </div>
-  <div class="dm-hero-art dm-product-showcase" aria-hidden="true">
-    <div class="dm-orbit dm-orbit-one"></div><div class="dm-orbit dm-orbit-two"></div>
-    <div class="dm-showcase-glow"></div>
-    <div class="dm-laptop">
-      <div class="dm-laptop-screen dm-order-screen">
-        <div class="dm-app-top"><b>DAVIMART</b><span>⌕　♡　🛒</span></div>
-        <div class="dm-app-search">Search products and orders...</div>
-        <div class="dm-app-heading">Popular products <small>View all →</small></div>
-        <div class="dm-app-products">
-          <div><i>🎧</i><b>Wireless audio</b><small>₦18,500</small></div>
-          <div><i>⌚</i><b>Smart watch</b><small>₦24,000</small></div>
-          <div><i>👟</i><b>Sneakers</b><small>₦32,000</small></div>
-        </div>
-        <div class="dm-app-order"><span>🛍️ Your order</span><b>Track order　→</b></div>
-      </div>
-      <div class="dm-laptop-base"></div>
+  <div class="dm-hero-art dm-promo-art" aria-label="DAVIMART marketplace categories">
+    <div class="dm-promo-glow"></div>
+    <div class="dm-promo-main">
+      <span class="dm-promo-label">THE MARKETPLACE FOR EVERYDAY</span>
+      <strong>Everything<br><em>in one place.</em></strong>
+      <div class="dm-promo-tags"><span>SHOP</span><span>SERVICES</span><span>PROPERTY</span></div>
     </div>
-    <div class="dm-phone">
-      <div class="dm-phone-camera"></div>
-      <div class="dm-phone-screen dm-phone-orders"><b>DAVIMART</b><strong>My orders</strong><span>Order #DM2048</span><i>📦</i><small>On its way</small><em>Track package　→</em></div>
-    </div>
-    <div class="dm-product-spark dm-spark-one">✦</div><div class="dm-product-spark dm-spark-two">✧</div>
-  </div>
-</section>
+    <div class="dm-promo-tile dm-tile-electronics"><span>📱</span><b>Electronics</b></div>
+    <div class="dm-promo-tile dm-tile-fashion"><span>👟</span><b>Fashion</b></div>
+    <div class="dm-promo-tile dm-tile-home"><span>🛋️</span><b>Home & Living</b></div>
+    <div class="dm-promo-spark dm-promo-spark-one">✦</div>
+    <div class="dm-promo-spark dm-promo-spark-two">✧</div>
+  </div></section>
   
   <section class="hero">
   <div class="hero-content">
@@ -1314,18 +1343,21 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
     <a href="#products"><span>💻</span><b>Electronics</b></a>
     <a href="#products"><span>◈</span><b>Fashion</b></a>
     <a href="#products"><span>•••</span><b>More</b></a>
-  </div>iv>
+  </div>
 
   <div class="dm-flash-panel">
-    <div class="dm-section-head">
-      <div><small>DEALS & SPECIAL OFFERS</small><h2><span class="dm-lightning">ϟ</span> Flash deals</h2></div>
-      <span class="dm-coming">Coming soon</span>
+    <div class="dm-section-head dm-flash-head">
+      <div><small>DON'T MISS WHAT'S NEXT</small><h2><span class="dm-lightning">ϟ</span> Flash Sale</h2></div>
+      <div class="dm-countdown-wrap"><span>SALE COUNTDOWN</span><div class="dm-countdown"><b>--</b><i>:</i><b>--</b><i>:</i><b>--</b></div></div>
     </div>
-    <div class="dm-deal-empty">
-      <span class="dm-deal-empty-icon">✦</span>
-      <div><b>Great deals are on the way</b><p>New offers will appear here as soon as verified products are published.</p></div>
+    <div class="dm-deal-grid">
+      <article class="dm-deal-card dm-deal-placeholder"><div class="dm-deal-art">📱</div><span class="dm-deal-tag">ELECTRONICS</span><b>Featured tech deals</b><small>Offers coming soon</small></article>
+      <article class="dm-deal-card dm-deal-placeholder"><div class="dm-deal-art">👟</div><span class="dm-deal-tag">FASHION</span><b>Style picks</b><small>Offers coming soon</small></article>
+      <article class="dm-deal-card dm-deal-placeholder"><div class="dm-deal-art">🏠</div><span class="dm-deal-tag">HOME & LIVING</span><b>Home essentials</b><small>Offers coming soon</small></article>
+      <article class="dm-deal-card dm-deal-placeholder"><div class="dm-deal-art">🎧</div><span class="dm-deal-tag">ACCESSORIES</span><b>Everyday accessories</b><small>Offers coming soon</small></article>
     </div>
-  </div>iv>
+    <p class="dm-sale-note">The countdown and live offers will activate when the first sale campaign is scheduled.</p>
+  </div>
   </section>
   
 <section id="products">
