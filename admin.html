@@ -24,6 +24,16 @@ aside{padding:14px;height:max-content}aside button{width:100%;text-align:left;ba
 input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-top:14px}#previewGrid img{width:100%;height:100px;object-fit:cover;border-radius:9px;background:#e7edf6}#bannerGallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:16px}.banner-card{border:1px solid #e2e8f1;border-radius:11px;padding:9px;min-width:0}.banner-card img{width:100%;height:105px;object-fit:cover;border-radius:7px}.banner-card small{display:block;overflow-wrap:anywhere;color:var(--muted);margin:7px 0}.banner-card button{padding:8px 10px;background:#fff0f0;color:#a32929}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}#status{font-weight:700;overflow-wrap:anywhere}
 .notice{padding:13px;border-radius:10px;background:#fff7df;color:#725400;font-size:13px;line-height:1.5}
+
+.admin-feature[hidden]{display:none!important}
+.admin-table-wrap{overflow-x:auto;margin-top:14px}
+.admin-table{width:100%;border-collapse:collapse;min-width:560px;font-size:13px}
+.admin-table th,.admin-table td{padding:11px 9px;border-bottom:1px solid #e8edf4;text-align:left;vertical-align:top}
+.admin-table th{color:#52627b;background:#f7f9fc}
+.admin-table td button{padding:8px 10px;margin:2px;font-size:12px}
+.action-approve{background:#e7f7ee;color:#176b3a}.action-reject{background:#fff0f0;color:#a32929}
+.status-pill{display:inline-block;padding:4px 8px;border-radius:20px;background:#edf2fa;font-size:11px}
+
 .hidden{display:none!important}
 @media(max-width:700px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}aside{display:flex;gap:6px;overflow:auto}aside button{white-space:nowrap;width:auto}.panel{padding:17px}header{align-items:flex-start;flex-direction:column}}
 </style>
@@ -37,8 +47,11 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <div class="welcome"><h1>Admin Dashboard</h1><p>Welcome back. Manage your DAVIMART marketplace from one place.</p></div>
 <div class="grid">
 <aside>
-<button class="active" type="button">▣ Overview</button>
-<button type="button" id="bannerNav">▧ Homepage banner</button>
+<button class="active" type="button" data-panel="overview">▣ Overview</button>
+<button type="button" data-panel="usersPanel">👥 Users & sellers</button>
+<button type="button" data-panel="listingsPanel">▤ Listings review</button>
+<button type="button" data-panel="notifyPanel">🔔 Notifications</button>
+<button type="button" id="bannerNav" data-panel="bannerPanel">▧ Homepage banner</button>
 </aside>
 <div class="content">
 <div class="stats">
@@ -47,6 +60,28 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <div class="stat"><b>Marketplace</b><span>DAVIMART</span></div>
 </div>
 <section class="panel" id="overview"><h2>Welcome to your control centre</h2><p>Use the Homepage banner section to choose an image, preview it, and publish it to the DAVIMART homepage. Other management tools will be added one feature at a time after testing.</p><button class="btn btn-gold" id="openBanner">Manage homepage banner</button></section>
+
+<section class="panel admin-feature" id="usersPanel" hidden>
+<h2>Users & seller applications</h2>
+<p>Review accounts and approve or reject seller applications. Account access is protected by the admin-only database rules.</p>
+<div class="actions"><button class="btn btn-light" id="refreshUsers">Refresh users</button></div>
+<div id="usersTable">Loading users…</div>
+</section>
+<section class="panel admin-feature" id="listingsPanel" hidden>
+<h2>Product & property review</h2>
+<p>Review submitted listings before they appear publicly. You can approve or reject each submission.</p>
+<div class="actions"><button class="btn btn-light" id="refreshListings">Refresh listings</button></div>
+<div id="listingsTable">Loading listings…</div>
+</section>
+<section class="panel admin-feature" id="notifyPanel" hidden>
+<h2>Send a user notification</h2>
+<p>Send an in-app message to a registered DAVIMART user.</p>
+<label for="notifyUser">Recipient</label><select id="notifyUser" style="display:block;width:100%;padding:12px;margin:8px 0 14px;border:1px solid #dbe2ed;border-radius:8px"><option value="">Choose a user</option></select>
+<input id="notifyTitle" maxlength="100" placeholder="Notification title" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #dbe2ed;border-radius:8px">
+<textarea id="notifyMessage" maxlength="1000" placeholder="Write your message" style="width:100%;min-height:100px;padding:12px;border:1px solid #dbe2ed;border-radius:8px"></textarea>
+<div class="actions"><button class="btn btn-gold" id="sendNotification">Send notification</button></div>
+<p id="notifyStatus" role="status"></p>
+</section>
 <section class="panel" id="bannerPanel"><h2>Homepage banner manager</h2><p>Upload several promotional banners together. DAVIMART will display them in a full-size rotating slideshow on the homepage. Supported: JPG, PNG, WEBP or GIF, maximum 10 MB per image.</p>
 <div class="drop"><b>Select one or more banner images</b><br><input id="bannerFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple><div id="previewGrid"></div></div>
 <div class="actions"><button class="btn btn-gold" id="publish">Upload selected banners</button><button class="btn btn-light" id="removeAll">Remove all and restore default artwork</button></div>
@@ -111,7 +146,90 @@ async function removeOneBanner(name){
   if(!confirm("Remove this homepage banner?"))return;
   const {error}=await db.storage.from(BUCKET).remove([name]);
   status.textContent=error?"Could not remove banner: "+error.message:"Banner removed.";
-  await loadBannerGallery();
+  await 
+function showAdminPanel(id){
+ document.querySelectorAll(".content > section").forEach(p=>{p.hidden=p.id!==id;});
+ document.querySelectorAll("aside button[data-panel]").forEach(b=>b.classList.toggle("active",b.dataset.panel===id));
+ if(id==="usersPanel") loadUsers();
+ if(id==="listingsPanel") loadListings();
+ if(id==="notifyPanel") loadNotificationRecipients();
+}
+document.querySelectorAll("aside button[data-panel]").forEach(b=>b.addEventListener("click",()=>showAdminPanel(b.dataset.panel)));
+document.getElementById("openBanner").onclick=()=>showAdminPanel("bannerPanel");
+document.getElementById("bannerNav").onclick=()=>showAdminPanel("bannerPanel");
+document.getElementById("refreshUsers").onclick=loadUsers;
+document.getElementById("refreshListings").onclick=loadListings;
+function cellText(row,value){const td=document.createElement("td");td.textContent=value??"—";row.appendChild(td);return td;}
+function makeTable(target,headers,rows){
+ const host=document.getElementById(target);host.innerHTML="";
+ if(!rows.length){host.textContent="No records found.";return;}
+ const wrap=document.createElement("div");wrap.className="admin-table-wrap";
+ const table=document.createElement("table");table.className="admin-table";
+ const thead=document.createElement("thead"),tr=document.createElement("tr");
+ headers.forEach(h=>{const th=document.createElement("th");th.textContent=h;tr.appendChild(th);});thead.appendChild(tr);table.appendChild(thead);
+ const tbody=document.createElement("tbody");
+ rows.forEach(row=>tbody.appendChild(row));table.appendChild(tbody);wrap.appendChild(table);host.appendChild(wrap);
+}
+async function loadUsers(){
+ const host=document.getElementById("usersTable");host.textContent="Loading users…";
+ const {data,error}=await db.from("profiles").select("id,full_name,email,role,approval_status,seller_status,created_at").order("created_at",{ascending:false}).limit(200);
+ if(error){host.textContent="Could not load users: "+error.message;return;}
+ const rows=(data||[]).map(u=>{
+  const tr=document.createElement("tr");cellText(tr,u.full_name||"Unnamed");cellText(tr,u.email||"—");cellText(tr,u.role);cellText(tr,u.seller_status);
+  const action= document.createElement("td");
+  if(u.seller_status==="pending"){
+   const yes=document.createElement("button");yes.className="action-approve";yes.textContent="Approve seller";yes.onclick=()=>changeSeller(u.id,"approved");
+   const no=document.createElement("button");no.className="action-reject";no.textContent="Reject";no.onclick=()=>changeSeller(u.id,"rejected");action.append(yes,no);
+  } else action.textContent="No pending action";
+  tr.appendChild(action);return tr;
+ });
+ makeTable("usersTable",["Name","Email","Role","Seller status","Action"],rows);
+}
+async function changeSeller(id,statusValue){
+ const label=statusValue==="approved"?"approve":"reject";
+ if(!confirm("Are you sure you want to "+label+" this seller application?"))return;
+ const {error}=await db.from("profiles").update({seller_status:statusValue}).eq("id",id);
+ if(error){alert("Could not update seller: "+error.message);return;}
+ await db.from("notifications").insert({user_id:id,title:"Seller application update",message:statusValue==="approved"?"Your DAVIMART seller application has been approved. You can now submit listings.":"Your DAVIMART seller application was not approved. You may apply again."});
+ await loadUsers();
+}
+async function loadListings(){
+ const host=document.getElementById("listingsTable");host.textContent="Loading listings…";
+ const {data,error}=await db.from("listings").select("id,seller_id,title,category,listing_type,price,location,status,created_at").order("created_at",{ascending:false}).limit(200);
+ if(error){host.textContent="Could not load listings: "+error.message;return;}
+ const rows=(data||[]).map(item=>{
+  const tr=document.createElement("tr");cellText(tr,item.title);cellText(tr,item.listing_type);cellText(tr,item.category);cellText(tr,item.price==null?"—":"₦"+Number(item.price).toLocaleString());cellText(tr,item.status);
+  const td=document.createElement("td");
+  if(item.status==="pending"){
+   const yes=document.createElement("button");yes.className="action-approve";yes.textContent="Approve";yes.onclick=()=>moderateListing(item.id,"approved");
+   const no=document.createElement("button");no.className="action-reject";no.textContent="Reject";no.onclick=()=>moderateListing(item.id,"rejected");td.append(yes,no);
+  }else td.textContent="Reviewed";
+  tr.appendChild(td);return tr;
+ });
+ makeTable("listingsTable",["Title","Type","Category","Price","Status","Action"],rows);
+}
+async function moderateListing(id,statusValue){
+ if(!confirm("Set this listing to "+statusValue+"?"))return;
+ const {error}=await db.from("listings").update({status:statusValue}).eq("id",id);
+ if(error){alert("Could not update listing: "+error.message);return;}
+ await loadListings();
+}
+async function loadNotificationRecipients(){
+ const select=document.getElementById("notifyUser");select.innerHTML='<option value="">Choose a user</option>';
+ const {data,error}=await db.from("profiles").select("id,full_name,email").order("created_at",{ascending:false}).limit(200);
+ if(error){document.getElementById("notifyStatus").textContent="Could not load recipients: "+error.message;return;}
+ (data||[]).forEach(u=>{const o=document.createElement("option");o.value=u.id;o.textContent=(u.full_name||u.email||u.id)+" — "+(u.email||"");select.appendChild(o);});
+}
+document.getElementById("sendNotification").onclick=async()=>{
+ const userId=document.getElementById("notifyUser").value,title=document.getElementById("notifyTitle").value.trim(),message=document.getElementById("notifyMessage").value.trim(),status=document.getElementById("notifyStatus");
+ if(!userId||!title||!message){status.textContent="Choose a recipient and enter both a title and message.";return;}
+ status.textContent="Sending…";
+ const {error}=await db.from("notifications").insert({user_id:userId,title,message});
+ status.textContent=error?"Could not send notification: "+error.message:"Notification sent successfully.";
+ if(!error){document.getElementById("notifyTitle").value="";document.getElementById("notifyMessage").value="";}
+};
+
+loadBannerGallery();
 }
 document.getElementById("publish").onclick=async()=>{
   const files=Array.from(fileInput.files||[]);
