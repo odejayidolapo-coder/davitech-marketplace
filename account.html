@@ -116,8 +116,8 @@ button.secondary{background:#e8edf5;color:#102b55}
 <div class="form-field" id="cacFileField" hidden><label for="cacFile">CAC certificate/document</label><input id="cacFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></div><div class="form-field" id="businessShopCaptureField" style="grid-column:1/-1" hidden><label>Live shop photo (rear camera)</label><div class="camera-box"><video id="shopVideo" autoplay playsinline muted hidden></video><img id="shopPreview" alt="Captured business shop preview" hidden><canvas id="shopCanvas" hidden></canvas><p class="camera-help">Photograph the real shop front. Make sure the business banner or signboard and business name are readable. Do not submit a stock image or another business\u2019s shop.</p><div class="camera-actions"><button type="button" id="startShopCamera">Open Rear Camera</button><button type="button" id="captureShop" disabled>Take Shop Photo</button><button type="button" class="secondary" id="retakeShop" hidden>Retake Shop Photo</button></div><p class="camera-status" id="shopCameraStatus" aria-live="polite">Required for registered businesses.</p><input id="shopFallback" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden></div></div>
 <div class="form-field" style="grid-column:1/-1"><label for="regulatedDetails">Do you sell regulated products or services? (Optional)</label><textarea id="regulatedDetails" placeholder="Mention category and any relevant permit or licence details, if applicable."></textarea></div>
 </div>
-<section class="feature" style="margin-top:14px"><strong>DAVIMART Verification Guide</strong><p id="verificationGuideText">We will guide you through the required documents. Use clear, original photos with all text visible. AI-assisted document screening and trusted identity-provider checks will be added after secure verification services are configured; this guide does not itself confirm identity.</p></section><p class="form-help">Accepted documents: JPG, PNG, WEBP or PDF. Maximum 10 MB per file. Business applicants must provide CAC details and a live photo of their shop signboard. Individual sellers do not need CAC registration. Category-specific licences may be requested where legally required.</p>
-<div class="actions"><button id="submitSellerVerification" type="submit">Submit for Verification</button><button class="secondary" id="cancelSellerVerification" type="button">Cancel</button></div>
+<section class="feature" style="margin-top:14px"><strong>DAVIMART AI Verification Assistant</strong><p id="verificationGuideText">The AI assistant checks image clarity, document visibility and whether a business signboard is readable. It cannot confirm government records, authenticate an ID/CAC certificate or approve you as a seller. Unclear cases go to a human reviewer.</p><label style="display:flex;gap:9px;align-items:flex-start;margin-top:12px"><input id="aiReviewConsent" type="checkbox" required style="width:auto;margin-top:4px"><span>I agree to let DAVIMART send the uploaded identity-document image, selfie and (if applicable) shop photo to its AI service for image-quality and visible-evidence screening. I understand this is not government identity verification and that an administrator reviews the application.</span></label></section><p class="form-help">Accepted documents: JPG, PNG, WEBP or PDF. Maximum 10 MB per file. Business applicants must provide CAC details and a live photo of their shop signboard. Individual sellers do not need CAC registration. Category-specific licences may be requested where legally required.</p>
+<div class="actions"><button id="submitSellerVerification" type="submit">Run AI Check &amp; Submit</button><button class="secondary" id="cancelSellerVerification" type="button">Cancel</button></div><section class="feature" id="aiReviewResult" hidden aria-live="polite" style="margin-top:12px"><strong id="aiReviewTitle">AI review</strong><p id="aiReviewSummary"></p><ul id="aiReviewChecks"></ul><ul id="aiReviewActions"></ul></section>
 <p class="form-message" id="sellerVerificationMessage" aria-live="polite"></p>
 </form>
 </section>
@@ -461,7 +461,9 @@ verificationForm.addEventListener("submit",async function(event){
   return;
  }
  const isBusiness = sellerType.value === "business";
+ if(!document.getElementById("aiReviewConsent").checked){verificationMessage.textContent="Please read and accept the AI screening consent before continuing.";return;}
  const submitButton = document.getElementById("submitSellerVerification");
+ const aiResultPanel=document.getElementById("aiReviewResult");aiResultPanel.hidden=true;
  submitButton.disabled = true;
  verificationMessage.textContent = "Uploading your documents securely...";
  const uploadedPaths = [];
@@ -474,7 +476,27 @@ verificationForm.addEventListener("submit",async function(event){
    cacPath = await uploadVerificationFile(user.id,document.getElementById("cacFile").files[0]); uploadedPaths.push(cacPath);
    shopPhotoPath = await uploadVerificationFile(user.id,cameraCaptures.shop); uploadedPaths.push(shopPhotoPath);
   }
-  verificationMessage.textContent = "Documents uploaded. Submitting your application...";
+  verificationMessage.textContent = "DAVIMART AI is checking image clarity and visible evidence. This may take a few seconds...";
+  const {data:aiData,error:aiError}=await db.functions.invoke("seller-verification-ai",{body:{
+   seller_type:sellerType.value,
+   business_name:isBusiness ? document.getElementById("businessName").value.trim() : null,
+   identity_document_path:identityPath,
+   selfie_path:selfiePath,
+   business_shop_photo_path:shopPhotoPath
+  }});
+  if(aiError) throw new Error(aiError.message||"AI screening could not be completed.");
+  if(aiData?.error) throw new Error(aiData.error);
+  const review=aiData?.review;
+  if(!review || !Array.isArray(review.checks) || !Array.isArray(review.required_actions)) throw new Error("AI screening returned an incomplete result. Please try again.");
+  aiResultPanel.hidden=false;
+  document.getElementById("aiReviewTitle").textContent=review.decision==="needs_changes"?"AI review: changes needed":review.decision==="manual_review"?"AI review: human review needed":"AI review: ready for human review";
+  document.getElementById("aiReviewSummary").textContent=review.summary||"AI screening is complete.";
+  const checksList=document.getElementById("aiReviewChecks");checksList.replaceChildren();
+  review.checks.forEach(check=>{const li=document.createElement("li");li.textContent=(check.item||"Check")+": "+(check.result||"manual_review")+" — "+(check.explanation||"");checksList.appendChild(li);});
+  const actionsList=document.getElementById("aiReviewActions");actionsList.replaceChildren();
+  review.required_actions.forEach(action=>{const li=document.createElement("li");li.textContent=action;actionsList.appendChild(li);});
+  if(review.decision==="needs_changes") throw new Error("Please make the changes listed in the AI review, then retake or upload the affected images and submit again.");
+  verificationMessage.textContent = review.decision==="manual_review" ? "AI screening is complete. Some items need human review. Submitting your application for administrator review..." : "AI screening passed its image-quality checks. Submitting your application for administrator review...";
   const application = {
    user_id:user.id,
    seller_type:sellerType.value,
@@ -487,7 +509,7 @@ verificationForm.addEventListener("submit",async function(event){
    selfie_path:selfiePath,
    proof_of_address_path:addressPath,
    cac_document_path:cacPath,
-   regulated_category_details:{details:document.getElementById("regulatedDetails").value.trim(),business_shop_photo_path:shopPhotoPath}
+   regulated_category_details:{details:document.getElementById("regulatedDetails").value.trim(),business_shop_photo_path:shopPhotoPath,ai_screening:{decision:review.decision,summary:review.summary,checks:review.checks,required_actions:review.required_actions,screened_at:new Date().toISOString(),provider:"OpenAI"}}
   };
   const {error:insertError} = await db.from("seller_verification_applications").insert(application);
   if(insertError) throw insertError;
