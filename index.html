@@ -1383,6 +1383,7 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
     </div>
   </div>
 
+  <div id="homepageProducts" class="product-grid" aria-live="polite"></div>
   <div class="empty" id="listingMessage">
     <div style="font-size:35px">🛍️</div>
     <h3>New listings are coming soon</h3>
@@ -1596,6 +1597,23 @@ const db = window.supabase.createClient(
 const DAVIMART_ADMIN_ID = "4aa054c0-97c2-45c3-8c3a-9bf87f2c365c";
 const DAVIMART_BANNER_BUCKET = "homepage-banners";
 
+async function loadHomepageProducts(){
+ const host=document.getElementById("homepageProducts");if(!host)return;
+ const {data,error}=await db.from("listings").select("id,title,description,price,category,location,image_url").eq("status","approved").eq("listing_type","product").order("created_at",{ascending:false}).limit(12);
+ if(error){host.textContent="Products could not be loaded right now.";return;}
+ if(!data?.length)return;
+ document.getElementById("listingMessage").style.display="none";
+ host.innerHTML="";
+ data.forEach(item=>{
+  const card=document.createElement("article");card.className="product-card";
+  if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt=item.title;img.loading="lazy";card.appendChild(img);}
+  const title=document.createElement("h3");title.textContent=item.title;
+  const desc=document.createElement("p");desc.textContent=item.description||item.category;
+  const price=document.createElement("strong");price.textContent="₦"+Number(item.price).toLocaleString("en-NG");
+  const place=document.createElement("small");place.textContent=item.location||"Nigeria";
+  card.append(title,desc,price,place);host.appendChild(card);
+ });
+}
 async function loadHomepageBanner() {
   const stage = document.querySelector(".dm-device-stage");
   if (!stage) return;
@@ -1643,6 +1661,7 @@ async function loadHomepageBanner() {
   }
   showNext();
 }
+loadHomepageProducts();
 loadHomepageBanner();
 
 async function updateAccountButtons() {
@@ -1866,7 +1885,7 @@ async function showDashboard() {
   } else if (profile?.seller_status === "pending") {
     notice.textContent = "Your seller application is awaiting admin approval.";
   } else if (profile?.seller_status === "approved") {
-    notice.textContent = "Your seller application is approved. You can now submit listings.";
+    notice.innerHTML = 'Your seller application is approved. <a class="btn primary" href="seller-dashboard.html">Open Seller Dashboard</a>';
   } else if (profile?.seller_status === "rejected") {
     notice.textContent = "Your seller application was not approved. You may apply again.";
     notice.innerHTML += `
