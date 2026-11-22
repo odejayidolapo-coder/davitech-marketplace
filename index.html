@@ -1593,6 +1593,32 @@ document.getElementById("year").textContent = new Date().getFullYear();
   menu.hidden = !menu.hidden;
 };
 </script>
+
+<script>
+(async()=>{
+ const url="https://vaghptbqfjvfhjdhpxrz.supabase.co/storage/v1/object/public/homepage-banners/homepage-content.json?v="+Date.now();
+ try{
+  const response=await fetch(url,{cache:"no-store"});
+  if(!response.ok)return;
+  const cfg=await response.json();
+  const set=(el,value)=>{if(el&&typeof value==="string")el.textContent=value;};
+  const how=document.querySelector("#how .container");
+  if(how&&Array.isArray(cfg.steps)){
+   set(how.querySelector("h2"),cfg.howHeading);
+   cfg.steps.slice(0,3).forEach((step,index)=>{const card=how.querySelectorAll(".step")[index];if(card){set(card.querySelector("h3"),step.title);set(card.querySelector("p"),step.description);}});
+  }
+  const footer=document.querySelector("footer .container");
+  if(footer&&cfg.footer){
+   const f=cfg.footer,ps=footer.querySelectorAll("p"),heading=footer.querySelector("h2");
+   set(heading,f.heading);set(ps[0],f.tagline);set(ps[1],f.description);
+   const link=footer.querySelector('a[href*="wa.me"]');if(link){set(link,f.whatsappLabel);if(typeof f.whatsapp==="string"&&/^https:\/\/wa\.me\//i.test(f.whatsapp))link.href=f.whatsapp;}
+   const copyright=footer.querySelector("p:last-child");
+   if(copyright){copyright.textContent="© "+new Date().getFullYear()+" "+(f.copyright||"DAVITECH. All rights reserved.");}
+  }
+ }catch(error){console.warn("DAVIMART homepage content settings unavailable; showing default content.",error);}
+})();
+</script>
+
 </body>
 </html>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
