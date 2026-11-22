@@ -37,6 +37,10 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 
 .hidden{display:none!important}
 @media(max-width:700px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}aside{display:flex;gap:6px;overflow:auto}aside button{white-space:nowrap;width:auto}.panel{padding:17px}header{align-items:flex-start;flex-direction:column}}
+
+#davitechBannerPreview{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-top:14px}
+#davitechBannerPreview img,#davitechBannerPreview video{width:100%;height:100px;object-fit:cover;border-radius:9px;background:#e7edf6}
+.banner-card video{width:100%;height:105px;object-fit:cover;border-radius:7px;background:#e7edf6}
 </style>
 </head>
 <body>
@@ -55,6 +59,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <button type="button" data-panel="productUploadPanel">🛍️ Add product</button>
 <button type="button" id="bannerNav" data-panel="bannerPanel">▧ Homepage banner</button>
 <button type="button" data-panel="flashSalePanel">⚡ Flash sale images</button>
+ <button type="button" data-panel="davitechBannerPanel">🟦 DAVITECH banner</button>
 </aside>
 <div class="content">
 <div class="stats">
@@ -106,6 +111,14 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <p id="status" role="status">Choose images or videos to preview them before uploading.</p>
 <div class="notice">Each banner fills the promotional image area. If you upload more than one, they rotate automatically every 5 seconds. You can remove individual banners below.</div>
 <h2 style="margin-top:24px">Published homepage banners</h2><div id="bannerGallery">Loading banners…</div>
+</section>
+<section class="panel admin-feature" id="davitechBannerPanel" hidden>
+ <h2>DAVITECH promotional banner</h2>
+ <p>Manage the separate DAVITECH banner shown on the DAVIMART homepage. This does not change the main DAVIMART banner. Supported: JPG, PNG, WEBP, GIF, MP4 or WEBM, maximum 10 MB per file.</p>
+ <div class="drop"><b>Select DAVITECH banner images or videos</b><br><input id="davitechBannerFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple><div id="davitechBannerPreview"></div></div>
+ <div class="actions"><button class="btn btn-gold" id="uploadDavitechBanner" type="button">Upload DAVITECH media</button></div>
+ <p id="davitechBannerStatus" role="status">Choose images or videos to preview them before uploading.</p>
+ <h2 style="margin-top:24px">Published DAVITECH banner media</h2><div id="davitechBannerGallery">Loading media…</div>
 </section>
 <section class="panel admin-feature" id="flashSalePanel" hidden>
 <h2>Flash sale images</h2>
@@ -187,6 +200,13 @@ async function removeOneBanner(name){
   status.textContent=error?"Could not remove banner: "+error.message:"Banner removed.";
   await loadBannerGallery();
 }
+
+const davitechBannerFiles=document.getElementById("davitechBannerFiles"),davitechBannerPreview=document.getElementById("davitechBannerPreview"),davitechBannerStatus=document.getElementById("davitechBannerStatus"),davitechBannerGallery=document.getElementById("davitechBannerGallery");
+const davitechBannerTypes=["image/jpeg","image/png","image/webp","image/gif","video/mp4","video/webm"];
+davitechBannerFiles.onchange=()=>{davitechBannerPreview.innerHTML="";const files=Array.from(davitechBannerFiles.files||[]);for(const file of files){if(!davitechBannerTypes.includes(file.type)||file.size>10*1024*1024){davitechBannerStatus.textContent="Use JPG, PNG, WEBP, GIF, MP4 or WEBM files under 10 MB each.";davitechBannerFiles.value="";davitechBannerPreview.innerHTML="";return;}const url=URL.createObjectURL(file);if(file.type.startsWith("video/")){const v=document.createElement("video");v.src=url;v.muted=true;v.controls=true;v.playsInline=true;davitechBannerPreview.appendChild(v);}else{const img=document.createElement("img");img.src=url;img.alt=file.name;davitechBannerPreview.appendChild(img);}}davitechBannerStatus.textContent=files.length?files.length+" DAVITECH media file(s) selected.":"Choose images or videos.";};
+async function loadDavitechBannerGallery(){davitechBannerGallery.textContent="Loading DAVITECH media…";const {data:files,error}=await db.storage.from(BUCKET).list("",{limit:100});if(error){davitechBannerGallery.textContent="Could not load media: "+error.message;return;}const media=(files||[]).filter(f=>f.name.startsWith("davitech-banner-")&&/\.(jpg|jpeg|png|webp|gif|mp4|webm)$/i.test(f.name)).sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));davitechBannerGallery.innerHTML="";if(!media.length){davitechBannerGallery.textContent="No DAVITECH banner media uploaded yet.";return;}for(const file of media){const url=db.storage.from(BUCKET).getPublicUrl(file.name).data.publicUrl+"?v="+encodeURIComponent(file.updated_at||file.created_at||Date.now());const card=document.createElement("div");card.className="banner-card";const video=/\.(mp4|webm)$/i.test(file.name);const preview=document.createElement(video?"video":"img");preview.src=url;if(video){preview.muted=true;preview.controls=true;preview.playsInline=true;}else preview.alt="DAVITECH banner image";const label=document.createElement("small");label.textContent=file.name;const remove=document.createElement("button");remove.type="button";remove.textContent="Remove media";remove.onclick=async()=>{const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_ID){davitechBannerStatus.textContent="Access denied.";return;}if(!confirm("Remove this DAVITECH banner media?"))return;const {error}=await db.storage.from(BUCKET).remove([file.name]);davitechBannerStatus.textContent=error?"Could not remove media: "+error.message:"DAVITECH banner media removed.";await loadDavitechBannerGallery();};card.append(preview,label,remove);davitechBannerGallery.appendChild(card);}}
+document.getElementById("uploadDavitechBanner").onclick=async()=>{const files=Array.from(davitechBannerFiles.files||[]);if(!files.length){davitechBannerStatus.textContent="Choose at least one image or video first.";return;}const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_ID){davitechBannerStatus.textContent="Access denied.";return;}davitechBannerStatus.textContent="Uploading DAVITECH banner media…";let uploaded=0;for(const file of files){const ext=file.name.split(".").pop().toLowerCase(),path="davitech-banner-"+Date.now()+"-"+Math.random().toString(36).slice(2,9)+"."+ext;const {error}=await db.storage.from(BUCKET).upload(path,file,{upsert:false,contentType:file.type,cacheControl:"0"});if(error){davitechBannerStatus.textContent="Uploaded "+uploaded+" of "+files.length+". Upload failed: "+error.message;await loadDavitechBannerGallery();return;}uploaded++;}davitechBannerStatus.textContent=uploaded+" DAVITECH media file(s) uploaded successfully.";davitechBannerFiles.value="";davitechBannerPreview.innerHTML="";await loadDavitechBannerGallery();};
+
 const flashSaleFiles=document.getElementById("flashSaleFiles");
 const flashSalePreview=document.getElementById("flashSalePreview");
 const flashSaleStatus=document.getElementById("flashSaleStatus");
@@ -304,6 +324,7 @@ function showAdminPanel(id){
  if(id==="listingsPanel") loadListings();
  if(id==="notifyPanel") loadNotificationRecipients();
  if(id==="flashSalePanel") loadFlashSaleGallery();
+ if(id==="davitechBannerPanel") loadDavitechBannerGallery();
 }
 document.querySelectorAll("aside button[data-panel]").forEach(b=>b.addEventListener("click",()=>showAdminPanel(b.dataset.panel)));
 document.getElementById("openBanner").onclick=()=>showAdminPanel("bannerPanel");
