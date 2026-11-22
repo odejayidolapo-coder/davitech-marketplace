@@ -1527,8 +1527,31 @@ function showMessage(type) {
   document.getElementById("modalText").textContent = message[1];
   document.getElementById("messageModal").classList.add("show");
 }
+let loginSuccessInterval = null;
 function closeMessage() {
+  if (loginSuccessInterval) {
+    window.clearInterval(loginSuccessInterval);
+    loginSuccessInterval = null;
+  }
   document.getElementById("messageModal").classList.remove("show");
+}
+function startLoginSuccessCountdown() {
+  if (loginSuccessInterval) window.clearInterval(loginSuccessInterval);
+  let secondsLeft = 20;
+  const countdown = document.getElementById("loginSuccessCountdown");
+  if (!countdown) return;
+  const updateCountdown = () => {
+    countdown.textContent = "This message closes in " + secondsLeft + " seconds.";
+  };
+  updateCountdown();
+  loginSuccessInterval = window.setInterval(() => {
+    secondsLeft -= 1;
+    if (secondsLeft <= 0) {
+      closeMessage();
+      return;
+    }
+    updateCountdown();
+  }, 1000);
 }
 async function searchProducts() {
   const query = document.getElementById("searchInput").value.trim();
@@ -1881,7 +1904,7 @@ window.showMessage = function(type) {
     status.textContent = error ? error.message : "Signed in successfully!";
     if (!error) {
       await showDashboard();
-      window.setTimeout(() => closeMessage(), 20000);
+      startLoginSuccessCountdown();
     }
   };
 
@@ -1958,7 +1981,9 @@ async function showDashboard() {
   const box = document.querySelector(".modal-box");
 
   box.innerHTML = `
+    <button type="button" id="closeLoginMessage" aria-label="Close login message" title="Close" style="float:right;border:0;background:transparent;color:#53627c;font-size:25px;line-height:1;cursor:pointer;padding:4px 8px">×</button>
     <h3>Welcome to DAVIMART!</h3>
+    <p id="loginSuccessCountdown" role="status" aria-live="polite" style="font-size:13px;color:#64748b;font-weight:600">This message closes in 20 seconds.</p>
     <button class="btn primary" id="notificationBell">🔔 Notifications</button>
 <div id="notificationPanel" style="display:none;">
   <p>No notifications yet.</p>
@@ -2068,8 +2093,9 @@ async function showDashboard() {
     };
   }
   document.getElementById("okayBtn").onclick = () => {
-  closeMessage();
-};
+    closeMessage();
+  };
+  document.getElementById("closeLoginMessage").onclick = closeMessage;
 
 }
 
