@@ -54,6 +54,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <button type="button" data-panel="notifyPanel">🔔 Notifications</button>
 <button type="button" data-panel="productUploadPanel">🛍️ Add product</button>
 <button type="button" id="bannerNav" data-panel="bannerPanel">▧ Homepage banner</button>
+<button type="button" data-panel="flashSalePanel">⚡ Flash sale images</button>
 </aside>
 <div class="content">
 <div class="stats">
@@ -105,6 +106,14 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <p id="status" role="status">Choose images or videos to preview them before uploading.</p>
 <div class="notice">Each banner fills the promotional image area. If you upload more than one, they rotate automatically every 5 seconds. You can remove individual banners below.</div>
 <h2 style="margin-top:24px">Published homepage banners</h2><div id="bannerGallery">Loading banners…</div>
+</section>
+<section class="panel admin-feature" id="flashSalePanel" hidden>
+<h2>Flash sale images</h2>
+<p>Upload up to four product or deal images for the Flash Sale section on the DAVIMART homepage. Supported formats: JPG, PNG or WEBP. Maximum 5 MB per image. Images appear in the order uploaded.</p>
+<div class="drop"><b>Choose flash sale images</b><br><input id="flashSaleFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple><div id="flashSalePreview"></div></div>
+<div class="actions"><button class="btn btn-gold" id="uploadFlashSale" type="button">Upload flash sale images</button></div>
+<p id="flashSaleStatus" role="status">Choose up to four images.</p>
+<h2 style="margin-top:24px">Published flash sale images</h2><div id="flashSaleGallery">Loading images…</div>
 </section>
 </div></div></div>
 </main>
@@ -172,12 +181,81 @@ async function removeOneBanner(name){
   status.textContent=error?"Could not remove banner: "+error.message:"Banner removed.";
   await loadBannerGallery();
 }
+const flashSaleFiles=document.getElementById("flashSaleFiles");
+const flashSalePreview=document.getElementById("flashSalePreview");
+const flashSaleStatus=document.getElementById("flashSaleStatus");
+const flashSaleGallery=document.getElementById("flashSaleGallery");
+const flashSaleTypes=["image/jpeg","image/png","image/webp"];
+flashSaleFiles.onchange=()=>{
+  flashSalePreview.innerHTML="";
+  const files=Array.from(flashSaleFiles.files||[]);
+  if(files.length>4){flashSaleStatus.textContent="Choose no more than four images at a time.";flashSaleFiles.value="";return;}
+  for(const file of files){
+    if(!flashSaleTypes.includes(file.type)||file.size>5*1024*1024){
+      flashSaleStatus.textContent="Use JPG, PNG or WEBP images under 5 MB each.";
+      flashSaleFiles.value="";flashSalePreview.innerHTML="";return;
+    }
+    const img=document.createElement("img");
+    img.src=URL.createObjectURL(file);img.alt=file.name;
+    img.style.cssText="width:110px;height:90px;object-fit:cover;border-radius:9px;margin:6px";
+    flashSalePreview.appendChild(img);
+  }
+  flashSaleStatus.textContent=files.length?files.length+" image(s) selected.":"Choose up to four images.";
+};
+async function loadFlashSaleGallery(){
+  flashSaleGallery.textContent="Loading images…";
+  const {data:files,error}=await db.storage.from(BUCKET).list("",{limit:100});
+  if(error){flashSaleGallery.textContent="Could not load flash sale images: "+error.message;return;}
+  const images=(files||[]).filter(f=>f.name.startsWith("flash-sale-")&&/\.(jpg|jpeg|png|webp)$/i.test(f.name))
+    .sort((x,y)=>new Date(x.created_at||0)-new Date(y.created_at||0));
+  flashSaleGallery.innerHTML="";
+  if(!images.length){flashSaleGallery.textContent="No flash sale images uploaded yet.";return;}
+  for(const file of images){
+    const url=db.storage.from(BUCKET).getPublicUrl(file.name).data.publicUrl;
+    const card=document.createElement("div");card.className="banner-card";
+    const img=document.createElement("img");img.src=url+"?v="+encodeURIComponent(file.updated_at||file.created_at||Date.now());img.alt="Flash sale image";
+    const label=document.createElement("small");label.textContent=file.name;
+    const remove=document.createElement("button");remove.type="button";remove.textContent="Remove image";
+    remove.onclick=async()=>{
+      const {data:{user}}=await db.auth.getUser();
+      if(!user||user.id!==ADMIN_ID){flashSaleStatus.textContent="Access denied.";return;}
+      if(!confirm("Remove this flash sale image?"))return;
+      const {error}=await db.storage.from(BUCKET).remove([file.name]);
+      flashSaleStatus.textContent=error?"Could not remove image: "+error.message:"Flash sale image removed.";
+      await loadFlashSaleGallery();
+    };
+    card.append(img,label,remove);flashSaleGallery.appendChild(card);
+  }
+}
+document.getElementById("uploadFlashSale").onclick=async()=>{
+  const files=Array.from(flashSaleFiles.files||[]);
+  if(!files.length){flashSaleStatus.textContent="Choose at least one image first.";return;}
+  const {data:{user}}=await db.auth.getUser();
+  if(!user||user.id!==ADMIN_ID){flashSaleStatus.textContent="Access denied.";return;}
+  const {data:existing,error:listError}=await db.storage.from(BUCKET).list("",{limit:100});
+  if(listError){flashSaleStatus.textContent="Could not check existing images: "+listError.message;return;}
+  const current=(existing||[]).filter(f=>f.name.startsWith("flash-sale-")&&/\.(jpg|jpeg|png|webp)$/i.test(f.name));
+  if(current.length+files.length>4){flashSaleStatus.textContent="The homepage supports four flash sale images. Remove an existing image first.";return;}
+  flashSaleStatus.textContent="Uploading images…";
+  let uploaded=0;
+  for(const file of files){
+    const ext=file.name.split(".").pop().toLowerCase();
+    const path="flash-sale-"+Date.now()+"-"+Math.random().toString(36).slice(2,9)+"."+ext;
+    const {error}=await db.storage.from(BUCKET).upload(path,file,{upsert:false,contentType:file.type,cacheControl:"0"});
+    if(error){flashSaleStatus.textContent="Uploaded "+uploaded+" of "+files.length+". Upload failed: "+error.message;await loadFlashSaleGallery();return;}
+    uploaded++;
+  }
+  flashSaleStatus.textContent=uploaded+" flash sale image(s) uploaded successfully.";
+  flashSaleFiles.value="";flashSalePreview.innerHTML="";
+  await loadFlashSaleGallery();
+};
 function showAdminPanel(id){
  document.querySelectorAll(".content > section").forEach(p=>{p.hidden=p.id!==id;});
  document.querySelectorAll("aside button[data-panel]").forEach(b=>b.classList.toggle("active",b.dataset.panel===id));
  if(id==="usersPanel") loadUsers();
  if(id==="listingsPanel") loadListings();
  if(id==="notifyPanel") loadNotificationRecipients();
+ if(id==="flashSalePanel") loadFlashSaleGallery();
 }
 document.querySelectorAll("aside button[data-panel]").forEach(b=>b.addEventListener("click",()=>showAdminPanel(b.dataset.panel)));
 document.getElementById("openBanner").onclick=()=>showAdminPanel("bannerPanel");
