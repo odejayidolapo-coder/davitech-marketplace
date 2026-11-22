@@ -1141,6 +1141,26 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
 .dm-screen-pills{display:flex;gap:6px;margin-top:11px}
 .dm-screen-pills i{width:30px;height:5px;border-radius:5px;background:#a9bddb}
 .dm-screen-pills i:first-child{background:#0b56c5}
+.dm-order-screen{display:block!important;padding:10px 11px!important;text-align:left}
+.dm-app-top{display:flex;align-items:center;justify-content:space-between;font-size:9px;color:#0b56c5;font-weight:900}
+.dm-app-top span{font-size:10px;color:#263c61}
+.dm-app-search{margin:8px 0 7px;padding:5px 8px;border-radius:5px;background:#edf2fa;color:#71809a;font-size:7px}
+.dm-app-heading{display:flex;justify-content:space-between;align-items:center;color:#122b55;font-size:8px;font-weight:900}
+.dm-app-heading small{font-size:6px;color:#0b56c5}
+.dm-app-products{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:6px}
+.dm-app-products div{min-width:0;padding:5px 3px;border-radius:5px;background:#f0f4fb;display:flex;flex-direction:column;align-items:center;gap:2px;color:#102b55}
+.dm-app-products i{font-style:normal;font-size:17px}
+.dm-app-products b{font-size:6px;white-space:nowrap}
+.dm-app-products small{font-size:6px;color:#0b56c5;font-weight:800}
+.dm-app-order{display:flex;justify-content:space-between;align-items:center;margin-top:7px;padding:5px 7px;border-radius:5px;background:#fff2d1;color:#102b55;font-size:7px}
+.dm-app-order b{color:#9a6b00;font-size:6px}
+.dm-phone-orders{align-items:stretch!important;justify-content:flex-start!important;padding:17px 5px 6px;gap:6px!important}
+.dm-phone-orders b{font-size:10px!important;letter-spacing:0!important;text-align:center}
+.dm-phone-orders strong{font-size:9px;color:#102b55;margin-top:5px}
+.dm-phone-orders span{font-size:7px!important;color:#64748b}
+.dm-phone-orders i{font-style:normal;font-size:24px!important;text-align:center}
+.dm-phone-orders small{font-size:7px!important;color:#16834b!important;font-weight:800}
+.dm-phone-orders em{font-style:normal;font-size:6px;text-align:center;padding:5px 2px;border-radius:5px;background:#e9f0fc;color:#0b56c5;font-weight:800}
 .dm-laptop-base{height:11px;margin:0 -12px;background:linear-gradient(#f7f9ff,#9fb2cf);clip-path:polygon(4% 0,96% 0,100% 80%,0 80%);border-radius:0 0 9px 9px}
 .dm-phone{position:absolute;z-index:4;right:9%;top:36px;width:76px;height:151px;padding:6px;border:3px solid #e8edf7;border-radius:17px;background:#111d36;transform:rotate(9deg);box-shadow:0 14px 25px #00133c77}
 .dm-phone-camera{position:absolute;z-index:2;top:5px;left:27px;width:19px;height:5px;border-radius:5px;background:#080f20}
@@ -1246,20 +1266,23 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
     <div class="dm-orbit dm-orbit-one"></div><div class="dm-orbit dm-orbit-two"></div>
     <div class="dm-showcase-glow"></div>
     <div class="dm-laptop">
-      <div class="dm-laptop-screen">
-        <div class="dm-screen-brand">DM</div>
-        <div class="dm-screen-title">DAVIMART</div>
-        <div class="dm-screen-line"></div>
-        <div class="dm-screen-pills"><i></i><i></i><i></i></div>
+      <div class="dm-laptop-screen dm-order-screen">
+        <div class="dm-app-top"><b>DAVIMART</b><span>⌕　♡　🛒</span></div>
+        <div class="dm-app-search">Search products and orders...</div>
+        <div class="dm-app-heading">Popular products <small>View all →</small></div>
+        <div class="dm-app-products">
+          <div><i>🎧</i><b>Wireless audio</b><small>₦18,500</small></div>
+          <div><i>⌚</i><b>Smart watch</b><small>₦24,000</small></div>
+          <div><i>👟</i><b>Sneakers</b><small>₦32,000</small></div>
+        </div>
+        <div class="dm-app-order"><span>🛍️ Your order</span><b>Track order　→</b></div>
       </div>
       <div class="dm-laptop-base"></div>
     </div>
     <div class="dm-phone">
       <div class="dm-phone-camera"></div>
-      <div class="dm-phone-screen"><b>DM</b><span>Shop smart.</span><i>✦</i><small>Discover more</small></div>
+      <div class="dm-phone-screen dm-phone-orders"><b>DAVIMART</b><strong>My orders</strong><span>Order #DM2048</span><i>📦</i><small>On its way</small><em>Track package　→</em></div>
     </div>
-    <div class="dm-gift-bag"><div class="dm-bag-handle"></div><div class="dm-bag-front"><b>DM</b><span>DAVIMART</span><i>✦</i></div></div>
-    <div class="dm-floating-gift">🎁</div>
     <div class="dm-product-spark dm-spark-one">✦</div><div class="dm-product-spark dm-spark-two">✧</div>
   </div>
 </section>
