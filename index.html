@@ -1127,6 +1127,51 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
 }
 @media(min-width:701px){.dm-home-hero{margin-left:clamp(20px,3vw,44px);margin-right:clamp(20px,3vw,44px)}}
 
+
+/* DAVIMART hero product showcase: laptop, phone and gift bag */
+.dm-product-showcase{height:265px;min-width:0;isolation:isolate}
+.dm-showcase-glow{position:absolute;width:280px;height:220px;border-radius:50%;background:radial-gradient(ellipse,#5aa1ff55,transparent 70%);filter:blur(7px)}
+.dm-product-showcase .dm-orbit{z-index:-1}
+.dm-laptop{position:absolute;left:3%;top:52px;width:68%;max-width:285px;transform:rotate(-7deg);filter:drop-shadow(0 17px 15px #00133c66);z-index:2}
+.dm-laptop-screen{height:155px;border:7px solid #d9e4f5;border-bottom-width:10px;border-radius:13px 13px 5px 5px;background:linear-gradient(140deg,#f9fbff,#dce9ff);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#09265c;position:relative;overflow:hidden}
+.dm-laptop-screen:before{content:"";position:absolute;width:170px;height:170px;border-radius:50%;background:#ffc400;opacity:.18;right:-55px;top:-75px}
+.dm-screen-brand{font-size:35px;line-height:1;font-weight:950;letter-spacing:-4px;color:#0b56c5}
+.dm-screen-title{font-size:13px;letter-spacing:3px;font-weight:900;margin-top:5px}
+.dm-screen-line{height:4px;width:75px;background:#ffc400;border-radius:5px;margin-top:10px}
+.dm-screen-pills{display:flex;gap:6px;margin-top:11px}
+.dm-screen-pills i{width:30px;height:5px;border-radius:5px;background:#a9bddb}
+.dm-screen-pills i:first-child{background:#0b56c5}
+.dm-laptop-base{height:11px;margin:0 -12px;background:linear-gradient(#f7f9ff,#9fb2cf);clip-path:polygon(4% 0,96% 0,100% 80%,0 80%);border-radius:0 0 9px 9px}
+.dm-phone{position:absolute;z-index:4;right:9%;top:36px;width:76px;height:151px;padding:6px;border:3px solid #e8edf7;border-radius:17px;background:#111d36;transform:rotate(9deg);box-shadow:0 14px 25px #00133c77}
+.dm-phone-camera{position:absolute;z-index:2;top:5px;left:27px;width:19px;height:5px;border-radius:5px;background:#080f20}
+.dm-phone-screen{height:100%;border-radius:11px;background:linear-gradient(160deg,#fff,#e8f0ff);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#09265c;gap:5px}
+.dm-phone-screen b{font-size:22px;color:#0b56c5;letter-spacing:-2px}
+.dm-phone-screen span{font-size:8px;font-weight:800}
+.dm-phone-screen i{font-style:normal;color:#d99c00;font-size:21px}
+.dm-phone-screen small{font-size:6px;color:#526482}
+.dm-gift-bag{position:absolute;z-index:3;right:25%;bottom:15px;width:91px;height:105px;transform:rotate(5deg);filter:drop-shadow(0 12px 12px #00133c66)}
+.dm-bag-handle{position:absolute;top:-18px;left:27px;width:37px;height:28px;border:5px solid #ffc400;border-bottom:0;border-radius:20px 20px 0 0}
+.dm-bag-front{height:100%;background:linear-gradient(145deg,#ffd85a,#e9a900);clip-path:polygon(8% 0,92% 0,100% 100%,0 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#09265c}
+.dm-bag-front b{font-size:30px;letter-spacing:-3px}
+.dm-bag-front span{font-size:8px;letter-spacing:1px;font-weight:950}
+.dm-bag-front i{font-style:normal;font-size:18px;margin-top:5px}
+.dm-floating-gift{position:absolute;z-index:5;left:12%;top:12px;width:43px;height:43px;border-radius:14px;background:#fff;display:grid;place-items:center;font-size:25px;box-shadow:0 8px 20px #00133c55;transform:rotate(-9deg)}
+.dm-product-spark{position:absolute;color:#ffd45b;font-size:30px;z-index:4}
+.dm-spark-one{right:4%;bottom:22px}.dm-spark-two{left:4%;bottom:36px;font-size:23px}
+@media(max-width:700px){
+ .dm-product-showcase{height:205px;margin-top:4px}
+ .dm-laptop{top:43px;left:5%;width:67%;max-width:245px}
+ .dm-laptop-screen{height:118px;border-width:5px;border-bottom-width:8px}
+ .dm-screen-brand{font-size:28px}.dm-screen-title{font-size:10px}.dm-screen-line{margin-top:7px}
+ .dm-screen-pills{margin-top:7px}
+ .dm-phone{width:64px;height:127px;right:8%;top:26px}
+ .dm-phone-camera{left:22px}
+ .dm-gift-bag{width:72px;height:83px;right:24%;bottom:7px}
+ .dm-bag-handle{left:21px;width:30px;height:22px}
+ .dm-bag-front b{font-size:24px}
+ .dm-floating-gift{left:8%;top:5px;width:36px;height:36px;font-size:21px}
+}
+
 </style>
 </head>
 <body>
@@ -1197,12 +1242,25 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
     <p>Discover products, trusted services and property opportunities in one convenient marketplace.</p>
     <a class="dm-primary-cta" href="#products">Explore the marketplace <span>→</span></a>
   </div>
-  <div class="dm-hero-art" aria-hidden="true">
+  <div class="dm-hero-art dm-product-showcase" aria-hidden="true">
     <div class="dm-orbit dm-orbit-one"></div><div class="dm-orbit dm-orbit-two"></div>
-    <div class="dm-art-card dm-art-card-main"><span>DM</span><b>DAVIMART</b><small>SHOP SMART. LIVE BETTER.</small></div>
-    <div class="dm-art-bubble dm-bubble-shop">🛍️</div>
-    <div class="dm-art-bubble dm-bubble-home">⌂</div>
-    <div class="dm-art-bubble dm-bubble-star">✦</div>
+    <div class="dm-showcase-glow"></div>
+    <div class="dm-laptop">
+      <div class="dm-laptop-screen">
+        <div class="dm-screen-brand">DM</div>
+        <div class="dm-screen-title">DAVIMART</div>
+        <div class="dm-screen-line"></div>
+        <div class="dm-screen-pills"><i></i><i></i><i></i></div>
+      </div>
+      <div class="dm-laptop-base"></div>
+    </div>
+    <div class="dm-phone">
+      <div class="dm-phone-camera"></div>
+      <div class="dm-phone-screen"><b>DM</b><span>Shop smart.</span><i>✦</i><small>Discover more</small></div>
+    </div>
+    <div class="dm-gift-bag"><div class="dm-bag-handle"></div><div class="dm-bag-front"><b>DM</b><span>DAVIMART</span><i>✦</i></div></div>
+    <div class="dm-floating-gift">🎁</div>
+    <div class="dm-product-spark dm-spark-one">✦</div><div class="dm-product-spark dm-spark-two">✧</div>
   </div>
 </section>
   
