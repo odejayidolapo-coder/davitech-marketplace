@@ -1195,19 +1195,19 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
 
 
 /* DAVIMART admin homepage banner manager */
-.dm-device-stage.has-custom-banner{height:auto;min-height:260px;perspective:none}
+.dm-device-stage.has-custom-banner{height:300px;min-height:260px;perspective:none;overflow:hidden;border-radius:14px;background:#061b48}
 .dm-device-stage.has-custom-banner>.dm-device-glow,
 .dm-device-stage.has-custom-banner>.dm-device-orbit,
 .dm-device-stage.has-custom-banner>.dm-laptop,
 .dm-device-stage.has-custom-banner>.dm-smartphone,
 .dm-device-stage.has-custom-banner>.dm-float-tag{display:none}
-.dm-custom-banner-image{display:block;width:100%;max-height:300px;aspect-ratio:16/10;object-fit:contain;border-radius:14px;filter:drop-shadow(0 18px 24px #0007)}
+.dm-custom-banner-image{display:block;width:100%;height:100%;max-height:none;aspect-ratio:auto;object-fit:cover;border-radius:14px;filter:none;transition:opacity .45s ease}
 .dm-admin-banner-tools{margin:14px 0;padding:16px;border:1px solid #d9e2f1;border-radius:14px;background:#f7f9fd;color:#14294d}
 .dm-admin-banner-tools h3{margin:0 0 8px}.dm-admin-banner-tools p{font-size:13px;line-height:1.5}
 .dm-admin-banner-tools input[type=file]{display:block;width:100%;margin:12px 0;padding:10px;background:white;border:1px solid #cbd6e6;border-radius:8px;color:#14294d}
 .dm-admin-banner-tools button{margin:6px 6px 6px 0}
 #dmBannerPreviewWrap{margin:12px 0}#dmBannerPreview{display:block;width:100%;max-height:220px;object-fit:contain;border-radius:10px;background:#e7edf6}
-@media(max-width:700px){.dm-device-stage.has-custom-banner{min-height:0}.dm-custom-banner-image{max-height:220px}}
+@media(max-width:700px){.dm-device-stage.has-custom-banner{height:230px;min-height:230px}.dm-custom-banner-image{height:100%}}
 
 </style>
 </head>
@@ -1266,6 +1266,7 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
   <button>My Inbox</button>
   <button>My Notifications</button>
   <button>Seller Dashboard</button>
+  <button id="menuAdminBtn" hidden>🔐 Admin Dashboard</button>
   <button id="signoutBtn">Sign Out</button>
 </div>
 </header>
@@ -1577,24 +1578,30 @@ const DAVIMART_BANNER_BUCKET = "homepage-banners";
 async function loadHomepageBanner() {
   const stage = document.querySelector(".dm-device-stage");
   if (!stage) return;
-  const { data: files, error } = await db.storage.from(DAVIMART_BANNER_BUCKET)
-    .list("", { search: "homepage-banner", limit: 10 });
-  if (error || !files || !files.length) return;
-  const file = files.find(item => item.name === "homepage-banner");
-  if (!file) return;
-  const { data } = db.storage.from(DAVIMART_BANNER_BUCKET)
-    .getPublicUrl("homepage-banner");
-  const imageUrl = data.publicUrl + "?v=" + encodeURIComponent(file.updated_at || file.created_at || Date.now());
-  let image = stage.querySelector(".dm-custom-banner-image");
-  if (!image) {
-    image = document.createElement("img");
-    image.className = "dm-custom-banner-image";
-    image.alt = "DAVIMART promotional banner";
-    stage.appendChild(image);
-  }
-  image.src = imageUrl;
-  image.hidden = false;
+  const { data: files, error } = await db.storage.from(DAVIMART_BANNER_BUCKET).list("", { limit: 100 });
+  if (error || !files) return;
+  const slides = files
+    .filter(item => item.name === "homepage-banner" || item.name.startsWith("slide-"))
+    .sort((a,b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+  if (!slides.length) return;
+  const image = document.createElement("img");
+  image.className = "dm-custom-banner-image";
+  image.alt = "DAVIMART homepage promotional banner";
+  stage.appendChild(image);
   stage.classList.add("has-custom-banner");
+  let current = 0;
+  const showSlide = () => {
+    const file = slides[current];
+    const { data } = db.storage.from(DAVIMART_BANNER_BUCKET).getPublicUrl(file.name);
+    image.style.opacity = "0";
+    window.setTimeout(() => {
+      image.src = data.publicUrl + "?v=" + encodeURIComponent(file.updated_at || file.created_at || Date.now());
+      image.style.opacity = "1";
+    }, 250);
+    current = (current + 1) % slides.length;
+  };
+  showSlide();
+  if (slides.length > 1) window.setInterval(showSlide, 5000);
 }
 loadHomepageBanner();
 
@@ -1602,16 +1609,19 @@ async function updateAccountButtons() {
   const { data: { session } } = await db.auth.getSession();
 
   document.getElementById("menuSignInBtn").hidden = !!session;
-document.getElementById("signoutBtn").hidden = !session;
+  document.getElementById("signoutBtn").hidden = !session;
+  document.getElementById("menuAdminBtn").hidden = !(session && session.user.id === DAVIMART_ADMIN_ID);
   document.getElementById("accountMenu").hidden = true;
 }
 
 db.auth.onAuthStateChange((event, session) => {
   document.getElementById("menuSignInBtn").hidden = !!session;
   document.getElementById("signoutBtn").hidden = !session;
+  document.getElementById("menuAdminBtn").hidden = !(session && session.user.id === DAVIMART_ADMIN_ID);
 });
 
 updateAccountButtons();
+  document.getElementById("menuAdminBtn").onclick = () => { window.location.href = "admin.html"; };
   document.getElementById("signoutBtn").onclick = async () => {
   const { error } = await db.auth.signOut();
 
