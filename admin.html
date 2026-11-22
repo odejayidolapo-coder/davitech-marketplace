@@ -26,6 +26,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 .notice{padding:13px;border-radius:10px;background:#fff7df;color:#725400;font-size:13px;line-height:1.5}
 
 .admin-feature[hidden]{display:none!important}
+.content-edit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.content-edit-grid input,.content-edit-grid textarea{border:1px solid #dbe2ed;border-radius:8px}
 .admin-table-wrap{overflow-x:auto;margin-top:14px}
 .admin-table{width:100%;border-collapse:collapse;min-width:560px;font-size:13px}
 .admin-table th,.admin-table td{padding:11px 9px;border-bottom:1px solid #e8edf4;text-align:left;vertical-align:top}
@@ -53,6 +54,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <button type="button" data-panel="notifyPanel">🔔 Notifications</button>
 <button type="button" data-panel="productUploadPanel">🛍️ Add product</button>
 <button type="button" id="bannerNav" data-panel="bannerPanel">▧ Homepage banner</button>
+<button type="button" data-panel="contentSettingsPanel">⚙️ Homepage content</button>
 </aside>
 <div class="content">
 <div class="stats">
@@ -97,6 +99,25 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <button class="btn btn-gold" id="adminProductPublish" type="submit">Publish product</button>
 <p id="adminProductStatus" role="status"></p>
 </form>
+</section>
+<section class="panel admin-feature" id="contentSettingsPanel" hidden>
+<h2>Homepage content settings</h2>
+<p>Edit the “How DAVIMART works” steps and the footer. These changes do not affect the bottom navigation or other homepage sections.</p>
+<h3>How DAVIMART works</h3>
+<label>Section heading</label><input id="contentHowHeading" maxlength="100" style="width:100%;padding:11px;margin:6px 0 12px">
+<div class="content-edit-grid">
+<div class="notice" style="margin:10px 0"><b>Step 1</b><label style="display:block;margin-top:10px">Title</label><input id="contentStep1Title" maxlength="100" style="width:100%;padding:10px;margin:5px 0"><label>Description</label><textarea id="contentStep1Description" maxlength="500" style="width:100%;min-height:75px;padding:10px;margin:5px 0"></textarea></div><div class="notice" style="margin:10px 0"><b>Step 2</b><label style="display:block;margin-top:10px">Title</label><input id="contentStep2Title" maxlength="100" style="width:100%;padding:10px;margin:5px 0"><label>Description</label><textarea id="contentStep2Description" maxlength="500" style="width:100%;min-height:75px;padding:10px;margin:5px 0"></textarea></div><div class="notice" style="margin:10px 0"><b>Step 3</b><label style="display:block;margin-top:10px">Title</label><input id="contentStep3Title" maxlength="100" style="width:100%;padding:10px;margin:5px 0"><label>Description</label><textarea id="contentStep3Description" maxlength="500" style="width:100%;min-height:75px;padding:10px;margin:5px 0"></textarea></div>
+</div>
+<h3 style="margin-top:24px">Footer settings</h3>
+<label>Footer heading</label><input id="contentFooterHeading" maxlength="100" style="width:100%;padding:11px;margin:6px 0 12px">
+<label>Tagline</label><input id="contentFooterTagline" maxlength="150" style="width:100%;padding:11px;margin:6px 0 12px">
+<label>Marketplace description</label><textarea id="contentFooterDescription" maxlength="300" style="width:100%;min-height:70px;padding:11px;margin:6px 0 12px"></textarea>
+<label>WhatsApp link (full https://wa.me/... URL)</label><input id="contentFooterWhatsapp" type="url" maxlength="300" style="width:100%;padding:11px;margin:6px 0 12px">
+<label>WhatsApp link text</label><input id="contentFooterWhatsappLabel" maxlength="100" style="width:100%;padding:11px;margin:6px 0 12px">
+<label>Copyright text (without the year)</label><input id="contentFooterCopyright" maxlength="150" style="width:100%;padding:11px;margin:6px 0 12px">
+<div class="actions"><button class="btn btn-gold" id="saveHomepageContent">Save and publish changes</button><button class="btn btn-light" id="reloadHomepageContent" type="button">Reload saved content</button></div>
+<p id="contentSettingsStatus" role="status"></p>
+<div class="notice">Changes are published to the homepage for all visitors. You can edit them again here whenever you want.</div>
 </section>
 <section class="panel" id="bannerPanel"><h2>Homepage banner manager</h2><p>Upload several promotional banners together. DAVIMART will display them in a full-size rotating slideshow on the homepage. Supported: JPG, PNG, WEBP, GIF, MP4 or WEBM, maximum 10 MB per file.</p>
 <div class="drop"><b>Select promotional images or videos</b><br><input id="bannerFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple><div id="previewGrid"></div></div>
@@ -177,12 +198,61 @@ function showAdminPanel(id){
  if(id==="usersPanel") loadUsers();
  if(id==="listingsPanel") loadListings();
  if(id==="notifyPanel") loadNotificationRecipients();
+ if(id==="contentSettingsPanel") loadHomepageContentSettings();
 }
 document.querySelectorAll("aside button[data-panel]").forEach(b=>b.addEventListener("click",()=>showAdminPanel(b.dataset.panel)));
 document.getElementById("openBanner").onclick=()=>showAdminPanel("bannerPanel");
 document.getElementById("bannerNav").onclick=()=>showAdminPanel("bannerPanel");
 document.getElementById("refreshUsers").onclick=loadUsers;
 document.getElementById("refreshListings").onclick=loadListings;
+
+const homepageContentDefaults={
+ howHeading:"How DAVIMART works",
+ steps:[
+  {title:"1. Browse freely",description:"Explore products and properties without creating an account."},
+  {title:"2. Contact sellers",description:"Ask questions and discuss listings with their sellers or agents."},
+  {title:"3. Create an account",description:"Buyer and seller accounts will support orders, favourites and listing management once connected."}
+ ],
+ footer:{heading:"DAVIMART by DAVITECH",tagline:"Fast Reliable Affordable.",description:"Products and properties in one marketplace.",whatsapp:"https://wa.me/2349068847614",whatsappLabel:"Contact DAVITECH on WhatsApp",copyright:"DAVITECH. All rights reserved."}
+};
+function setContentField(id,value){const el=document.getElementById(id);if(el)el.value=value??"";}
+async function loadHomepageContentSettings(){
+ const statusEl=document.getElementById("contentSettingsStatus");
+ if(statusEl)statusEl.textContent="Loading saved homepage content…";
+ const {data,error}=await db.storage.from(BUCKET).download("homepage-content.json");
+ let cfg=homepageContentDefaults;
+ if(!error&&data){try{cfg={...homepageContentDefaults,...JSON.parse(await data.text())};cfg.footer={...homepageContentDefaults.footer,...(cfg.footer||{})};cfg.steps=Array.isArray(cfg.steps)?cfg.steps:homepageContentDefaults.steps;}catch(e){if(statusEl)statusEl.textContent="Saved content file could not be read. Default text loaded.";}}
+ else if(error&& !/not found|object not found|404/i.test(error.message||"")){if(statusEl)statusEl.textContent="Could not load saved content: "+error.message;}
+ setContentField("contentHowHeading",cfg.howHeading);
+ for(let n=1;n<=3;n++){setContentField("contentStep"+n+"Title",cfg.steps[n-1]?.title||homepageContentDefaults.steps[n-1].title);setContentField("contentStep"+n+"Description",cfg.steps[n-1]?.description||homepageContentDefaults.steps[n-1].description);}
+ setContentField("contentFooterHeading",cfg.footer.heading);setContentField("contentFooterTagline",cfg.footer.tagline);setContentField("contentFooterDescription",cfg.footer.description);setContentField("contentFooterWhatsapp",cfg.footer.whatsapp);setContentField("contentFooterWhatsappLabel",cfg.footer.whatsappLabel);setContentField("contentFooterCopyright",cfg.footer.copyright);
+ if(statusEl&&!statusEl.textContent.startsWith("Could not"))statusEl.textContent="Saved content loaded. You can edit the fields above.";
+}
+document.getElementById("saveHomepageContent").onclick=async()=>{
+ const statusEl=document.getElementById("contentSettingsStatus");
+ const {data:{user}}=await db.auth.getUser();
+ if(!user||user.id!==ADMIN_ID){statusEl.textContent="Access denied.";return;}
+ const whatsapp=document.getElementById("contentFooterWhatsapp").value.trim();
+ if(whatsapp&&!/^https:\/\/wa\.me\//i.test(whatsapp)){statusEl.textContent="Please enter a valid WhatsApp link beginning with https://wa.me/";return;}
+ const cfg={
+  howHeading:document.getElementById("contentHowHeading").value.trim(),
+  steps:[1,2,3].map(n=>({title:document.getElementById("contentStep"+n+"Title").value.trim(),description:document.getElementById("contentStep"+n+"Description").value.trim()})),
+  footer:{
+   heading:document.getElementById("contentFooterHeading").value.trim(),
+   tagline:document.getElementById("contentFooterTagline").value.trim(),
+   description:document.getElementById("contentFooterDescription").value.trim(),
+   whatsapp,whatsappLabel:document.getElementById("contentFooterWhatsappLabel").value.trim(),
+   copyright:document.getElementById("contentFooterCopyright").value.trim()
+  }
+ };
+ if(!cfg.howHeading||cfg.steps.some(s=>!s.title||!s.description)||!cfg.footer.heading||!cfg.footer.tagline||!cfg.footer.description||!cfg.footer.whatsappLabel||!cfg.footer.copyright){statusEl.textContent="Please complete all text fields before publishing.";return;}
+ statusEl.textContent="Publishing homepage content…";
+ const blob=new Blob([JSON.stringify(cfg,null,2)],{type:"application/json"});
+ const {error}=await db.storage.from(BUCKET).upload("homepage-content.json",blob,{upsert:true,contentType:"application/json",cacheControl:"0"});
+ statusEl.textContent=error?"Could not publish content: "+error.message:"Homepage content published. Refresh the homepage to see your changes.";
+};
+document.getElementById("reloadHomepageContent").onclick=loadHomepageContentSettings;
+
 function cellText(row,value){const td=document.createElement("td");td.textContent=value??"—";row.appendChild(td);return td;}
 function makeTable(target,headers,rows){
  const host=document.getElementById(target);host.innerHTML="";
