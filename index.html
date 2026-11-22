@@ -1614,9 +1614,13 @@ function renderProductCard(item, host) {
     img.alt = item.title || "Product image";
     img.loading = "lazy";
     card.appendChild(img);
+    img.style.cursor = "pointer";
+    img.addEventListener("click", () => openProductDetails(String(item.id)));
   }
   const title = document.createElement("h3");
   title.textContent = item.title || "Product";
+  title.style.cursor = "pointer";
+  title.addEventListener("click", () => openProductDetails(String(item.id)));
   const desc = document.createElement("p");
   desc.textContent = item.description || item.category || "Product details";
   const price = document.createElement("strong");
@@ -1634,48 +1638,8 @@ function renderProductCard(item, host) {
 }
 
 function openProductDetails(productId) {
-  const item = DAVIMART_PRODUCT_CACHE.get(String(productId));
-  if (!item) return;
-  let modal = document.getElementById("dmProductDetailsModal");
-  if (!modal) {
-    modal = document.createElement("div");
-    modal.id = "dmProductDetailsModal";
-    modal.className = "dm-product-modal";
-    modal.innerHTML = '<div class="dm-product-modal-card" role="dialog" aria-modal="true" aria-labelledby="dmProductTitle"><button type="button" class="dm-product-close" aria-label="Close">×</button><div class="dm-product-content"></div></div>';
-    modal.addEventListener("click", event => {
-      if (event.target === modal || event.target.closest(".dm-product-close")) { modal.classList.remove("show"); document.body.style.overflow = ""; }
-    });
-    document.body.appendChild(modal);
-  }
-  const content = modal.querySelector(".dm-product-content");
-  content.innerHTML = "";
-  if (item.image_url) {
-    const image = document.createElement("img");
-    image.src = item.image_url;
-    image.alt = item.title || "Product image";
-    content.appendChild(image);
-  }
-  const title = document.createElement("h2");
-  title.id = "dmProductTitle";
-  title.textContent = item.title || "Product";
-  const price = document.createElement("strong");
-  price.className = "dm-detail-price";
-  price.textContent = "₦" + Number(item.price || 0).toLocaleString("en-NG");
-  const descriptionLabel = document.createElement("h3");
-  descriptionLabel.textContent = "Description";
-  const description = document.createElement("p");
-  description.textContent = item.description || "The seller has not added a description yet.";
-  const category = document.createElement("p");
-  category.textContent = "Category: " + (item.category || "General");
-  const location = document.createElement("p");
-  location.textContent = "Location: " + (item.location || "Nigeria");
-  content.append(title, price, descriptionLabel, description, category, location);
-  modal.classList.add("show");
-  document.body.style.overflow = "hidden";
-  modal.querySelector(".dm-product-close").focus();
-  modal.addEventListener("transitionend", () => {
-    if (!modal.classList.contains("show")) document.body.style.overflow = "";
-  }, { once: true });
+  if (!productId) return;
+  window.location.href = "product.html?id=" + encodeURIComponent(productId);
 }
 
 async function loadHomepageProducts(){
