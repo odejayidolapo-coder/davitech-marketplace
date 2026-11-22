@@ -147,11 +147,13 @@ async function loadBannerGallery(){
   }
 }
 async function removeOneBanner(name){
-  const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_ID){status.textContent="Access denied.";return;}
+  const {data:{user}}=await db.auth.getUser();
+  if(!user||user.id!==ADMIN_ID){status.textContent="Access denied.";return;}
   if(!confirm("Remove this homepage banner?"))return;
   const {error}=await db.storage.from(BUCKET).remove([name]);
   status.textContent=error?"Could not remove banner: "+error.message:"Banner removed.";
-  await 
+  await loadBannerGallery();
+}
 function showAdminPanel(id){
  document.querySelectorAll(".content > section").forEach(p=>{p.hidden=p.id!==id;});
  document.querySelectorAll("aside button[data-panel]").forEach(b=>b.classList.toggle("active",b.dataset.panel===id));
@@ -234,8 +236,6 @@ document.getElementById("sendNotification").onclick=async()=>{
  if(!error){document.getElementById("notifyTitle").value="";document.getElementById("notifyMessage").value="";}
 };
 
-loadBannerGallery();
-}
 document.getElementById("publish").onclick=async()=>{
   const files=Array.from(fileInput.files||[]);
   if(!files.length){status.textContent="Choose at least one image or video first.";return;}
