@@ -1057,6 +1057,76 @@ header {
     min-width: 0;
   }
 } 
+
+/* DAVIMART premium homepage refresh — approved working concept */
+:root{--dm-navy:#071f50;--dm-blue:#0b56c5;--dm-gold:#ffc400;--dm-ink:#102044;--dm-muted:#65728a}
+body{background:#f4f6fb;color:var(--dm-ink)}
+header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16px,4vw,54px);border:0;box-shadow:0 5px 22px rgba(4,22,61,.18)}
+.logo{color:#fff;font-size:clamp(23px,2.2vw,30px);letter-spacing:-1px}
+.logo span{color:var(--dm-gold)}
+.dm-header-search{border:0;border-radius:999px;height:48px;max-width:560px;box-shadow:0 3px 14px #00133c22}
+.dm-header-search input{padding-left:20px}
+.dm-header-search button{background:var(--dm-gold);padding:0 23px}
+.notification-bell{background:transparent}
+.dm-home-hero{max-width:1440px;min-height:310px;margin:18px auto 24px;padding:42px clamp(22px,5vw,70px);border-radius:22px;overflow:hidden;position:relative;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;color:#fff;background:radial-gradient(circle at 78% 48%,#1269df 0,transparent 35%),linear-gradient(115deg,#061b4b,#0645a8 72%,#09255b);box-shadow:0 12px 28px #092b6930}
+.dm-home-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(125deg,transparent 48%,#ffffff0d 48.2%,transparent 68%);pointer-events:none}
+.dm-hero-copy{position:relative;z-index:2;max-width:600px}
+.dm-kicker,.dm-section-head small{font-size:11px;letter-spacing:1.8px;font-weight:800;color:var(--dm-gold)}
+.dm-hero-copy h1{font-size:clamp(38px,5vw,64px);line-height:.98;letter-spacing:-2px;margin:16px 0}
+.dm-hero-copy h1 em{font-style:normal;color:var(--dm-gold)}
+.dm-hero-copy p{max-width:470px;color:#e1eaff;line-height:1.65;font-size:16px}
+.dm-primary-cta{display:inline-flex;align-items:center;gap:18px;margin-top:17px;padding:14px 21px;border-radius:999px;background:var(--dm-gold);color:#061b48;font-weight:800;box-shadow:0 7px 18px #00133c44}
+.dm-hero-art{height:220px;position:relative;display:grid;place-items:center}
+.dm-orbit{position:absolute;border:1px solid #ffffff35;border-radius:50%;width:240px;height:240px}
+.dm-orbit-two{width:310px;height:170px;transform:rotate(-28deg)}
+.dm-art-card{position:relative;z-index:1;width:230px;height:145px;border:1px solid #ffffff65;border-radius:22px;background:linear-gradient(145deg,#ffffff30,#ffffff08);backdrop-filter:blur(9px);box-shadow:0 18px 40px #00133c55;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-7deg)}
+.dm-art-card span{font-size:46px;font-weight:950;letter-spacing:-5px;color:var(--dm-gold)}
+.dm-art-card b{font-size:19px;letter-spacing:2px}.dm-art-card small{font-size:8px;letter-spacing:2px;color:#dce8ff;margin-top:5px}
+.dm-art-bubble{position:absolute;z-index:2;width:54px;height:54px;border-radius:17px;display:grid;place-items:center;background:#fff;color:#09265c;font-size:26px;box-shadow:0 8px 24px #00133c44}
+.dm-bubble-shop{top:12px;right:15%}.dm-bubble-home{bottom:8px;left:13%;font-size:36px;color:#0a56c7}.dm-bubble-star{top:25px;left:15%;background:var(--dm-gold)}
+.dm-shop-strip{max-width:1440px;margin:0 auto 28px;padding:0 clamp(14px,3vw,34px)}
+.dm-section-head{margin-bottom:15px}
+.dm-section-head h2{font-size:25px;letter-spacing:-.6px;color:var(--dm-navy)}
+.dm-section-head a{color:#0a55c5;font-size:13px}
+.dm-category-grid{gap:12px}
+.dm-category-grid a{border:1px solid #e6ebf4;border-radius:17px;padding:18px 8px;background:linear-gradient(145deg,#fff,#f7f9ff);box-shadow:0 5px 15px #102b5510;transition:transform .2s,box-shadow .2s}
+.dm-category-grid a:hover{transform:translateY(-3px);box-shadow:0 10px 22px #102b5520}
+.dm-category-grid span{color:#0b56c5;font-size:31px}
+.dm-category-grid b{font-size:13px;color:#102044}
+.dm-flash-panel{margin-top:26px;padding:22px;border-radius:20px;background:linear-gradient(115deg,#061b48,#0b347c);box-shadow:0 10px 24px #092b6925}
+.dm-flash-panel .dm-section-head h2{color:#fff}
+.dm-lightning{color:var(--dm-gold);font-size:29px;margin-right:7px}
+.dm-coming{background:#fff4c9;color:#805900;padding:9px 14px;border-radius:999px}
+.dm-deal-empty{display:flex;align-items:center;gap:16px;padding:18px 20px;border:1px solid #ffffff24;border-radius:14px;background:#ffffff0d;color:#fff}
+.dm-deal-empty-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:14px;background:#ffc400;color:#082354;font-size:25px}
+.dm-deal-empty b{font-size:16px}.dm-deal-empty p{margin:5px 0 0;color:#d6e2fa;font-size:13px;line-height:1.5}
+#products{max-width:1370px;margin:28px auto;border:1px solid #e7ebf3;box-shadow:0 8px 24px #102b550b}
+#davitech-services{max-width:1370px;margin:28px auto;padding:30px;border-radius:20px;background:linear-gradient(115deg,#061b48,#0b347c);box-shadow:0 10px 25px #092b6925}
+#davitech-services .steps{grid-template-columns:repeat(3,minmax(0,1fr))}
+#davitech-services .step{border:1px solid #e7edf7;box-shadow:none}
+.property{max-width:1370px;margin:28px auto;border-radius:20px;background:linear-gradient(120deg,#e7efff,#f8faff)}
+.dm-bottom-nav{background:#071f50;border-top:1px solid #234b8c}
+.dm-bottom-nav a,.dm-bottom-nav button{color:#fff}
+@media(max-width:700px){
+ .dm-home-hero{margin:10px 10px 20px;padding:28px 22px 18px;min-height:0;grid-template-columns:1fr;border-radius:18px}
+ .dm-hero-copy h1{font-size:42px}
+ .dm-hero-copy p{font-size:14px}
+ .dm-hero-art{height:155px;margin-top:12px}
+ .dm-orbit{width:185px;height:185px}.dm-orbit-two{width:235px;height:125px}
+ .dm-art-card{width:190px;height:120px}.dm-art-card span{font-size:37px}
+ .dm-bubble-shop{right:10%;top:0}.dm-bubble-home{left:9%;bottom:0}
+ .dm-category-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+ .dm-category-grid a{padding:15px 5px;border-radius:14px;gap:8px}
+ .dm-category-grid span{font-size:27px}
+ .dm-flash-panel{padding:16px;margin-top:20px}
+ .dm-deal-empty{padding:14px}
+ #davitech-services{margin:22px 12px;padding:23px 16px}
+ #davitech-services .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .property{margin:22px 12px}
+ #products{margin:22px 12px}
+}
+@media(min-width:701px){.dm-home-hero{margin-left:clamp(20px,3vw,44px);margin-right:clamp(20px,3vw,44px)}}
+
 </style>
 </head>
 <body>
@@ -1120,38 +1190,20 @@ header {
 
 <main id="home">
 
-<section class="jumia-home">
-  <aside class="jumia-categories">
-    <h3>SHOP BY CATEGORY</h3>
-    <a href="#products">📱 Phones & Accessories</a>
-    <a href="#products">💻 Computing</a>
-    <a href="#products">📺 Electronics</a>
-    <a href="#products">🏠 Home & Living</a>
-    <a href="#products">👗 Fashion</a>
-    <a href="#products">💄 Beauty</a>
-    <a href="#properties">🏡 Real Estate</a>
-    <a href="#products">🛍️ Other Products</a>
-  </aside>
-
-  <div class="jumia-banner">
-    <span>WELCOME TO DAVIMART</span>
-    <h1>Everything you need, all in one place.</h1>
-    <p>Shop products, discover great deals and find properties.</p>
-    <a href="#products">SHOP NOW →</a>
+<section class="dm-home-hero" aria-label="DAVIMART featured promotion">
+  <div class="dm-hero-copy">
+    <span class="dm-kicker">WELCOME TO DAVIMART</span>
+    <h1>Shop more.<br><em>Live better.</em></h1>
+    <p>Discover products, trusted services and property opportunities in one convenient marketplace.</p>
+    <a class="dm-primary-cta" href="#products">Explore the marketplace <span>→</span></a>
   </div>
-
-  <aside class="jumia-promos">
-    <div>
-      <h3>Become a Seller</h3>
-      <p>Reach more customers with DAVIMART.</p>
-      <button onclick="handleSellClick()">START SELLING</button>
-    </div>
-    <div>
-      <h3>Find Your Property</h3>
-      <p>Explore properties in one marketplace.</p>
-      <a href="#properties">EXPLORE →</a>
-    </div>
-  </aside>
+  <div class="dm-hero-art" aria-hidden="true">
+    <div class="dm-orbit dm-orbit-one"></div><div class="dm-orbit dm-orbit-two"></div>
+    <div class="dm-art-card dm-art-card-main"><span>DM</span><b>DAVIMART</b><small>SHOP SMART. LIVE BETTER.</small></div>
+    <div class="dm-art-bubble dm-bubble-shop">🛍️</div>
+    <div class="dm-art-bubble dm-bubble-home">⌂</div>
+    <div class="dm-art-bubble dm-bubble-star">✦</div>
+  </div>
 </section>
   
   <section class="hero">
@@ -1171,54 +1223,28 @@ header {
 
 <section class="dm-shop-strip" id="shopCategories">
   <div class="dm-section-head">
-    <div>
-      <small>EXPLORE DAVIMART</small>
-      <h2>Shop by Category</h2>
-    </div>
-    <a href="#products">View all →</a>
+    <div><small>DISCOVER DAVIMART</small><h2>Explore categories</h2></div>
+    <a href="#products">Browse all <span>→</span></a>
   </div>
-
   <div class="dm-category-grid">
-    <a href="#products"><span>📱</span><b>Phones</b></a>
-    <a href="#products"><span>💻</span><b>Computing</b></a>
-    <a href="#products"><span>📺</span><b>Electronics</b></a>
-    <a href="#products"><span>🏠</span><b>Home & Living</b></a>
-    <a href="#products"><span>👗</span><b>Fashion</b></a>
-    <a href="#products"><span>💄</span><b>Beauty</b></a>
-  </div>
+    <a href="#products"><span>🛍️</span><b>Shop</b></a>
+    <a href="#davitech-services"><span>⚙️</span><b>Services</b></a>
+    <a href="#properties"><span>⌂</span><b>Properties</b></a>
+    <a href="#products"><span>💻</span><b>Electronics</b></a>
+    <a href="#products"><span>◈</span><b>Fashion</b></a>
+    <a href="#products"><span>•••</span><b>More</b></a>
+  </div>iv>
 
   <div class="dm-flash-panel">
     <div class="dm-section-head">
-      <div>
-        <small>GREAT DEALS ARE COMING</small>
-        <h2>⚡ Flash Deals</h2>
-      </div>
+      <div><small>DEALS & SPECIAL OFFERS</small><h2><span class="dm-lightning">ϟ</span> Flash deals</h2></div>
       <span class="dm-coming">Coming soon</span>
     </div>
-
-    <div class="dm-deal-grid">
-      <div class="dm-deal-card">
-        <div class="dm-deal-art">📱</div>
-        <b>Phones & Accessories</b>
-        <p>Exciting offers coming soon.</p>
-      </div>
-      <div class="dm-deal-card">
-        <div class="dm-deal-art">🎧</div>
-        <b>Electronics</b>
-        <p>Discover upcoming deals.</p>
-      </div>
-      <div class="dm-deal-card">
-        <div class="dm-deal-art">🏠</div>
-        <b>Home & Living</b>
-        <p>Great home offers coming soon.</p>
-      </div>
-      <div class="dm-deal-card">
-        <div class="dm-deal-art">👟</div>
-        <b>Fashion</b>
-        <p>New styles coming soon.</p>
-      </div>
+    <div class="dm-deal-empty">
+      <span class="dm-deal-empty-icon">✦</span>
+      <div><b>Great deals are on the way</b><p>New offers will appear here as soon as verified products are published.</p></div>
     </div>
-  </div>
+  </div>iv>
   </section>
   
 <section id="products">
