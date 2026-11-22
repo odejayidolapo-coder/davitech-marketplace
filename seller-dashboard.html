@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071f50"><title>DAVIMART Seller Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--navy:#071f50;--blue:#0b56c5;--gold:#ffc400;--ink:#102044;--muted:#65728a;--bg:#f4f6fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px Arial,sans-serif;color:var(--ink)}header{background:var(--navy);color:white;padding:17px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}header a{color:white;text-decoration:none}main{max-width:1100px;margin:28px auto;padding:0 16px}.panel{background:white;border-radius:16px;padding:22px;margin:16px 0;box-shadow:0 5px 22px rgba(7,31,80,.07)}h1,h2{margin-top:0}label{display:block;font-weight:700;margin:13px 0 6px}input,textarea,select{display:block;width:100%;padding:12px;border:1px solid #d8e0ed;border-radius:9px;font:inherit;background:white}textarea{min-height:100px;resize:vertical}.btn{border:0;border-radius:9px;padding:12px 17px;font-weight:700;cursor:pointer}.primary{background:var(--navy);color:white}.gold{background:var(--gold);color:var(--navy)}.muted{color:var(--muted)}.status{padding:10px 0;color:var(--blue)}.listing{border:1px solid #e5eaf2;border-radius:12px;padding:14px;margin:12px 0;display:flex;gap:14px;align-items:center;flex-wrap:wrap}.listing img{width:100px;height:90px;object-fit:cover;border-radius:8px}.listing .info{flex:1;min-width:180px}.pill{display:inline-block;padding:5px 9px;border-radius:20px;background:#edf2fa;font-size:12px;font-weight:700}.pill.approved{background:#e3f7eb;color:#126b39}.pill.pending{background:#fff5d6;color:#805900}.pill.rejected{background:#fde8e8;color:#9a2020}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}.stat{background:#f5f7fb;padding:14px;border-radius:12px}.stat b{display:block;font-size:22px;color:var(--navy)}@media(max-width:600px){.panel{padding:17px}.listing img{width:76px;height:76px}}
+</style></head>
+<body>
+<header><strong>DAVIMART SELLER CENTRE</strong><a href="index.html">← Back to marketplace</a></header>
+<main>
+<div id="checking" class="panel">Checking your seller account…</div>
+<div id="denied" class="panel" hidden><h2>Seller access not available</h2><p id="deniedText">Sign in with your approved seller account to continue.</p><a class="btn primary" href="index.html">Return to DAVIMART</a></div>
+<div id="sellerApp" hidden>
+<div class="panel"><h1>Seller Dashboard</h1><p id="sellerWelcome" class="muted">Manage your DAVIMART products and listings.</p>
+<div class="grid"><div class="stat"><b id="totalCount">0</b>Total listings</div><div class="stat"><b id="pendingCount">0</b>Awaiting review</div><div class="stat"><b id="approvedCount">0</b>Published</div></div></div>
+<section class="panel"><h2>Add a product or property</h2><p class="muted">Your new listing will be reviewed by DAVIMART before it appears publicly.</p>
+<form id="listingForm">
+<label for="title">Product or property name</label><input id="title" required maxlength="120" placeholder="e.g. Android smartphone">
+<label for="description">Description</label><textarea id="description" required maxlength="3000" placeholder="Describe the item clearly"></textarea>
+<label for="price">Price (₦)</label><input id="price" type="number" min="0" step="0.01" required placeholder="Enter price">
+<label for="category">Category</label><input id="category" required maxlength="80" placeholder="e.g. Phones & Accessories">
+<label for="type">Listing type</label><select id="type"><option value="product">Product</option><option value="property">Property</option></select>
+<label for="location">Location</label><input id="location" required placeholder="Town / city">
+<label for="photo">Product photo (JPG, PNG or WEBP; max 5 MB)</label><input id="photo" type="file" accept="image/jpeg,image/png,image/webp">
+<div id="photoPreview"></div><button class="btn primary" type="submit" id="submitListing">Submit for review</button><p id="formStatus" class="status" role="status"></p>
+</form></section>
+<section class="panel"><h2>My listings</h2><button class="btn gold" id="refreshListings" type="button">Refresh listings</button><div id="myListings" class="muted">Loading your listings…</div></section>
+</div></main>
+<script>
+const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
+const IMAGE_BUCKET="listing-images";
+let currentUser=null;
+const $=id=>document.getElementById(id);
+function statusPill(value){const s=document.createElement("span");s.className="pill "+value;s.textContent=value;return s;}
+$("photo").onchange=()=>{
+ const f=$("photo").files[0];$("photoPreview").innerHTML="";
+ if(!f)return;
+ if(!["image/jpeg","image/png","image/webp"].includes(f.type)||f.size>5*1024*1024){$("formStatus").textContent="Choose JPG, PNG or WEBP under 5 MB.";$("photo").value="";return;}
+ const img=document.createElement("img");img.src=URL.createObjectURL(f);img.style.cssText="max-width:170px;max-height:130px;margin:10px 0;border-radius:10px";$("photoPreview").appendChild(img);
+};
+async function loadMyListings(){
+ $("myListings").textContent="Loading your listings…";
+ const {data,error}=await db.from("listings").select("id,title,description,price,category,listing_type,location,status,image_url,created_at").eq("seller_id",currentUser.id).order("created_at",{ascending:false});
+ if(error){$("myListings").textContent="Could not load listings: "+error.message;return;}
+ const rows=data||[];
+ $("totalCount").textContent=rows.length;
+ $("pendingCount").textContent=rows.filter(x=>x.status==="pending").length;
+ $("approvedCount").textContent=rows.filter(x=>x.status==="approved").length;
+ $("myListings").innerHTML="";
+ if(!rows.length){$("myListings").textContent="You have not submitted any listings yet.";return;}
+ rows.forEach(item=>{
+  const card=document.createElement("article");card.className="listing";
+  if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt=item.title;card.appendChild(img);}
+  const info=document.createElement("div");info.className="info";
+  const name=document.createElement("strong");name.textContent=item.title;
+  const detail=document.createElement("p");detail.className="muted";detail.textContent="₦"+Number(item.price).toLocaleString("en-NG")+" · "+item.category+" · "+item.listing_type;
+  const location=document.createElement("small");location.textContent=item.location||"";
+  info.append(name,detail,location);card.append(info,statusPill(item.status));$("myListings").appendChild(card);
+ });
+}
+$("refreshListings").onclick=loadMyListings;
+$("listingForm").onsubmit=async e=>{
+ e.preventDefault();$("submitListing").disabled=true;$("formStatus").textContent="Submitting your listing…";
+ let imageUrl=null;const file=$("photo").files[0];
+ if(file){
+  if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>5*1024*1024){$("formStatus").textContent="Choose JPG, PNG or WEBP under 5 MB.";$("submitListing").disabled=false;return;}
+  const ext=file.name.split(".").pop().toLowerCase(),path=currentUser.id+"/"+crypto.randomUUID()+"."+ext;
+  const upload=await db.storage.from(IMAGE_BUCKET).upload(path,file,{contentType:file.type,upsert:false});
+  if(upload.error){$("formStatus").textContent="Photo upload failed: "+upload.error.message;$("submitListing").disabled=false;return;}
+  imageUrl=db.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
+ }
+ const {error}=await db.from("listings").insert({seller_id:currentUser.id,title:$("title").value.trim(),description:$("description").value.trim(),price:Number($("price").value),category:$("category").value.trim(),listing_type:$("type").value,location:$("location").value.trim(),image_url:imageUrl,status:"pending"});
+ $("formStatus").textContent=error?"Could not submit listing: "+error.message:"Listing submitted. It will appear in the marketplace after admin approval.";
+ if(!error){$("listingForm").reset();$("photoPreview").innerHTML="";await loadMyListings();}
+ $("submitListing").disabled=false;
+};
+(async()=>{
+ const {data:{user},error}=await db.auth.getUser();
+ $("checking").hidden=true;
+ if(error||!user){$("denied").hidden=false;$("deniedText").textContent="Please sign in to your DAVIMART account first.";return;}
+ currentUser=user;
+ const {data:profile,error:profileError}=await db.from("profiles").select("full_name,seller_status").eq("id",user.id).single();
+ if(profileError||profile?.seller_status!=="approved"){
+  $("denied").hidden=false;$("deniedText").textContent=profile?.seller_status==="pending"?"Your seller application is awaiting admin approval.":"Only approved DAVIMART sellers can access this dashboard.";return;
+ }
+ $("sellerApp").hidden=false;$("sellerWelcome").textContent="Welcome, "+(profile.full_name||user.email)+". Manage your DAVIMART listings here.";
+ await loadMyListings();
+})();
+</script></body></html>
