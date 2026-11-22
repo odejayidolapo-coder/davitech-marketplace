@@ -1347,7 +1347,7 @@ body.dm-modal-open{overflow:hidden}
       <div><small>DON'T MISS WHAT'S NEXT</small><h2><span class="dm-lightning">ϟ</span> Flash Sale</h2></div>
       <div class="dm-countdown-wrap"><span>SALE COUNTDOWN</span><div class="dm-countdown"><b>--</b><i>:</i><b>--</b><i>:</i><b>--</b></div></div>
     </div>
-    <div class="dm-deal-grid">
+    <div class="dm-deal-grid" id="dmFlashSaleGrid">
       <article class="dm-deal-card dm-deal-placeholder"><div class="dm-deal-art">📱</div><span class="dm-deal-tag">ELECTRONICS</span><b>Featured tech deals</b><small>Offers coming soon</small></article>
       <article class="dm-deal-card dm-deal-placeholder"><div class="dm-deal-art">👟</div><span class="dm-deal-tag">FASHION</span><b>Style picks</b><small>Offers coming soon</small></article>
       <article class="dm-deal-card dm-deal-placeholder"><div class="dm-deal-art">🏠</div><span class="dm-deal-tag">HOME & LIVING</span><b>Home essentials</b><small>Offers coming soon</small></article>
@@ -1646,6 +1646,29 @@ async function loadHomepageProducts(){
  host.innerHTML="";
  data.forEach(item=>renderProductCard(item,host));
 }
+async function loadFlashSaleImages() {
+  const grid=document.getElementById("dmFlashSaleGrid");
+  if(!grid)return;
+  const {data:files,error}=await db.storage.from(DAVIMART_BANNER_BUCKET).list("",{limit:100});
+  if(error||!files)return;
+  const images=files.filter(file=>file.name.startsWith("flash-sale-")&&/\.(jpg|jpeg|png|webp)$/i.test(file.name))
+    .sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0)).slice(0,4);
+  if(!images.length)return;
+  grid.innerHTML="";
+  images.forEach((file,index)=>{
+    const url=db.storage.from(DAVIMART_BANNER_BUCKET).getPublicUrl(file.name).data.publicUrl;
+    const card=document.createElement("article");card.className="dm-deal-card dm-deal-placeholder";
+    const art=document.createElement("div");art.className="dm-deal-art";
+    const img=document.createElement("img");img.src=url+"?v="+encodeURIComponent(file.updated_at||file.created_at||Date.now());
+    img.alt="DAVIMART flash sale offer "+(index+1);img.loading="lazy";
+    img.style.cssText="width:100%;height:100%;object-fit:cover;border-radius:9px";
+    art.appendChild(img);
+    const tag=document.createElement("span");tag.className="dm-deal-tag";tag.textContent="FLASH SALE";
+    const title=document.createElement("b");title.textContent="Special offer";
+    const note=document.createElement("small");note.textContent="Limited-time deal";
+    card.append(art,tag,title,note);grid.appendChild(card);
+  });
+}
 async function loadHomepageBanner() {
   const stage = document.querySelector(".dm-device-stage");
   if (!stage) return;
@@ -1695,6 +1718,7 @@ async function loadHomepageBanner() {
 }
 loadHomepageProducts();
 loadHomepageBanner();
+loadFlashSaleImages();
 
 async function updateSellerDashboardVisibility(session) {
   const button = document.getElementById("sellerDashboardBtn");
