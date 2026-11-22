@@ -1210,6 +1210,20 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
 @media(max-width:700px){.dm-device-stage.has-custom-banner{height:230px;min-height:230px}.dm-custom-banner-image{height:100%}}
 
 .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin:20px 0}.product-card{background:#fff;border:1px solid #e4e9f2;border-radius:14px;padding:12px;box-shadow:0 5px 18px rgba(8,31,80,.07);display:flex;flex-direction:column;gap:8px}.product-card img{width:100%;height:165px;object-fit:cover;border-radius:10px;background:#f1f4f8}.product-card h3{font-size:16px;margin:4px 0}.product-card p{font-size:13px;color:#65728a;flex:1}.product-card strong{color:#071f50;font-size:17px}.product-card small{color:#65728a}
+.dm-view-details{margin-top:7px;padding:11px 14px;border:0;border-radius:8px;background:#071f50;color:#fff;font-weight:800;cursor:pointer}
+.dm-view-details:hover{background:#0b56c5}
+.dm-product-modal{display:none;position:fixed;inset:0;z-index:5000;background:rgba(4,15,38,.72);padding:18px;align-items:center;justify-content:center;overflow-y:auto}
+.dm-product-modal.show{display:flex}
+.dm-product-modal-card{position:relative;width:min(100%,560px);max-height:92vh;overflow-y:auto;background:#fff;border-radius:18px;padding:22px;box-shadow:0 18px 55px #0005}
+.dm-product-close{position:absolute;right:12px;top:10px;width:38px;height:38px;border:0;border-radius:50%;background:#eef2f8;color:#102b55;font-size:27px;cursor:pointer}
+.dm-product-content{padding-top:24px}
+.dm-product-content>img{width:100%;max-height:310px;object-fit:contain;border-radius:12px;background:#f3f5f9}
+.dm-product-content h2{margin:16px 0 8px;color:#071f50}
+.dm-product-content h3{font-size:15px;color:#102b55;margin:20px 0 6px}
+.dm-product-content p{color:#59677e;line-height:1.6}
+.dm-detail-price{display:block;color:#071f50;font-size:23px;margin:8px 0}
+body.dm-modal-open{overflow:hidden}
+
 </style>
 </head>
 <body>
@@ -1542,15 +1556,7 @@ async function searchProducts() {
   else{
     results.innerHTML="";
     const grid=document.createElement("div");grid.className="product-grid";
-    data.forEach(item=>{
-      const card=document.createElement("article");card.className="product-card";
-      if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt=item.title;img.loading="lazy";card.appendChild(img);}
-      const h=document.createElement("h3");h.textContent=item.title;
-      const p=document.createElement("p");p.textContent=item.description||item.category;
-      const price=document.createElement("strong");price.textContent="₦"+Number(item.price).toLocaleString("en-NG");
-      const loc=document.createElement("small");loc.textContent=item.location||"Nigeria";
-      card.append(h,p,price,loc);grid.appendChild(card);
-    });
+    data.forEach(item=>renderProductCard(item,grid));
     results.appendChild(grid);
   }
 
@@ -1597,6 +1603,81 @@ const db = window.supabase.createClient(
 const DAVIMART_ADMIN_ID = "4aa054c0-97c2-45c3-8c3a-9bf87f2c365c";
 const DAVIMART_BANNER_BUCKET = "homepage-banners";
 
+const DAVIMART_PRODUCT_CACHE = new Map();
+
+function renderProductCard(item, host) {
+  const card = document.createElement("article");
+  card.className = "product-card";
+  if (item.image_url) {
+    const img = document.createElement("img");
+    img.src = item.image_url;
+    img.alt = item.title || "Product image";
+    img.loading = "lazy";
+    card.appendChild(img);
+  }
+  const title = document.createElement("h3");
+  title.textContent = item.title || "Product";
+  const desc = document.createElement("p");
+  desc.textContent = item.description || item.category || "Product details";
+  const price = document.createElement("strong");
+  price.textContent = "₦" + Number(item.price || 0).toLocaleString("en-NG");
+  const place = document.createElement("small");
+  place.textContent = item.location || "Nigeria";
+  const view = document.createElement("button");
+  view.type = "button";
+  view.className = "dm-view-details";
+  view.textContent = "View details";
+  DAVIMART_PRODUCT_CACHE.set(String(item.id), item);
+  view.addEventListener("click", () => openProductDetails(String(item.id)));
+  card.append(title, desc, price, place, view);
+  host.appendChild(card);
+}
+
+function openProductDetails(productId) {
+  const item = DAVIMART_PRODUCT_CACHE.get(String(productId));
+  if (!item) return;
+  let modal = document.getElementById("dmProductDetailsModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "dmProductDetailsModal";
+    modal.className = "dm-product-modal";
+    modal.innerHTML = '<div class="dm-product-modal-card" role="dialog" aria-modal="true" aria-labelledby="dmProductTitle"><button type="button" class="dm-product-close" aria-label="Close">×</button><div class="dm-product-content"></div></div>';
+    modal.addEventListener("click", event => {
+      if (event.target === modal || event.target.closest(".dm-product-close")) modal.classList.remove("show");
+    });
+    document.body.appendChild(modal);
+  }
+  const content = modal.querySelector(".dm-product-content");
+  content.innerHTML = "";
+  if (item.image_url) {
+    const image = document.createElement("img");
+    image.src = item.image_url;
+    image.alt = item.title || "Product image";
+    content.appendChild(image);
+  }
+  const title = document.createElement("h2");
+  title.id = "dmProductTitle";
+  title.textContent = item.title || "Product";
+  const price = document.createElement("strong");
+  price.className = "dm-detail-price";
+  price.textContent = "₦" + Number(item.price || 0).toLocaleString("en-NG");
+  const descriptionLabel = document.createElement("h3");
+  descriptionLabel.textContent = "Description";
+  const description = document.createElement("p");
+  description.textContent = item.description || "The seller has not added a description yet.";
+  const category = document.createElement("p");
+  category.textContent = "Category: " + (item.category || "General");
+  const location = document.createElement("p");
+  location.textContent = "Location: " + (item.location || "Nigeria");
+  content.append(title, price, descriptionLabel, description, category, location);
+  modal.classList.add("show");
+  document.body.style.overflow = "hidden";
+  modal.querySelector(".dm-product-close").focus();
+  modal.addEventListener("transitionend", () => {
+    if (!modal.classList.contains("show")) document.body.style.overflow = "";
+  }, { once: true });
+}
+
 async function loadHomepageProducts(){
  const host=document.getElementById("homepageProducts");if(!host)return;
  const {data,error}=await db.from("listings").select("id,title,description,price,category,location,image_url").eq("status","approved").eq("listing_type","product").order("created_at",{ascending:false}).limit(12);
@@ -1604,15 +1685,7 @@ async function loadHomepageProducts(){
  if(!data?.length)return;
  document.getElementById("listingMessage").style.display="none";
  host.innerHTML="";
- data.forEach(item=>{
-  const card=document.createElement("article");card.className="product-card";
-  if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt=item.title;img.loading="lazy";card.appendChild(img);}
-  const title=document.createElement("h3");title.textContent=item.title;
-  const desc=document.createElement("p");desc.textContent=item.description||item.category;
-  const price=document.createElement("strong");price.textContent="₦"+Number(item.price).toLocaleString("en-NG");
-  const place=document.createElement("small");place.textContent=item.location||"Nigeria";
-  card.append(title,desc,price,place);host.appendChild(card);
- });
+ data.forEach(item=>renderProductCard(item,host));
 }
 async function loadHomepageBanner() {
   const stage = document.querySelector(".dm-device-stage");
