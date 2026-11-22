@@ -73,9 +73,22 @@ function renderRelatedProducts(items, host) {
 }
 async function loadRelatedProducts(item) {
  const section=document.getElementById("relatedProducts");
- const {data,error}=await db.from("listings").select("id,title,price,category,location,image_url").eq("status","approved").eq("listing_type","product").neq("id",item.id).order("created_at",{ascending:false}).limit(8);
- if(error){section.textContent="Similar products could not be loaded right now.";return;}
- renderRelatedProducts(data,section);
+ let matches=[];
+ if(item.category){
+  const sameCategory=await db.from("listings").select("id,title,price,category,location,image_url").eq("status","approved").eq("listing_type","product").eq("category",item.category).neq("id",item.id).order("created_at",{ascending:false}).limit(8);
+  if(sameCategory.error){section.textContent="More products could not be loaded right now.";return;}
+  matches=sameCategory.data||[];
+ }
+ if(matches.length<8){
+  const others=await db.from("listings").select("id,title,price,category,location,image_url").eq("status","approved").eq("listing_type","product").neq("id",item.id).order("created_at",{ascending:false}).limit(12);
+  if(others.error&&matches.length===0){section.textContent="More products could not be loaded right now.";return;}
+  const seen=new Set(matches.map(product=>String(product.id)));
+  for(const product of (others.data||[])){
+   if(!seen.has(String(product.id))){matches.push(product);seen.add(String(product.id));}
+   if(matches.length===8)break;
+  }
+ }
+ renderRelatedProducts(matches.slice(0,8),section);
 }
 async function loadProduct(){
  if(!id){root.textContent="No product was selected. Please return to shopping.";return;}
@@ -111,8 +124,9 @@ async function loadProduct(){
  ratingEmpty.textContent="No customer ratings yet. Be the first to share your experience when DAVIMART reviews are available.";
  ratings.append(ratingHeading,ratingEmpty);
  const related=document.createElement("section");related.className="section-panel";
+ related.id="moreProductsSection";
  const relatedHeading=document.createElement("div");relatedHeading.className="section-heading";
- const relatedTitle=document.createElement("h2");relatedTitle.textContent="You may also like";
+ const relatedTitle=document.createElement("h2");relatedTitle.textContent="More products you may like";
  relatedHeading.appendChild(relatedTitle);
  const relatedGrid=document.createElement("div");relatedGrid.id="relatedProducts";relatedGrid.className="related-grid";
  related.append(relatedHeading,relatedGrid);
