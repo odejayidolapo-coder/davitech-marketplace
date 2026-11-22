@@ -61,7 +61,7 @@ async function loadApplications(){
   const details=document.createElement("p");details.className="muted";details.textContent="Application: "+app.id+" | User: "+app.user_id+" | Phone: "+app.contact_phone+" | Address: "+app.seller_address+" | Submitted: "+new Date(app.submitted_at).toLocaleString();card.appendChild(details);
   const state=document.createElement("p");state.className="status";state.textContent="Status: "+app.status+" | Verification level: "+(app.verified_level||"Not assigned");card.appendChild(state);
   const docs=document.createElement("div");docs.className="docs";card.appendChild(docs);
-  for(const [label,path] of [["Identity document",app.identity_document_path],["Selfie",app.selfie_path],["Proof of address",app.proof_of_address_path],["CAC certificate",app.cac_document_path]]){
+  for(const [label,path] of [["Identity document",app.identity_document_path],["Live selfie",app.selfie_path],["Proof of address",app.proof_of_address_path],["CAC certificate",app.cac_document_path],["Business shop signboard photo",app.regulated_category_details?.business_shop_photo_path]]){
    const url=await signedLink(path);addLink(docs,label,url);
   }
   if(app.regulated_category_details?.details){const note=document.createElement("p");note.className="muted";note.textContent="Regulated category details: "+app.regulated_category_details.details;card.appendChild(note)}
