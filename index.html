@@ -1167,6 +1167,32 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
  .dm-deal-placeholder>b{font-size:11px}
 }
 
+
+/* DAVIMART laptop + phone promotional hero */
+.dm-device-hero{grid-template-columns:1fr 1.08fr;min-height:370px;padding-top:38px;padding-bottom:38px;background:radial-gradient(ellipse at 77% 48%,#1c65bd 0,transparent 40%),linear-gradient(112deg,#061638 0%,#092d69 58%,#071d48 100%)}
+.dm-device-hero:before{content:"";position:absolute;width:440px;height:440px;border:1px solid #ffffff12;border-radius:50%;right:5%;top:50%;transform:translateY(-50%);box-shadow:0 0 0 35px #ffffff08,0 0 0 75px #ffffff05;pointer-events:none}
+.dm-device-hero .dm-hero-copy p{max-width:470px;color:#e0eaff;line-height:1.65}
+.dm-device-hero .dm-hero-copy h1 em{color:#ffd45c}
+.dm-hero-highlights{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+.dm-hero-highlights span{font-size:10px;font-weight:800;color:#f7f9ff;padding:8px 11px;border:1px solid #ffffff35;border-radius:30px;background:#ffffff12}
+.dm-device-stage{height:300px;min-width:0;position:relative;display:flex;align-items:center;justify-content:center;isolation:isolate;perspective:1000px}
+.dm-device-glow{position:absolute;width:75%;height:70%;border-radius:50%;background:radial-gradient(ellipse,#4c9cff65,transparent 70%);filter:blur(18px);z-index:-2}
+.dm-device-orbit{position:absolute;border:1px solid #ffffff1c;border-radius:50%;transform:rotate(-18deg);z-index:-1}
+.dm-orbit-one{width:90%;height:75%}.dm-orbit-two{width:76%;height:62%;transform:rotate(24deg)}
+.dm-laptop{position:absolute;width:76%;left:5%;top:36px;filter:drop-shadow(0 22px 20px #0008);transform:rotateY(-12deg) rotateX(3deg)}
+.dm-laptop-screen{aspect-ratio:1.58;border:7px solid #202a3b;border-bottom-width:10px;border-radius:12px 12px 5px 5px;background:#f8faff;padding:9px 11px;overflow:hidden;box-shadow:inset 0 0 0 1px #ffffff70}
+.dm-screen-top{height:18px;display:flex;align-items:center;justify-content:space-between;color:#13274b;font-size:7px;letter-spacing:.3px}
+.dm-screen-top b{font-size:10px;letter-spacing:-.5px}.dm-screen-top b i{font-style:normal;color:#1d65c7}.dm-screen-top span{font-size:6px;color:#62718a;font-weight:800}.dm-screen-top small{font-size:12px}
+.dm-screen-banner{height:62%;margin-top:7px;border-radius:6px;padding:10px 13px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;color:#fff;background:radial-gradient(circle at 90% 20%,#3986e9,transparent 40%),linear-gradient(110deg,#09204d,#1459ae);position:relative;overflow:hidden}
+.dm-screen-banner:after{content:"✦";position:absolute;right:13%;top:8%;font-size:48px;color:#ffcf55;opacity:.9}
+.dm-screen-banner small{font-size:6px;letter-spacing:1px;color:#ffdb70;font-weight:900}.dm-screen-banner strong{font-size:clamp(15px,2.2vw,25px);line-height:.95;margin:5px 0}.dm-screen-banner span{font-size:6px;color:#dbe8ff}.dm-screen-banner i{font-style:normal;font-size:6px;font-weight:900;color:#09204d;background:#ffcf55;border-radius:20px;padding:5px 8px;margin-top:7px}
+.dm-screen-label{font-size:6px;color:#253b60;font-weight:900;letter-spacing:.8px;margin:7px 0 4px}.dm-screen-cats{display:flex;gap:7px}.dm-screen-cats span{flex:1;background:#edf2fa;border-radius:4px;padding:5px 3px;font-size:10px;display:flex;align-items:center;gap:4px}.dm-screen-cats b{font-size:6px;color:#273d61}
+.dm-laptop-base{height:9px;margin:0 -4.5%;background:linear-gradient(#dce3ed,#77869b 55%,#cbd4df);border-radius:0 0 12px 12px;clip-path:polygon(4% 0,96% 0,100% 80%,0 80%)}.dm-laptop-base span{display:block;width:22%;height:3px;margin:auto;background:#8795a8;border-radius:0 0 5px 5px}
+.dm-smartphone{position:absolute;width:24%;min-width:86px;max-width:130px;right:4%;bottom:5px;padding:5px;border:2px solid #aab5c6;border-radius:22px;background:linear-gradient(145deg,#273449,#050a14);box-shadow:0 22px 28px #0009;transform:rotate(8deg);z-index:3}
+.dm-phone-screen{height:100%;min-height:188px;border-radius:17px;background:#f7f9fd;overflow:hidden;padding:8px 6px 5px;position:relative;color:#14294d}.dm-phone-notch{position:absolute;top:3px;left:36%;width:28%;height:7px;border-radius:0 0 7px 7px;background:#080e18}.dm-phone-status{display:flex;justify-content:space-between;font-size:6px;font-weight:900;padding:4px 2px 7px}.dm-phone-brand{display:flex;justify-content:space-between;align-items:center;font-size:9px}.dm-phone-brand span{color:#1d65c7}.dm-phone-brand small{font-size:9px}.dm-phone-search{margin:7px 0;padding:6px;border-radius:6px;background:#e9eef7;color:#75839b;font-size:6px}.dm-phone-promo{height:75px;border-radius:7px;padding:8px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;color:#fff;background:linear-gradient(130deg,#082454,#1766c6)}.dm-phone-promo small{font-size:5px;color:#ffdb70;font-weight:900;letter-spacing:.6px}.dm-phone-promo b{font-size:13px;line-height:1;margin:4px 0}.dm-phone-promo span{font-size:6px;color:#ffdc72}.dm-phone-section{font-size:7px;font-weight:900;margin:9px 0 5px}.dm-phone-section small{float:right;color:#2466bd;font-size:6px}.dm-phone-products{display:flex;gap:4px}.dm-phone-products span{flex:1;min-width:0;padding:7px 2px;background:#edf2fa;border-radius:5px;text-align:center;font-size:13px}.dm-phone-products b{display:block;font-size:5px;color:#52627d}.dm-phone-nav{display:flex;justify-content:space-around;border-top:1px solid #e6eaf1;margin-top:9px;padding-top:6px;color:#3267ad;font-size:10px}
+.dm-float-tag{position:absolute;padding:8px 11px;border:1px solid #ffffff45;border-radius:30px;background:#ffffffeb;color:#122a51;font-size:8px;font-weight:900;letter-spacing:.4px;box-shadow:0 8px 20px #00143b55;z-index:4}.dm-tag-one{top:10px;right:5%}.dm-tag-two{bottom:9px;left:0}
+@media(max-width:700px){.dm-device-hero{grid-template-columns:1fr;gap:5px;padding:28px 20px 22px;min-height:0}.dm-device-hero .dm-hero-copy h1{font-size:42px;margin:12px 0}.dm-device-hero .dm-hero-copy p{font-size:13px}.dm-hero-highlights{gap:6px;margin-top:15px}.dm-hero-highlights span{font-size:8px;padding:7px 8px}.dm-device-stage{height:235px;margin-top:3px}.dm-laptop{width:78%;left:3%;top:35px}.dm-laptop-screen{border-width:5px;border-bottom-width:7px;padding:6px 7px}.dm-screen-banner{margin-top:4px;padding:7px 9px}.dm-screen-banner strong{font-size:18px}.dm-screen-cats span{font-size:8px}.dm-screen-cats b{font-size:5px}.dm-smartphone{width:25%;min-width:82px;right:4%;bottom:2px}.dm-phone-screen{min-height:174px;padding:7px 5px 4px}.dm-phone-promo{height:65px}.dm-phone-promo b{font-size:11px}.dm-float-tag{font-size:7px;padding:7px 9px}.dm-tag-one{right:2%;top:8px}.dm-tag-two{left:1%;bottom:0}}
+
 </style>
 </head>
 <body>
@@ -1230,26 +1256,42 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
 
 <main id="home">
 
-<section class="dm-home-hero" aria-label="DAVIMART featured promotion">
+<section class="dm-home-hero dm-device-hero" aria-label="DAVIMART featured shopping promotion">
   <div class="dm-hero-copy">
     <span class="dm-kicker">WELCOME TO DAVIMART</span>
     <h1>Shop more.<br><em>Live better.</em></h1>
-    <p>Discover products, trusted services and property opportunities in one convenient marketplace.</p>
+    <p>Find the things you love, discover trusted services and explore property opportunities — all in one marketplace.</p>
     <a class="dm-primary-cta" href="#products">Explore the marketplace <span>→</span></a>
+    <div class="dm-hero-highlights"><span>✦ Electronics</span><span>✦ Fashion</span><span>✦ Home &amp; Living</span></div>
   </div>
-  <div class="dm-hero-art dm-promo-art" aria-label="DAVIMART marketplace categories">
-    <div class="dm-promo-glow"></div>
-    <div class="dm-promo-main">
-      <span class="dm-promo-label">THE MARKETPLACE FOR EVERYDAY</span>
-      <strong>Everything<br><em>in one place.</em></strong>
-      <div class="dm-promo-tags"><span>SHOP</span><span>SERVICES</span><span>PROPERTY</span></div>
+  <div class="dm-device-stage" aria-label="Laptop and smartphone displaying the DAVIMART marketplace">
+    <div class="dm-device-glow"></div>
+    <div class="dm-device-orbit dm-orbit-one"></div><div class="dm-device-orbit dm-orbit-two"></div>
+    <div class="dm-laptop">
+      <div class="dm-laptop-screen">
+        <div class="dm-screen-top"><b><i>DAVI</i>MART</b><span>SHOP&nbsp;&nbsp; SERVICES&nbsp;&nbsp; PROPERTY</span><small>⌕</small></div>
+        <div class="dm-screen-banner"><small>THE EVERYDAY MARKETPLACE</small><strong>Everything<br>you need.</strong><span>Discover great finds and more.</span><i>SHOP NOW&nbsp; →</i></div>
+        <div class="dm-screen-label">EXPLORE CATEGORIES</div>
+        <div class="dm-screen-cats"><span>📱<b>Electronics</b></span><span>👟<b>Fashion</b></span><span>🏡<b>Home</b></span></div>
+      </div>
+      <div class="dm-laptop-base"><span></span></div>
     </div>
-    <div class="dm-promo-tile dm-tile-electronics"><span>📱</span><b>Electronics</b></div>
-    <div class="dm-promo-tile dm-tile-fashion"><span>👟</span><b>Fashion</b></div>
-    <div class="dm-promo-tile dm-tile-home"><span>🛋️</span><b>Home & Living</b></div>
-    <div class="dm-promo-spark dm-promo-spark-one">✦</div>
-    <div class="dm-promo-spark dm-promo-spark-two">✧</div>
-  </div></section>
+    <div class="dm-smartphone">
+      <div class="dm-phone-side"></div><div class="dm-phone-screen">
+        <div class="dm-phone-notch"></div>
+        <div class="dm-phone-status"><span>9:41</span><span>●●● ▰</span></div>
+        <div class="dm-phone-brand"><b>DAVI<span>MART</span></b><small>🔔</small></div>
+        <div class="dm-phone-search">⌕&nbsp; Search products...</div>
+        <div class="dm-phone-promo"><small>DAVIMART PICKS</small><b>Good finds.<br>Great value.</b><span>Explore now&nbsp; →</span></div>
+        <div class="dm-phone-section">Popular today <small>See all</small></div>
+        <div class="dm-phone-products"><span>🎧<b>Audio</b></span><span>⌚<b>Gadgets</b></span><span>👟<b>Style</b></span></div>
+        <div class="dm-phone-nav"><span>⌂</span><span>♡</span><span>▤</span><span>●</span></div>
+      </div>
+    </div>
+    <div class="dm-float-tag dm-tag-one">✦&nbsp; SHOP SMARTER</div>
+    <div class="dm-float-tag dm-tag-two">✧&nbsp; ALL IN ONE PLACE</div>
+  </div>
+</section>
   
   
 
