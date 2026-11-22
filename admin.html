@@ -51,6 +51,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <button type="button" data-panel="usersPanel">👥 Users & sellers</button>
 <button type="button" data-panel="listingsPanel">▤ Listings review</button>
 <button type="button" data-panel="notifyPanel">🔔 Notifications</button>
+<button type="button" data-panel="productUploadPanel">🛍️ Add product</button>
 <button type="button" id="bannerNav" data-panel="bannerPanel">▧ Homepage banner</button>
 </aside>
 <div class="content">
@@ -82,6 +83,21 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <div class="actions"><button class="btn btn-gold" id="sendNotification">Send notification</button></div>
 <p id="notifyStatus" role="status"></p>
 </section>
+<section class="panel admin-feature" id="productUploadPanel" hidden>
+<h2>Add a product to DAVIMART</h2>
+<p>Products published here appear immediately in the marketplace. Add clear product details and one good photo.</p>
+<form id="adminProductForm">
+<label for="adminProductTitle">Product name</label><input id="adminProductTitle" required maxlength="120" placeholder="e.g. Android smartphone">
+<label for="adminProductDescription">Description</label><textarea id="adminProductDescription" required maxlength="3000" placeholder="Describe the product"></textarea>
+<label for="adminProductPrice">Price (₦)</label><input id="adminProductPrice" type="number" min="0" step="0.01" required placeholder="Price in Naira">
+<label for="adminProductCategory">Category</label><input id="adminProductCategory" required placeholder="e.g. Phones & Accessories">
+<label for="adminProductLocation">Location</label><input id="adminProductLocation" placeholder="e.g. Ikorodu, Lagos">
+<label for="adminProductImage">Product photo (JPG, PNG or WEBP; max 5 MB)</label><input id="adminProductImage" type="file" accept="image/jpeg,image/png,image/webp">
+<div id="adminProductPreview"></div>
+<button class="btn btn-gold" id="adminProductPublish" type="submit">Publish product</button>
+<p id="adminProductStatus" role="status"></p>
+</form>
+</section>
 <section class="panel" id="bannerPanel"><h2>Homepage banner manager</h2><p>Upload several promotional banners together. DAVIMART will display them in a full-size rotating slideshow on the homepage. Supported: JPG, PNG, WEBP, GIF, MP4 or WEBM, maximum 10 MB per file.</p>
 <div class="drop"><b>Select promotional images or videos</b><br><input id="bannerFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple><div id="previewGrid"></div></div>
 <div class="actions"><button class="btn btn-gold" id="publish">Upload selected banners</button><button class="btn btn-light" id="removeAll">Remove all and restore default artwork</button></div>
@@ -95,6 +111,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
 const ADMIN_ID="4aa054c0-97c2-45c3-8c3a-9bf87f2c365c";
 const BUCKET="homepage-banners";
+const LISTING_BUCKET="listing-images";
 const checking=document.getElementById("checking"),denied=document.getElementById("denied"),dashboard=document.getElementById("dashboard");
 (async()=>{
  const {data:{user},error}=await db.auth.getUser();
@@ -177,6 +194,38 @@ function makeTable(target,headers,rows){
  const tbody=document.createElement("tbody");
  rows.forEach(row=>tbody.appendChild(row));table.appendChild(tbody);wrap.appendChild(table);host.appendChild(wrap);
 }
+document.getElementById("adminProductImage").onchange=()=>{
+ const f=document.getElementById("adminProductImage").files[0];
+ const p=document.getElementById("adminProductPreview");p.innerHTML="";
+ if(!f)return;
+ if(!["image/jpeg","image/png","image/webp"].includes(f.type)||f.size>5*1024*1024){document.getElementById("adminProductStatus").textContent="Choose JPG, PNG or WEBP under 5 MB.";document.getElementById("adminProductImage").value="";return;}
+ const img=document.createElement("img");img.src=URL.createObjectURL(f);img.style.cssText="max-width:180px;max-height:150px;border-radius:10px;margin:10px 0";p.appendChild(img);
+};
+document.getElementById("adminProductForm").onsubmit=async(e)=>{
+ e.preventDefault();
+ const status=document.getElementById("adminProductStatus"),file=document.getElementById("adminProductImage").files[0];
+ const {data:{user}}=await db.auth.getUser();
+ if(!user||user.id!==ADMIN_ID){status.textContent="Access denied.";return;}
+ status.textContent="Publishing product…";
+ let imageUrl=null;
+ if(file){
+  if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>5*1024*1024){status.textContent="Choose JPG, PNG or WEBP under 5 MB.";return;}
+  const ext=file.name.split(".").pop().toLowerCase(),path=user.id+"/"+crypto.randomUUID()+"."+ext;
+  const up=await db.storage.from(LISTING_BUCKET).upload(path,file,{contentType:file.type,upsert:false});
+  if(up.error){status.textContent="Photo upload failed: "+up.error.message;return;}
+  imageUrl=db.storage.from(LISTING_BUCKET).getPublicUrl(path).data.publicUrl;
+ }
+ const {error}=await db.from("listings").insert({
+  seller_id:user.id,title:document.getElementById("adminProductTitle").value.trim(),
+  description:document.getElementById("adminProductDescription").value.trim(),
+  price:Number(document.getElementById("adminProductPrice").value),
+  category:document.getElementById("adminProductCategory").value.trim(),
+  listing_type:"product",location:document.getElementById("adminProductLocation").value.trim()||"Nigeria",
+  image_url:imageUrl,status:"approved"
+ });
+ status.textContent=error?"Could not publish product: "+error.message:"Product published successfully and is now live on DAVIMART.";
+ if(!error){document.getElementById("adminProductForm").reset();document.getElementById("adminProductPreview").innerHTML="";}
+};
 async function loadUsers(){
  const host=document.getElementById("usersTable");host.textContent="Loading users…";
  const {data,error}=await db.from("profiles").select("id,full_name,email,role,approval_status,seller_status,created_at").order("created_at",{ascending:false}).limit(200);
@@ -195,7 +244,7 @@ async function loadUsers(){
 async function changeSeller(id,statusValue){
  const label=statusValue==="approved"?"approve":"reject";
  if(!confirm("Are you sure you want to "+label+" this seller application?"))return;
- const {error}=await db.from("profiles").update({seller_status:statusValue}).eq("id",id);
+ const {error}=await db.from("profiles").update(statusValue==="approved"?{seller_status:statusValue,role:"seller"}:{seller_status:statusValue}).eq("id",id);
  if(error){alert("Could not update seller: "+error.message);return;}
  await db.from("notifications").insert({user_id:id,title:"Seller application update",message:statusValue==="approved"?"Your DAVIMART seller application has been approved. You can now submit listings.":"Your DAVIMART seller application was not approved. You may apply again."});
  await loadUsers();
