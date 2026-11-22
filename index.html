@@ -1225,6 +1225,15 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
 .dm-detail-price{display:block;color:#071f50;font-size:23px;margin:8px 0}
 body.dm-modal-open{overflow:hidden}
 
+
+/* Separate DAVITECH promotional banner, managed in the admin dashboard */
+#davitech-services .davitech-banner-media{position:relative;width:100%;min-height:220px;margin:22px 0 18px;border:1px solid #ffffff35;border-radius:16px;overflow:hidden;background:linear-gradient(120deg,#102b55,#174b91);display:flex;align-items:center;justify-content:center}
+#davitech-services .davitech-banner-media img,#davitech-services .davitech-banner-media video{display:block;width:100%;max-height:430px;min-height:220px;object-fit:cover}
+#davitech-services .davitech-banner-empty{min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:25px;text-align:center;color:#fff}
+#davitech-services .davitech-banner-empty strong{font-size:clamp(30px,5vw,52px);font-weight:900;letter-spacing:2px;color:#ffc400}
+#davitech-services .davitech-banner-empty span{color:#e7edf7;font-size:15px}
+#davitech-services .davitech-contact{background:#25d366;color:#062b19;margin-top:0}
+@media(max-width:700px){#davitech-services .davitech-banner-media,#davitech-services .davitech-banner-empty{min-height:175px}#davitech-services .davitech-banner-media img,#davitech-services .davitech-banner-media video{min-height:175px}}
 </style>
 </head>
 <body>
@@ -1451,40 +1460,10 @@ body.dm-modal-open{overflow:hidden}
     <div class="eyebrow">POWERED BY DAVITECH</div>
     <h2>DAVITECH Digital & Business Services</h2>
     <p>Fast, reliable and affordable support for your everyday business and digital needs.</p>
-
-    <div class="steps">
-      <div class="step">
-        <h3>Business Registration</h3>
-        <p>Get assistance with CAC business registration.</p>
-      </div>
-
-      <div class="step">
-        <h3>NIN & BVN Services</h3>
-        <p>Get assistance with NIN and BVN retrieval.</p>
-      </div>
-
-      <div class="step">
-        <h3>Graphic Design</h3>
-        <p>Flyers, birthday designs and photo editing.</p>
-      </div>
-
-      <div class="step">
-        <h3>CV Design</h3>
-        <p>Professional CV creation and editing.</p>
-      </div>
-
-      <div class="step">
-        <h3>Online Applications</h3>
-        <p>Assistance with online applications and digital tasks.</p>
-      </div>
-
-      <div class="step">
-        <h3>Digital Support</h3>
-        <p>Practical business and technology support.</p>
-      </div>
+    <div id="davitechBannerMedia" class="davitech-banner-media" aria-label="DAVITECH promotional banner">
+      <div class="davitech-banner-empty"><strong>DAVITECH</strong><span>Your digital and business support partner</span></div>
     </div>
-
-    <a class="btn primary" href="https://wa.me/2349068847614">CONTACT DAVITECH</a>
+    <a class="btn primary davitech-contact" href="https://wa.me/2349068847614?text=Hello%20DAVITECH%2C%20I%27m%20interested%20in%20your%20services.%20Please%20tell%20me%20more." target="_blank" rel="noopener">CHAT WITH DAVITECH ON WHATSAPP</a>
   </div>
 </section>
 
@@ -1782,8 +1761,20 @@ async function loadHomepageBanner() {
   }
   showNext();
 }
+
+async function loadDavitechBanner(){
+ const stage=document.getElementById("davitechBannerMedia");if(!stage)return;
+ const {data:files,error}=await db.storage.from(DAVIMART_BANNER_BUCKET).list("",{limit:100});if(error||!files)return;
+ const slides=files.filter(f=>f.name.startsWith("davitech-banner-")&&/\.(jpg|jpeg|png|webp|gif|mp4|webm)$/i.test(f.name)).sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
+ if(!slides.length)return;let current=0,timer=null;
+ function advance(){if(slides.length>1)showNext();}
+ function showNext(){if(timer)window.clearTimeout(timer);const file=slides[current];const url=db.storage.from(DAVIMART_BANNER_BUCKET).getPublicUrl(file.name).data.publicUrl+"?v="+encodeURIComponent(file.updated_at||file.created_at||Date.now());const video=/\.(mp4|webm)$/i.test(file.name);const media=document.createElement(video?"video":"img");media.style.cssText="display:block;width:100%;max-height:430px;min-height:220px;object-fit:cover";if(video){media.muted=true;media.autoplay=true;media.playsInline=true;media.controls=true;media.preload="metadata";media.addEventListener("ended",advance,{once:true});}else{media.alt="DAVITECH services promotional banner";media.loading="lazy";}stage.replaceChildren(media);media.src=url;current=(current+1)%slides.length;if(slides.length>1)timer=window.setTimeout(advance,video?20000:5000);if(video)media.play().catch(()=>{});}
+ showNext();
+}
+
 loadHomepageProducts();
 loadHomepageBanner();
+loadDavitechBanner();
 loadFlashSaleImages();
 loadFlashSaleCountdown();
 
