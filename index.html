@@ -1199,6 +1199,16 @@ header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16p
 @media(max-width:700px){.dm-device-hero{grid-template-columns:1fr;gap:5px;padding:28px 20px 22px;min-height:0}.dm-device-hero .dm-hero-copy h1{font-size:42px;margin:12px 0}.dm-device-hero .dm-hero-copy p{font-size:13px}.dm-hero-highlights{gap:6px;margin-top:15px}.dm-hero-highlights span{font-size:8px;padding:7px 8px}.dm-device-stage{height:235px;margin-top:3px}.dm-laptop{width:78%;left:3%;top:35px}.dm-laptop-screen{border-width:5px;border-bottom-width:7px;padding:6px 7px}.dm-screen-banner{margin-top:4px;padding:7px 9px}.dm-screen-banner strong{font-size:18px}.dm-screen-cats span{font-size:8px}.dm-screen-cats b{font-size:5px}.dm-smartphone{width:25%;min-width:82px;right:4%;bottom:2px}.dm-phone-screen{min-height:174px;padding:7px 5px 4px}.dm-phone-promo{height:65px}.dm-phone-promo b{font-size:11px}.dm-float-tag{font-size:7px;padding:7px 9px}.dm-tag-one{right:2%;top:8px}.dm-tag-two{left:1%;bottom:0}}
 
 
+/* Public banner image viewer */
+.dm-custom-banner-link{display:block;width:100%;height:100%;padding:0;border:0;background:transparent;cursor:zoom-in;position:relative;z-index:2}
+.dm-custom-banner-link:focus-visible{outline:3px solid #ffc400;outline-offset:-4px}
+.dm-banner-viewer{display:none;position:fixed;inset:0;z-index:10000;background:rgba(2,9,25,.94);align-items:center;justify-content:center;padding:24px}
+.dm-banner-viewer.is-open{display:flex}
+.dm-banner-viewer img,.dm-banner-viewer video{display:block;max-width:96vw;max-height:90vh;width:auto;height:auto;object-fit:contain;border-radius:8px}
+.dm-banner-viewer-close{position:absolute;top:14px;right:16px;width:46px;height:46px;border:0;border-radius:50%;background:#fff;color:#071f50;font-size:30px;line-height:1;cursor:pointer}
+.dm-banner-viewer-hint{position:absolute;bottom:12px;left:0;right:0;text-align:center;color:#fff;font-size:13px}
+@media(max-width:700px){.dm-banner-viewer{padding:12px}.dm-banner-viewer img,.dm-banner-viewer video{max-width:100%;max-height:86vh}}
+
 /* DAVIMART admin homepage banner manager */
 .dm-device-stage.has-custom-banner{height:300px;min-height:260px;perspective:none;overflow:hidden;border-radius:14px;background:#061b48}
 .dm-device-stage.has-custom-banner>.dm-device-glow,
@@ -1719,6 +1729,51 @@ async function loadFlashSaleImages() {
     card.append(art,tag,title,note);grid.appendChild(card);
   });
 }
+function openDavimartBannerViewer(url, isVideo) {
+  let viewer = document.getElementById("dmBannerViewer");
+  if (!viewer) {
+    viewer = document.createElement("div");
+    viewer.id = "dmBannerViewer";
+    viewer.className = "dm-banner-viewer";
+    viewer.setAttribute("role", "dialog");
+    viewer.setAttribute("aria-modal", "true");
+    viewer.setAttribute("aria-label", "Promotional banner viewer");
+    viewer.innerHTML = '<button type="button" class="dm-banner-viewer-close" aria-label="Close banner viewer">×</button><div class="dm-banner-viewer-content"></div><div class="dm-banner-viewer-hint">Tap outside or press Escape to close</div>';
+    document.body.appendChild(viewer);
+    viewer.querySelector(".dm-banner-viewer-close").addEventListener("click", closeDavimartBannerViewer);
+    viewer.addEventListener("click", event => {
+      if (event.target === viewer) closeDavimartBannerViewer();
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") closeDavimartBannerViewer();
+    });
+  }
+  const content = viewer.querySelector(".dm-banner-viewer-content");
+  content.replaceChildren();
+  const media = document.createElement(isVideo ? "video" : "img");
+  media.src = url;
+  if (isVideo) {
+    media.controls = true;
+    media.autoplay = true;
+    media.playsInline = true;
+  } else {
+    media.alt = "DAVIMART promotional banner";
+  }
+  content.appendChild(media);
+  viewer.classList.add("is-open");
+  document.body.style.overflow = "hidden";
+  viewer.querySelector(".dm-banner-viewer-close").focus();
+}
+function closeDavimartBannerViewer() {
+  const viewer = document.getElementById("dmBannerViewer");
+  if (!viewer) return;
+  const video = viewer.querySelector("video");
+  if (video) video.pause();
+  viewer.classList.remove("is-open");
+  viewer.querySelector(".dm-banner-viewer-content").replaceChildren();
+  document.body.style.overflow = "";
+}
+
 async function loadHomepageBanner() {
   const stage = document.querySelector(".dm-device-stage");
   if (!stage) return;
@@ -1752,17 +1807,14 @@ async function loadHomepageBanner() {
     }
     const previous = stage.querySelector(".dm-custom-banner-link, .dm-custom-banner-image");
     if (previous) previous.remove();
-    if (isVideo) {
-      stage.appendChild(media);
-    } else {
-      const bannerLink = document.createElement("a");
-      bannerLink.className = "dm-custom-banner-link";
-      bannerLink.href = "#products";
-      bannerLink.setAttribute("aria-label", "Shop all DAVIMART products");
-      bannerLink.title = "Shop all products";
-      bannerLink.appendChild(media);
-      stage.appendChild(bannerLink);
-    }
+    const bannerTrigger = document.createElement("button");
+    bannerTrigger.type = "button";
+    bannerTrigger.className = "dm-custom-banner-link";
+    bannerTrigger.setAttribute("aria-label", "View promotional banner full screen");
+    bannerTrigger.title = "Tap to view full image";
+    bannerTrigger.addEventListener("click", () => openDavimartBannerViewer(url, isVideo));
+    bannerTrigger.appendChild(media);
+    stage.appendChild(bannerTrigger);
     media.src = url;
     requestAnimationFrame(() => { media.style.opacity = "1"; });
     current = (current + 1) % slides.length;
