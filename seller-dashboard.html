@@ -25,7 +25,7 @@
 <label for="type">Listing type</label><select id="type"><option value="product">Product</option><option value="property">Property</option></select>
 <label for="location">Location</label><input id="location" required placeholder="Town / city">
 <label for="photo">Product photo (JPG, PNG or WEBP; max 5 MB)</label><input id="photo" type="file" accept="image/jpeg,image/png,image/webp">
-<div id="photoPreview"></div><button class="btn primary" type="submit" id="submitListing">Submit for review</button><p id="formStatus" class="status" role="status"></p>
+<div id="photoPreview"></div><p id="photoCompressionStatus" class="status" role="status">Product images are compressed on your device before upload.</p><button class="btn primary" type="submit" id="submitListing">Submit for review</button><p id="formStatus" class="status" role="status"></p>
 </form></section>
 <section class="panel"><h2>My listings</h2><button class="btn gold" id="refreshListings" type="button">Refresh listings</button><div id="myListings" class="muted">Loading your listings…</div></section>
 </div></main>
@@ -35,11 +35,62 @@ const IMAGE_BUCKET="listing-images";
 let currentUser=null;
 const $=id=>document.getElementById(id);
 function statusPill(value){const s=document.createElement("span");s.className="pill "+value;s.textContent=value;return s;}
-$("photo").onchange=()=>{
- const f=$("photo").files[0];$("photoPreview").innerHTML="";
+let compressedProductImage=null;
+let productImageCompressing=false;
+function formatFileSize(bytes){return bytes<1024*1024?Math.round(bytes/1024)+" KB":(bytes/1024/1024).toFixed(2)+" MB";}
+function loadImageForCompression(file){
+ return new Promise((resolve,reject)=>{
+  const url=URL.createObjectURL(file),img=new Image();
+  img.onload=()=>{URL.revokeObjectURL(url);resolve(img);};
+  img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("This image could not be opened. Please choose another image."));};
+  img.src=url;
+ });
+}
+function canvasBlob(canvas,type,quality){
+ return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("Your browser could not compress this image.")),type,quality));
+}
+async function compressProductImage(file){
+ const img=await loadImageForCompression(file);
+ let scale=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight));
+ let canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");
+ if(!ctx)throw new Error("Image compression is not supported by this browser.");
+ canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
+ canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+ ctx.drawImage(img,0,0,canvas.width,canvas.height);
+ let type="image/webp",blob=await canvasBlob(canvas,type,.82);
+ if(blob.type!=="image/webp"){type="image/jpeg";blob=await canvasBlob(canvas,type,.84);}
+ for(const quality of [.76,.68,.60,.52]){
+  if(blob.size<=300*1024)break;
+  blob=await canvasBlob(canvas,type,quality);
+ }
+ if(blob.size>450*1024&&Math.max(canvas.width,canvas.height)>1280){
+  const factor=1280/Math.max(canvas.width,canvas.height),smaller=document.createElement("canvas");
+  smaller.width=Math.max(1,Math.round(canvas.width*factor));smaller.height=Math.max(1,Math.round(canvas.height*factor));
+  const smallerContext=smaller.getContext("2d");if(!smallerContext)throw new Error("Image compression failed.");
+  smallerContext.drawImage(canvas,0,0,smaller.width,smaller.height);canvas=smaller;
+  blob=await canvasBlob(canvas,type,.68);
+ }
+ const extension=type==="image/webp"?"webp":"jpg";
+ return new File([blob],(file.name.replace(/\.[^.]+$/,"")||"product-image")+"."+extension,{type,lastModified:Date.now()});
+}
+$("photo").onchange=async()=>{
+ const f=$("photo").files[0];$("photoPreview").innerHTML="";compressedProductImage=null;
+ $("photoCompressionStatus").textContent="";$("formStatus").textContent="";
  if(!f)return;
  if(!["image/jpeg","image/png","image/webp"].includes(f.type)||f.size>5*1024*1024){$("formStatus").textContent="Choose JPG, PNG or WEBP under 5 MB.";$("photo").value="";return;}
- const img=document.createElement("img");img.src=URL.createObjectURL(f);img.style.cssText="max-width:170px;max-height:130px;margin:10px 0;border-radius:10px";$("photoPreview").appendChild(img);
+ productImageCompressing=true;$("submitListing").disabled=true;
+ $("photoCompressionStatus").textContent="Compressing image on your device…";
+ try{
+  compressedProductImage=await compressProductImage(f);
+  const previewUrl=URL.createObjectURL(compressedProductImage),img=document.createElement("img");
+  img.src=previewUrl;img.alt="Compressed product image preview";img.style.cssText="max-width:170px;max-height:130px;margin:10px 0;border-radius:10px";$("photoPreview").appendChild(img);
+  const saved=Math.max(0,Math.round((1-compressedProductImage.size/f.size)*100));
+  $("photoCompressionStatus").textContent="Ready to upload · "+formatFileSize(f.size)+" → "+formatFileSize(compressedProductImage.size)+" ("+saved+"% smaller)";
+ }catch(error){
+  $("photoCompressionStatus").textContent="Compression failed: "+(error.message||"Please choose another image.");
+ }finally{
+  productImageCompressing=false;$("submitListing").disabled=false;
+ }
 };
 async function loadMyListings(){
  $("myListings").textContent="Loading your listings…";
@@ -63,18 +114,18 @@ async function loadMyListings(){
 }
 $("refreshListings").onclick=loadMyListings;
 $("listingForm").onsubmit=async e=>{
- e.preventDefault();$("submitListing").disabled=true;$("formStatus").textContent="Submitting your listing…";
- let imageUrl=null;const file=$("photo").files[0];
+ e.preventDefault();if(productImageCompressing){$("formStatus").textContent="Please wait for image compression to finish.";return;}if($("photo").files[0]&&!compressedProductImage){$("formStatus").textContent="The product image could not be compressed. Please choose it again or select another image.";return;}$("submitListing").disabled=true;$("formStatus").textContent="Submitting your listing…";
+ let imageUrl=null;const file=compressedProductImage;
  if(file){
-  if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>5*1024*1024){$("formStatus").textContent="Choose JPG, PNG or WEBP under 5 MB.";$("submitListing").disabled=false;return;}
-  const ext=file.name.split(".").pop().toLowerCase(),path=currentUser.id+"/"+crypto.randomUUID()+"."+ext;
+  if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>5*1024*1024){$("formStatus").textContent="The compressed product image must be JPG or WEBP and under 5 MB.";$("submitListing").disabled=false;return;}
+  const ext=file.type==="image/webp"?"webp":"jpg",path=currentUser.id+"/"+crypto.randomUUID()+"."+ext;
   const upload=await db.storage.from(IMAGE_BUCKET).upload(path,file,{contentType:file.type,upsert:false});
   if(upload.error){$("formStatus").textContent="Photo upload failed: "+upload.error.message;$("submitListing").disabled=false;return;}
   imageUrl=db.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
  }
  const {error}=await db.from("listings").insert({seller_id:currentUser.id,title:$("title").value.trim(),description:$("description").value.trim(),price:Number($("price").value),category:$("category").value.trim(),listing_type:$("type").value,location:$("location").value.trim(),image_url:imageUrl,status:"pending"});
  $("formStatus").textContent=error?"Could not submit listing: "+error.message:"Listing submitted. It will appear in the marketplace after admin approval.";
- if(!error){$("listingForm").reset();$("photoPreview").innerHTML="";await loadMyListings();}
+ if(!error){$("listingForm").reset();$("photoPreview").innerHTML="";$("photoCompressionStatus").textContent="Product images are compressed on your device before upload.";compressedProductImage=null;await loadMyListings();}
  $("submitListing").disabled=false;
 };
 (async()=>{
