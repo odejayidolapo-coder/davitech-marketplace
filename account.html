@@ -288,7 +288,7 @@ async function loadSellerVerificationAdmin(){
  const {data:{user}}=await db.auth.getUser();
  if(!user||user.id!=="4aa054c0-97c2-45c3-8c3a-9bf87f2c365c"){status.textContent="Access denied.";return;}
  host.textContent="Loading applications…";
- const {data,error}=await db.from("seller_verification_applications").select("id,user_id,seller_type,contact_phone,seller_address,business_name,cac_registration_number,identity_document_type,status,admin_notes,submitted_at,reviewed_at").order("submitted_at",{ascending:false}).limit(100);
+ const {data,error}=await db.from("seller_verification_applications").select("id,user_id,seller_type,contact_phone,seller_address,business_name,cac_registration_number,identity_document_type,identity_document_path,selfie_path,proof_of_address_path,cac_document_path,regulated_category_details,status,admin_notes,submitted_at,reviewed_at").order("submitted_at",{ascending:false}).limit(100);
  if(error){host.textContent="Could not load applications: "+error.message;return;}
  if(!data.length){host.textContent="No seller verification applications yet.";return;}
  host.replaceChildren();
@@ -297,6 +297,16 @@ async function loadSellerVerificationAdmin(){
   const card=document.createElement("div");card.style.cssText="border:1px solid #dbe2ed;border-radius:9px;padding:12px;margin:10px 0;background:#fff";
   const heading=document.createElement("strong");heading.textContent=(app.seller_type==="business"?"Business":"Individual")+" seller — "+(labels[app.status]||app.status);card.appendChild(heading);
   const details=document.createElement("p");details.className="form-help";details.textContent=["Applicant ID: "+app.user_id,"Business: "+(app.business_name||"—"),"Phone: "+app.contact_phone,"Address: "+app.seller_address,"Identity document: "+app.identity_document_type,"Submitted: "+(app.submitted_at?new Date(app.submitted_at).toLocaleString():"—")].join("\n");details.style.whiteSpace="pre-wrap";card.appendChild(details);
+  const documentLinks=document.createElement("p");documentLinks.className="form-help";documentLinks.textContent="Private documents: ";card.appendChild(documentLinks);
+  const privateDocs=[["Identity document",app.identity_document_path],["Selfie",app.selfie_path],["Proof of address",app.proof_of_address_path],["CAC document",app.cac_document_path],["Shop photo",app.regulated_category_details?.business_shop_photo_path]].filter(item=>item[1]);
+  if(!privateDocs.length) documentLinks.textContent="No document paths found.";
+  for(let i=0;i<privateDocs.length;i++){
+   const [label,path]=privateDocs[i];
+   const {data:signed,error:signedError}=await db.storage.from("seller-verification-docs").createSignedUrl(path,120);
+   if(i)documentLinks.append(" · ");
+   if(signed?.signedUrl){const link=document.createElement("a");link.href=signed.signedUrl;link.target="_blank";link.rel="noopener noreferrer";link.textContent=label;documentLinks.appendChild(link);}
+   else{const missing=document.createElement("span");missing.textContent=label+" (unavailable)";documentLinks.appendChild(missing);}
+  }
   const select=document.createElement("select");select.style.width="100%";select.style.margin="6px 0";
   [["reviewing","Reviewed"],["more_info","Needs changes"],["approved","Approved"],["rejected","Rejected"]].forEach(([v,l])=>{const o=document.createElement("option");o.value=v;o.textContent=l;select.appendChild(o);});
   select.value=app.status==="pending"?"reviewing":app.status;
@@ -307,7 +317,7 @@ async function loadSellerVerificationAdmin(){
    const next=select.value,adminNote=note.value.trim();
    if(next==="more_info"&&!adminNote){result.textContent="Please explain what the seller needs to change.";return;}
    save.disabled=true;result.textContent="Saving…";
-   const {data:{currentUser}}=await db.auth.getUser();
+   const {data:{user:currentUser}}=await db.auth.getUser();
    if(!currentUser||currentUser.id!=="4aa054c0-97c2-45c3-8c3a-9bf87f2c365c"){result.textContent="Access denied.";save.disabled=false;return;}
    const {error:updateError}=await db.from("seller_verification_applications").update({status:next,admin_notes:adminNote||null,reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()}).eq("id",app.id);
    if(updateError){result.textContent="Could not save: "+updateError.message;save.disabled=false;return;}
@@ -403,7 +413,7 @@ user.email || "";
  adminReviewButton.onclick=()=>{const panel=document.getElementById("sellerVerificationAdminPanel");panel.hidden=!panel.hidden;if(!panel.hidden)loadSellerVerificationAdmin();};
  const applyButton = document.getElementById("applySellerBtn");
  applyButton.hidden = profile?.seller_status === "approved" ||
-  (latestApplication && ["pending","reviewing","more_info"].includes(latestApplication.status));
+  (latestApplication && ["pending","reviewing"].includes(latestApplication.status));
 
  if(profileError){
   document.getElementById("accountStatus").textContent =
