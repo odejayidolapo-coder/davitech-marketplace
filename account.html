@@ -105,6 +105,15 @@ body.camera-open{overflow:hidden}
 <p id="profileEmail"></p>
 <p id="profileRole"></p>
 <p id="sellerStatus"></p>
+<section class="feature" id="sellerVerificationTracker" hidden style="margin:14px 0">
+<strong>Seller verification status</strong>
+<p id="sellerTrackerStatus" style="margin:8px 0;font-weight:700;color:#102b55"></p>
+<div id="sellerTrackerSteps" style="display:grid;gap:7px;margin:12px 0"></div>
+<p id="sellerTrackerSubmitted" class="form-help"></p>
+<p id="sellerTrackerNote" class="form-help" hidden></p>
+<p id="sellerTrackerHelp" class="form-help">DAVIMART administrators review applications. AI screening does not verify your identity with NIMC.</p>
+</section>
+<button type="button" class="secondary" id="openSellerVerificationAdmin" hidden style="margin:0 0 12px">Open seller verification reviews</button>
 <p id="accountStatus" aria-live="polite"></p>
 <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:14px 0">
 <img id="profileAvatar" class="profile-avatar" alt="Your profile picture" hidden>
@@ -267,6 +276,36 @@ const authPanel = document.getElementById("authPanel");
 const profilePanel = document.getElementById("profilePanel");
 const authStatus = document.getElementById("authStatus");
 
+function renderSellerVerificationTracker(application,error){
+ const panel=document.getElementById("sellerVerificationTracker");
+ const title=document.getElementById("sellerTrackerStatus");
+ const steps=document.getElementById("sellerTrackerSteps");
+ const submitted=document.getElementById("sellerTrackerSubmitted");
+ const note=document.getElementById("sellerTrackerNote");
+ if(!application && !error){panel.hidden=true;return;}
+ panel.hidden=false;
+ steps.replaceChildren();
+ if(error){title.textContent="We could not load your latest application status.";submitted.textContent="Please refresh the page or contact DAVIMART support.";return;}
+ const labels={pending:"Pending",reviewing:"Reviewed",more_info:"Needs changes",approved:"Approved",rejected:"Rejected"};
+ const status=application.status;
+ title.textContent=labels[status]||"Status unavailable";
+ const stages=[["Submitted",true],["Reviewed",["reviewing","more_info","approved","rejected"].includes(status)],["Decision",["approved","rejected"].includes(status)]];
+ stages.forEach(([label,complete])=>{
+  const item=document.createElement("div");
+  item.style.cssText="display:flex;align-items:center;gap:9px;font-size:13px;color:"+(complete?"#176b3a":"#667085");
+  const mark=document.createElement("span");
+  mark.textContent=complete?"✓":"○";
+  mark.style.cssText="font-size:18px;font-weight:900";
+  const text=document.createElement("span");text.textContent=label+(complete?" — complete":"");
+  item.append(mark,text);steps.appendChild(item);
+ });
+ submitted.textContent="Submitted: "+(application.submitted_at?new Date(application.submitted_at).toLocaleString():"Date unavailable");
+ note.hidden=!(status==="more_info" && application.admin_notes);
+ note.textContent=status==="more_info"?(application.admin_notes||"Please contact DAVIMART support for the requested changes."):"";
+ if(status==="rejected") note.textContent="Your application was not approved. You may submit a new application if the issue has been resolved.";
+ if(status==="rejected") note.hidden=false;
+}
+
 async function loadAccount(){
  const {data:{user},error} = await db.auth.getUser();
 
@@ -306,15 +345,20 @@ user.email || "";
 
  const {data:verificationApps,error:verificationError} = await db
   .from("seller_verification_applications")
-  .select("status,verified_level,submitted_at")
+  .select("status,verified_level,submitted_at,reviewed_at,admin_notes")
   .eq("user_id",user.id)
   .order("created_at",{ascending:false})
   .limit(1);
  const latestApplication = verificationApps && verificationApps[0];
+ const statusLabels = {pending:"Pending",reviewing:"Reviewed",more_info:"Needs changes",approved:"Approved",rejected:"Rejected"};
  const sellerLabel = latestApplication
-  ? "Seller verification: " + latestApplication.status.replace("_"," ")
+  ? "Seller verification: " + (statusLabels[latestApplication.status] || "Status unavailable")
   : "Seller application: " + (profile?.seller_status || "Not available");
  document.getElementById("sellerStatus").textContent = sellerLabel;
+ renderSellerVerificationTracker(latestApplication,verificationError);
+ const adminReviewButton=document.getElementById("openSellerVerificationAdmin");
+ if(user.id==="4aa054c0-97c2-45c3-8c3a-9bf87f2c365c") adminReviewButton.hidden=false;
+ adminReviewButton.onclick=()=>{window.location.href="seller-verification-admin.html";};
  const applyButton = document.getElementById("applySellerBtn");
  applyButton.hidden = profile?.seller_status === "approved" ||
   (latestApplication && ["pending","reviewing","more_info"].includes(latestApplication.status));
