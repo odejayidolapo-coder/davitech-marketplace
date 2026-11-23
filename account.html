@@ -33,7 +33,20 @@ button.secondary{background:#e8edf5;color:#102b55}
 .form-field textarea{min-height:85px;resize:vertical}
 .form-help{font-size:12px;color:#667085;line-height:1.5}
 .form-message{line-height:1.5;overflow-wrap:anywhere}
-.camera-box{border:1px solid #d9e0ea;border-radius:10px;padding:12px;background:#f8fafc;margin:8px 0}.camera-box video,.camera-box img{width:100%;max-height:280px;object-fit:cover;border-radius:8px;background:#17243a}.camera-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.camera-help{font-size:12px;color:#667085;line-height:1.5}.camera-status{font-size:13px;color:#102b55;margin-top:7px}
+.camera-box{border:1px solid #d9e0ea;border-radius:10px;padding:12px;background:#f8fafc;margin:8px 0;position:relative}.camera-box video,.camera-box img{width:100%;max-height:280px;object-fit:cover;border-radius:8px;background:#17243a}.camera-box[data-camera-kind="profile"] img,.camera-box[data-camera-kind="selfie"] img{width:min(100%,280px);aspect-ratio:1;max-height:none;object-fit:cover;border-radius:50%;display:block;margin:12px auto}.camera-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.camera-help{font-size:12px;color:#667085;line-height:1.5}.camera-status{font-size:13px;color:#102b55;margin-top:7px}
+.profile-avatar{width:104px;height:104px;border-radius:50%;object-fit:cover;border:4px solid #e4b449;background:#eef2f7}
+.profile-avatar-placeholder{width:104px;height:104px;border-radius:50%;display:grid;place-items:center;background:#eef2f7;color:#102b55;font-size:42px;border:4px solid #e4b449}
+.camera-box.camera-live{position:fixed;inset:0;z-index:9999;margin:0;padding:20px 18px 28px;border:0;border-radius:0;background:#05070b;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;overflow:hidden}
+.camera-box.camera-live video{position:absolute;inset:0;width:100%;height:100%;max-height:none;object-fit:cover;border-radius:0;z-index:0}
+.camera-box.camera-live .camera-help{display:none}
+.camera-box.camera-live .camera-actions,.camera-box.camera-live .camera-status{position:relative;z-index:2;color:#fff;text-align:center}
+.camera-box.camera-live .camera-actions{justify-content:center}
+.camera-box.camera-live .camera-actions button{min-width:112px;box-shadow:0 3px 14px #0008}
+.camera-box.camera-live .camera-status{margin:0 0 4px;text-shadow:0 1px 4px #000}
+.camera-box[data-camera-kind="profile"].camera-live::after,.camera-box[data-camera-kind="selfie"].camera-live::after{content:"";position:absolute;z-index:1;left:50%;top:40%;transform:translate(-50%,-50%);width:min(76vw,360px);aspect-ratio:1;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,.48);pointer-events:none}
+.camera-box[data-camera-kind="shop"].camera-live::after{content:"";position:absolute;z-index:1;left:7%;right:7%;top:16%;bottom:23%;border:3px solid #fff;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.2);pointer-events:none}
+body.camera-open{overflow:hidden}
+.camera-box.camera-live [hidden]{display:none!important}
 @media(max-width:600px){.form-grid{grid-template-columns:1fr}}
 .bottom-nav{position:fixed;bottom:0;left:0;width:100%;display:flex;background:white;border-top:2px solid #e4b449;z-index:10}
 .bottom-nav a{flex:1;text-align:center;text-decoration:none;color:#102b55;font-size:11px;font-weight:900;padding:10px 2px}
@@ -93,6 +106,17 @@ button.secondary{background:#e8edf5;color:#102b55}
 <p id="profileRole"></p>
 <p id="sellerStatus"></p>
 <p id="accountStatus" aria-live="polite"></p>
+<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:14px 0">
+<img id="profileAvatar" class="profile-avatar" alt="Your profile picture" hidden>
+<div id="profileAvatarPlaceholder" class="profile-avatar-placeholder" aria-label="No profile picture yet">👤</div>
+<div><strong>Profile picture</strong><p class="form-help">Take a new picture or choose a JPEG image. It will appear as a circle on DAVIMART.</p><button type="button" id="openProfileCamera">Take profile picture</button><input id="profilePhotoFallback" type="file" accept="image/jpeg" hidden><button type="button" class="secondary" id="chooseProfilePhoto">Upload JPEG</button></div>
+</div>
+<div class="camera-box" id="profileCameraBox" data-camera-kind="profile" hidden>
+<video id="profileVideo" autoplay playsinline muted hidden></video><img id="profilePreview" alt="Profile picture preview" hidden><canvas id="profileCanvas" hidden></canvas>
+<p class="camera-help">Position your face inside the circle and use good lighting.</p>
+<div class="camera-actions"><button type="button" id="captureProfile" disabled>Take Picture</button><button type="button" class="secondary" id="retakeProfile" hidden>Retake</button><button type="button" class="secondary" id="cancelProfileCamera">Cancel</button><button type="button" id="saveProfilePhoto" disabled>Save Picture</button></div>
+<p class="camera-status" id="profileCameraStatus" aria-live="polite">Camera is ready when you open it.</p>
+</div>
 <div class="actions">
 <button id="applySellerBtn" hidden>Apply to Become a Seller</button>
 <button class="secondary" id="signOutBtn">Sign Out</button>
@@ -111,9 +135,9 @@ button.secondary{background:#e8edf5;color:#102b55}
 <div class="form-field" id="businessNameField" hidden><label for="businessName">Registered business name</label><input id="businessName" placeholder="Business name"></div>
 <div class="form-field" id="cacNumberField" hidden><label for="cacNumber">CAC registration number</label><input id="cacNumber" placeholder="CAC number"></div>
 <div class="form-field"><label for="identityFile">Identity document image or PDF</label><input id="identityFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required></div>
-<div class="form-field" style="grid-column:1/-1"><label>Live selfie (front camera)</label><div class="camera-box"><video id="selfieVideo" autoplay playsinline muted hidden></video><img id="selfiePreview" alt="Captured selfie preview" hidden><canvas id="selfieCanvas" hidden></canvas><p class="camera-help">Allow camera access, position your face clearly in good lighting, then take a fresh selfie.</p><div class="camera-actions"><button type="button" id="startSelfieCamera">Open Front Camera</button><button type="button" id="captureSelfie" disabled>Take Selfie</button><button type="button" class="secondary" id="retakeSelfie" hidden>Retake Selfie</button></div><p class="camera-status" id="selfieCameraStatus" aria-live="polite">A live selfie is required.</p><input id="selfieFallback" type="file" accept="image/jpeg,image/png,image/webp" capture="user" hidden></div></div>
+<div class="form-field" style="grid-column:1/-1"><label>Live selfie (front camera)</label><div class="camera-box" data-camera-kind="selfie"><video id="selfieVideo" autoplay playsinline muted hidden></video><img id="selfiePreview" alt="Captured selfie preview" hidden><canvas id="selfieCanvas" hidden></canvas><p class="camera-help">Allow camera access, position your face clearly in good lighting, then take a fresh selfie.</p><div class="camera-actions"><button type="button" id="startSelfieCamera">Open Front Camera</button><button type="button" id="captureSelfie" disabled>Take Selfie</button><button type="button" class="secondary" id="retakeSelfie" hidden>Retake Selfie</button></div><p class="camera-status" id="selfieCameraStatus" aria-live="polite">A live selfie is required.</p><input id="selfieFallback" type="file" accept="image/jpeg,image/png,image/webp" capture="user" hidden></div></div>
 <div class="form-field"><label for="addressFile">Proof of address</label><input id="addressFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required></div>
-<div class="form-field" id="cacFileField" hidden><label for="cacFile">CAC certificate/document</label><input id="cacFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></div><div class="form-field" id="businessShopCaptureField" style="grid-column:1/-1" hidden><label>Live shop photo (rear camera)</label><div class="camera-box"><video id="shopVideo" autoplay playsinline muted hidden></video><img id="shopPreview" alt="Captured business shop preview" hidden><canvas id="shopCanvas" hidden></canvas><p class="camera-help">Photograph the real shop front. Make sure the business banner or signboard and business name are readable. Do not submit a stock image or another business\u2019s shop.</p><div class="camera-actions"><button type="button" id="startShopCamera">Open Rear Camera</button><button type="button" id="captureShop" disabled>Take Shop Photo</button><button type="button" class="secondary" id="retakeShop" hidden>Retake Shop Photo</button></div><p class="camera-status" id="shopCameraStatus" aria-live="polite">Required for registered businesses.</p><input id="shopFallback" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden></div></div>
+<div class="form-field" id="cacFileField" hidden><label for="cacFile">CAC certificate/document</label><input id="cacFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></div><div class="form-field" id="businessShopCaptureField" style="grid-column:1/-1" hidden><label>Live shop photo (rear camera)</label><div class="camera-box" data-camera-kind="shop"><video id="shopVideo" autoplay playsinline muted hidden></video><img id="shopPreview" alt="Captured business shop preview" hidden><canvas id="shopCanvas" hidden></canvas><p class="camera-help">Photograph the real shop front. Make sure the business banner or signboard and business name are readable. Do not submit a stock image or another business\u2019s shop.</p><div class="camera-actions"><button type="button" id="startShopCamera">Open Rear Camera</button><button type="button" id="captureShop" disabled>Take Shop Photo</button><button type="button" class="secondary" id="retakeShop" hidden>Retake Shop Photo</button></div><p class="camera-status" id="shopCameraStatus" aria-live="polite">Required for registered businesses.</p><input id="shopFallback" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden></div></div>
 <div class="form-field" style="grid-column:1/-1"><label for="regulatedDetails">Do you sell regulated products or services? (Optional)</label><textarea id="regulatedDetails" placeholder="Mention category and any relevant permit or licence details, if applicable."></textarea></div>
 </div>
 <section class="feature" style="margin-top:14px"><strong>DAVIMART AI Verification Assistant</strong><p id="verificationGuideText">The AI assistant checks image clarity, document visibility and whether a business signboard is readable. It cannot confirm government records, authenticate an ID/CAC certificate or approve you as a seller. Unclear cases go to a human reviewer.</p><label style="display:flex;gap:9px;align-items:flex-start;margin-top:12px"><input id="aiReviewConsent" type="checkbox" required style="width:auto;margin-top:4px"><span>I agree to let DAVIMART send the uploaded identity-document image, selfie and (if applicable) shop photo to its AI service for image-quality and visible-evidence screening. I understand this is not government identity verification and that an administrator reviews the application.</span></label></section><p class="form-help">Accepted documents: JPG, PNG, WEBP or PDF. Maximum 10 MB per file. Business applicants must provide CAC details and a live photo of their shop signboard. Individual sellers do not need CAC registration. Category-specific licences may be requested where legally required.</p>
@@ -259,6 +283,9 @@ document.getElementById("welcomeName").textContent =
 
 document.getElementById("welcomeEmail").textContent =
 user.email || "";
+ const avatarUrl=user.user_metadata?.avatar_url;
+ const avatar=document.getElementById("profileAvatar"),placeholder=document.getElementById("profileAvatarPlaceholder");
+ if(avatarUrl){avatar.src=avatarUrl;avatar.hidden=false;placeholder.hidden=true;}else{avatar.hidden=true;placeholder.hidden=false;}
  document.getElementById("profileEmail").textContent =
  "Email: " + (user.email || "");
 
@@ -389,29 +416,36 @@ document.getElementById("applySellerBtn").onclick = function(){
  verificationPanel.scrollIntoView({behavior:"smooth",block:"start"});
 };
 document.getElementById("cancelSellerVerification").onclick = function(){
+ stopCamera("selfie");stopCamera("shop");
  verificationPanel.hidden = true;
  verificationMessage.textContent = "";
 };
 
-const cameraCaptures = {selfie:null,shop:null};
-const cameraStreams = {selfie:null,shop:null};
-function stopCamera(kind){if(cameraStreams[kind]){cameraStreams[kind].getTracks().forEach(track=>track.stop());cameraStreams[kind]=null;}}
+const cameraCaptures = {profile:null,selfie:null,shop:null};
+const cameraStreams = {profile:null,selfie:null,shop:null};
+const cameraNames = {profile:"Profile",selfie:"Selfie",shop:"Shop"};
+function cameraBox(kind){return document.querySelector('[data-camera-kind="'+kind+'"]');}
+function closeCameraView(kind){const box=cameraBox(kind);if(box)box.classList.remove("camera-live");document.body.classList.remove("camera-open");}
+function stopCamera(kind){if(cameraStreams[kind]){cameraStreams[kind].getTracks().forEach(track=>track.stop());cameraStreams[kind]=null;}const video=document.getElementById(kind+"Video");if(video)video.srcObject=null;closeCameraView(kind);}
 async function openCamera(kind,facing){
  const video=document.getElementById(kind+"Video");
  const status=document.getElementById(kind+"CameraStatus");
+ const box=cameraBox(kind);
  try{
   if(!navigator.mediaDevices?.getUserMedia) throw new Error("Live camera is not supported in this browser.");
   stopCamera(kind);
   const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:1280},height:{ideal:720}},audio:false});
   cameraStreams[kind]=stream;video.srcObject=stream;video.hidden=false;
   document.getElementById(kind+"Preview").hidden=true;
-  document.getElementById("capture"+(kind==="selfie"?"Selfie":"Shop")).disabled=false;
-  document.getElementById("retake"+(kind==="selfie"?"Selfie":"Shop")).hidden=true;
-  status.textContent="Camera is ready. Make sure the image is clear, then take the photo.";
+  const capture=document.getElementById("capture"+cameraNames[kind]);
+  const retake=document.getElementById("retake"+cameraNames[kind]);
+  capture.disabled=false;if(retake)retake.hidden=true;
+  box.hidden=false;box.classList.add("camera-live");document.body.classList.add("camera-open");
+  status.textContent=kind==="shop"?"Frame the shop signboard clearly, then take the photo.":"Position your face inside the circle, then take the photo.";
  }catch(error){
-  status.textContent=(error.message||"Camera access was blocked.")+" You can use the camera upload option instead.";
-  const fallback=document.getElementById(kind+"Fallback");fallback.hidden=false;
-  fallback.click();
+  stopCamera(kind);
+  status.textContent=(error.message||"Camera access was blocked.")+" You can choose a JPEG image instead.";
+  const fallback=document.getElementById(kind==="profile"?"profilePhotoFallback":kind+"Fallback");fallback.hidden=false;fallback.click();
  }
 }
 function captureCamera(kind){
@@ -424,8 +458,9 @@ function captureCamera(kind){
   const file=new File([blob],kind+"-"+Date.now()+".jpg",{type:"image/jpeg"});cameraCaptures[kind]=file;
   const preview=document.getElementById(kind+"Preview");preview.src=URL.createObjectURL(file);preview.hidden=false;
   video.hidden=true;stopCamera(kind);
-  document.getElementById("capture"+(kind==="selfie"?"Selfie":"Shop")).disabled=true;
-  document.getElementById("retake"+(kind==="selfie"?"Selfie":"Shop")).hidden=false;
+  document.getElementById("capture"+cameraNames[kind]).disabled=true;
+  const retake=document.getElementById("retake"+cameraNames[kind]);if(retake)retake.hidden=false;
+  if(kind==="profile")document.getElementById("saveProfilePhoto").disabled=false;
   document.getElementById(kind+"CameraStatus").textContent="Photo captured. You can retake it if it is not clear.";
  }, "image/jpeg",0.9);
 }
@@ -435,8 +470,30 @@ document.getElementById("retakeSelfie").onclick=()=>{cameraCaptures.selfie=null;
 document.getElementById("startShopCamera").onclick=()=>openCamera("shop","environment");
 document.getElementById("captureShop").onclick=()=>captureCamera("shop");
 document.getElementById("retakeShop").onclick=()=>{cameraCaptures.shop=null;openCamera("shop","environment");};
-document.getElementById("selfieFallback").addEventListener("change",e=>{cameraCaptures.selfie=e.target.files[0]||null;if(cameraCaptures.selfie)document.getElementById("selfieCameraStatus").textContent="Camera photo selected."});
-document.getElementById("shopFallback").addEventListener("change",e=>{cameraCaptures.shop=e.target.files[0]||null;if(cameraCaptures.shop)document.getElementById("shopCameraStatus").textContent="Shop photo selected."});
+document.getElementById("selfieFallback").addEventListener("change",e=>{cameraCaptures.selfie=e.target.files[0]||null;if(cameraCaptures.selfie){const p=document.getElementById("selfiePreview");p.src=URL.createObjectURL(cameraCaptures.selfie);p.hidden=false;document.getElementById("selfieCameraStatus").textContent="Selfie photo selected.";}});
+document.getElementById("shopFallback").addEventListener("change",e=>{cameraCaptures.shop=e.target.files[0]||null;if(cameraCaptures.shop){const p=document.getElementById("shopPreview");p.src=URL.createObjectURL(cameraCaptures.shop);p.hidden=false;document.getElementById("shopCameraStatus").textContent="Shop photo selected.";}});
+document.getElementById("openProfileCamera").onclick=()=>openCamera("profile","user");
+document.getElementById("captureProfile").onclick=()=>captureCamera("profile");
+document.getElementById("retakeProfile").onclick=()=>{cameraCaptures.profile=null;document.getElementById("saveProfilePhoto").disabled=true;openCamera("profile","user");};
+document.getElementById("cancelProfileCamera").onclick=()=>{stopCamera("profile");cameraCaptures.profile=null;document.getElementById("profileCameraBox").hidden=true;document.getElementById("profilePreview").hidden=true;};
+document.getElementById("chooseProfilePhoto").onclick=()=>document.getElementById("profilePhotoFallback").click();
+document.getElementById("profilePhotoFallback").addEventListener("change",e=>{const file=e.target.files[0];if(!file)return;if(file.type!=="image/jpeg"||file.size>2*1024*1024){document.getElementById("profileCameraStatus").textContent="Choose a JPEG image under 2 MB.";e.target.value="";return;}cameraCaptures.profile=file;const p=document.getElementById("profilePreview");p.src=URL.createObjectURL(file);p.hidden=false;document.getElementById("profileCameraBox").hidden=false;document.getElementById("saveProfilePhoto").disabled=false;document.getElementById("profileCameraStatus").textContent="JPEG photo selected. Save to use it as your profile picture.";});
+document.getElementById("saveProfilePhoto").onclick=async()=>{
+ const file=cameraCaptures.profile;if(!file)return;
+ const button=document.getElementById("saveProfilePhoto"),status=document.getElementById("profileCameraStatus");button.disabled=true;status.textContent="Saving your profile picture...";
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();if(userError||!user)throw new Error("Please sign in again.");
+  const path=user.id+"/avatar.jpg";
+  const {error:uploadError}=await db.storage.from("profile-photos").upload(path,file,{upsert:true,contentType:"image/jpeg",cacheControl:"3600"});
+  if(uploadError)throw uploadError;
+  const publicUrl=db.storage.from("profile-photos").getPublicUrl(path).data.publicUrl+"?v="+Date.now();
+  const {error:updateError}=await db.auth.updateUser({data:{avatar_url:publicUrl}});
+  if(updateError)throw updateError;
+  document.getElementById("profileAvatar").src=publicUrl;document.getElementById("profileAvatar").hidden=false;document.getElementById("profileAvatarPlaceholder").hidden=true;
+  status.textContent="Profile picture saved successfully.";cameraCaptures.profile=null;stopCamera("profile");document.getElementById("profileCameraBox").hidden=true;
+  const headerImage=window.parent===window?document.getElementById("accountAvatar"):null;if(headerImage){headerImage.src=publicUrl;headerImage.hidden=false;document.getElementById("accountAvatarFallback").hidden=true;}
+ }catch(error){status.textContent=error.message||"Could not save your profile picture. Please try again.";button.disabled=false;}
+};
 
 function safeFileName(file){
  const ext = (file.name.split(".").pop() || "file").toLowerCase().replace(/[^a-z0-9]/g,"");
