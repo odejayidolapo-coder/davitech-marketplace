@@ -1811,6 +1811,10 @@ async function updateAccountButtons() {
 }
 
 db.auth.onAuthStateChange((event, session) => {
+  if (event === "PASSWORD_RECOVERY") {
+    setTimeout(showHomepagePasswordRecovery, 0);
+    return;
+  }
   updateHeaderAvatar(session?.user);
   document.getElementById("menuSignInBtn").hidden = !!session;
   document.getElementById("signoutBtn").hidden = !session;
@@ -1843,6 +1847,44 @@ updateAccountButtons();
     showMessage("seller");
   }
   }
+function showHomepagePasswordRecovery() {
+  const box = document.querySelector(".modal-box");
+  if (!box) return;
+  box.innerHTML = `
+    <h3>Reset your DAVIMART password</h3>
+    <p>Choose a new password of at least 8 characters.</p>
+    <input id="homepageNewPassword" type="password" autocomplete="new-password" placeholder="New password" style="width:100%;padding:12px;margin:8px 0">
+    <input id="homepageConfirmPassword" type="password" autocomplete="new-password" placeholder="Confirm new password" style="width:100%;padding:12px;margin:8px 0">
+    <p id="homepagePasswordRecoveryStatus" aria-live="polite"></p>
+    <button type="button" class="btn primary" id="homepageSavePasswordBtn">Update password</button>
+  `;
+  document.getElementById("messageModal").classList.add("show");
+  document.getElementById("homepageSavePasswordBtn").onclick = async function() {
+    const password = document.getElementById("homepageNewPassword").value;
+    const confirmation = document.getElementById("homepageConfirmPassword").value;
+    const status = document.getElementById("homepagePasswordRecoveryStatus");
+    if (password.length < 8) {
+      status.textContent = "Your new password must contain at least 8 characters.";
+      return;
+    }
+    if (password !== confirmation) {
+      status.textContent = "The passwords do not match.";
+      return;
+    }
+    this.disabled = true;
+    status.textContent = "Updating your password…";
+    const { error } = await db.auth.updateUser({ password });
+    this.disabled = false;
+    if (error) {
+      status.textContent = "We could not update your password: " + error.message;
+      return;
+    }
+    status.textContent = "Your password has been updated successfully. You can now sign in with it.";
+    document.getElementById("homepageNewPassword").value = "";
+    document.getElementById("homepageConfirmPassword").value = "";
+  };
+}
+
 window.showMessage = function(type) {
   const role = type === "seller" ? "seller" : "buyer";
   const box = document.querySelector(".modal-box");
@@ -1860,6 +1902,8 @@ window.showMessage = function(type) {
       <p id="authStatus"></p>
       <button class="btn primary" id="registerBtn">Create account</button>
       <button class="btn outline" id="loginBtn" style="margin-top:8px">Sign in instead</button>
+      <button type="button" class="btn outline" id="forgotPasswordBtn" style="margin-top:8px">Forgot password?</button>
+      <p id="forgotPasswordStatus" aria-live="polite"></p>
       <button class="btn outline" onclick="closeMessage()" style="margin-top:8px">Close</button>
     </div>
   `;
@@ -1872,6 +1916,24 @@ window.showMessage = function(type) {
     document.getElementById("passwordEyeIcon").innerHTML = showing ? '<path d="M3 3l18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a15.8 15.8 0 0 1-3 3.8"></path><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4-.8"></path>' : '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle>';
     togglePasswordBtn.setAttribute("aria-label", showing ? "Hide password" : "Show password");
     togglePasswordBtn.setAttribute("aria-pressed", String(showing));
+  };
+
+  document.getElementById("forgotPasswordBtn").onclick = async function() {
+    const email = document.getElementById("email").value.trim();
+    const status = document.getElementById("forgotPasswordStatus");
+    if (!email) {
+      status.textContent = "Enter the email address registered to your DAVIMART account first.";
+      return;
+    }
+    const button = this;
+    button.disabled = true;
+    status.textContent = "Sending password recovery email…";
+    const redirectTo = window.location.origin + window.location.pathname;
+    const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo });
+    button.disabled = false;
+    status.textContent = error
+      ? "We could not send the recovery email: " + error.message
+      : "If an account exists for that email, a password recovery link has been sent. Check your inbox and spam folder.";
   };
 
   document.getElementById("registerBtn").onclick = async () => {
