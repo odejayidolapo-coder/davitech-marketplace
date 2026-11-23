@@ -109,7 +109,7 @@ body.camera-open{overflow:hidden}
 <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:14px 0">
 <img id="profileAvatar" class="profile-avatar" alt="Your profile picture" hidden>
 <div id="profileAvatarPlaceholder" class="profile-avatar-placeholder" aria-label="No profile picture yet">👤</div>
-<div><strong>Profile picture</strong><p class="form-help">Take a new picture or choose a JPEG image. It will appear as a circle on DAVIMART.</p><button type="button" id="openProfileCamera">Take profile picture</button><input id="profilePhotoFallback" type="file" accept="image/jpeg" hidden><button type="button" class="secondary" id="chooseProfilePhoto">Upload JPEG</button></div>
+<div><strong>Profile picture</strong><p class="form-help">Take a new picture or choose a JPEG image. It will appear as a circle on DAVIMART.</p><button type="button" id="openProfileCamera">Take profile picture</button><input id="profilePhotoFallback" type="file" accept="image/jpeg" hidden><button type="button" class="secondary" id="chooseProfilePhoto">Upload JPEG</button><button type="button" class="secondary" id="removeProfilePhoto" hidden>Remove picture</button></div>
 </div>
 <div class="camera-box" id="profileCameraBox" data-camera-kind="profile" hidden>
 <video id="profileVideo" autoplay playsinline muted hidden></video><img id="profilePreview" alt="Profile picture preview" hidden><canvas id="profileCanvas" hidden></canvas>
@@ -285,7 +285,7 @@ document.getElementById("welcomeEmail").textContent =
 user.email || "";
  const avatarUrl=user.user_metadata?.avatar_url;
  const avatar=document.getElementById("profileAvatar"),placeholder=document.getElementById("profileAvatarPlaceholder");
- if(avatarUrl){avatar.src=avatarUrl;avatar.hidden=false;placeholder.hidden=true;}else{avatar.hidden=true;placeholder.hidden=false;}
+ if(avatarUrl){avatar.src=avatarUrl;avatar.hidden=false;placeholder.hidden=true;document.getElementById("removeProfilePhoto").hidden=false;}else{avatar.hidden=true;placeholder.hidden=false;document.getElementById("removeProfilePhoto").hidden=true;}
  document.getElementById("profileEmail").textContent =
  "Email: " + (user.email || "");
 
@@ -477,6 +477,17 @@ document.getElementById("captureProfile").onclick=()=>captureCamera("profile");
 document.getElementById("retakeProfile").onclick=()=>{cameraCaptures.profile=null;document.getElementById("saveProfilePhoto").disabled=true;openCamera("profile","user");};
 document.getElementById("cancelProfileCamera").onclick=()=>{stopCamera("profile");cameraCaptures.profile=null;document.getElementById("profileCameraBox").hidden=true;document.getElementById("profilePreview").hidden=true;};
 document.getElementById("chooseProfilePhoto").onclick=()=>document.getElementById("profilePhotoFallback").click();
+document.getElementById("removeProfilePhoto").onclick=async()=>{
+ const button=document.getElementById("removeProfilePhoto");button.disabled=true;
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();if(userError||!user)throw new Error("Please sign in again.");
+  const {error:removeError}=await db.storage.from("profile-photos").remove([user.id+"/avatar.jpg"]);if(removeError)throw removeError;
+  const {error:updateError}=await db.auth.updateUser({data:{avatar_url:null}});if(updateError)throw updateError;
+  document.getElementById("profileAvatar").hidden=true;document.getElementById("profileAvatarPlaceholder").hidden=false;button.hidden=true;
+  document.getElementById("profileCameraStatus").textContent="Profile picture removed.";
+ }catch(error){document.getElementById("profileCameraStatus").textContent=error.message||"Could not remove the profile picture.";}
+ finally{button.disabled=false;}
+};
 document.getElementById("profilePhotoFallback").addEventListener("change",e=>{const file=e.target.files[0];if(!file)return;if(file.type!=="image/jpeg"||file.size>2*1024*1024){document.getElementById("profileCameraStatus").textContent="Choose a JPEG image under 2 MB.";e.target.value="";return;}cameraCaptures.profile=file;const p=document.getElementById("profilePreview");p.src=URL.createObjectURL(file);p.hidden=false;document.getElementById("profileCameraBox").hidden=false;document.getElementById("saveProfilePhoto").disabled=false;document.getElementById("profileCameraStatus").textContent="JPEG photo selected. Save to use it as your profile picture.";});
 document.getElementById("saveProfilePhoto").onclick=async()=>{
  const file=cameraCaptures.profile;if(!file)return;
