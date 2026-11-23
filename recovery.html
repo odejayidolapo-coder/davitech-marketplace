@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#174b91">
+<title>Reset Password | DAVIMART</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f6fb;color:#17243a;font-family:Arial,sans-serif;min-height:100vh}
+.banner{background:linear-gradient(120deg,#102b55,#2874bd);color:#fff;padding:25px 18px;text-align:center;box-shadow:0 3px 12px #102b5525}
+.brand{font-size:27px;font-weight:800;letter-spacing:.5px}.brand span{color:#f2c45e}.tagline{margin:7px 0 0;font-size:13px;color:#e5efff}
+main{width:min(100% - 30px,460px);margin:38px auto}.card{background:#fff;border-radius:15px;padding:28px 22px;box-shadow:0 8px 28px #142b4d12}
+h1{font-size:23px;color:#102b55;margin:0 0 9px}p{line-height:1.55;color:#667085;font-size:14px}
+label{display:block;font-weight:700;font-size:13px;color:#344054;margin:16px 0 7px}
+.field{position:relative}input{width:100%;padding:14px 70px 14px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:15px}
+input:focus{outline:2px solid #8bb8ed;border-color:#2874bd}.toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#174b91;font-weight:700;padding:8px;cursor:pointer}
+.requirements{background:#f5f8fc;border-radius:9px;padding:12px 14px;margin:15px 0}.requirements strong{font-size:13px;color:#344054}.requirements ul{padding-left:18px;margin:7px 0 0;color:#667085;font-size:12px;line-height:1.7}
+button.primary{width:100%;border:0;border-radius:8px;padding:14px;background:#174b91;color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:10px}
+button:disabled{opacity:.6;cursor:not-allowed}#status{min-height:22px;font-size:13px;overflow-wrap:anywhere}.back{display:block;text-align:center;margin-top:20px;color:#174b91;text-decoration:none;font-size:14px;font-weight:700}
+footer{text-align:center;color:#98a2b3;font-size:12px;padding:20px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="banner"><div class="brand">DAVI<span>MART</span></div><div class="tagline">Fast • Reliable • Affordable</div></header>
+<main><section class="card">
+<h1>Reset your password</h1>
+<p>Create a new password for your DAVIMART account. For your security, this page only works with a valid password-recovery link sent to your email.</p>
+<div id="formArea" hidden>
+<label for="newPassword">New password</label>
+<div class="field"><input id="newPassword" type="password" autocomplete="new-password" placeholder="Enter a new password"><button class="toggle" type="button" data-target="newPassword">Show</button></div>
+<label for="confirmPassword">Confirm new password</label>
+<div class="field"><input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Enter it again"><button class="toggle" type="button" data-target="confirmPassword">Show</button></div>
+<div class="requirements"><strong>Password requirements</strong><ul><li>At least 8 characters</li><li>Both password fields must match</li></ul></div>
+<button class="primary" id="savePassword">Save new password</button>
+</div>
+<p id="status" role="status" aria-live="polite">Checking your secure recovery link…</p>
+<a class="back" href="index.html">← Back to DAVIMART</a>
+</section></main>
+<footer>DAVIMART by DAVITECH</footer>
+<script>
+const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
+const form=document.getElementById("formArea"),status=document.getElementById("status"),save=document.getElementById("savePassword");
+let recoveryReady=false;
+document.querySelectorAll(".toggle").forEach(button=>button.addEventListener("click",()=>{
+ const input=document.getElementById(button.dataset.target),show=input.type==="password";
+ input.type=show?"text":"password";button.textContent=show?"Hide":"Show";
+}));
+function showRecoveryForm(){recoveryReady=true;form.hidden=false;status.textContent="Your recovery link is valid. Enter your new password below.";}
+db.auth.onAuthStateChange((event,session)=>{
+ if(event==="PASSWORD_RECOVERY"&&session){showRecoveryForm();}
+});
+(async()=>{
+ const {data:{session},error}=await db.auth.getSession();
+ if(session){showRecoveryForm();return;}
+ status.textContent=error?"We could not validate this recovery link. Please request a new one.":"This recovery link is invalid or has expired. Please return to DAVIMART and request another password reset.";
+})();
+save.addEventListener("click",async()=>{
+ if(!recoveryReady)return;
+ const password=document.getElementById("newPassword").value,confirm=document.getElementById("confirmPassword").value;
+ if(password.length<8){status.textContent="Your password must contain at least 8 characters.";return;}
+ if(password!==confirm){status.textContent="The passwords do not match. Please check them.";return;}
+ save.disabled=true;status.textContent="Updating your password securely…";
+ const {error}=await db.auth.updateUser({password});
+ save.disabled=false;
+ if(error){status.textContent="We could not update your password: "+error.message;return;}
+ form.hidden=true;status.textContent="Your password has been changed successfully. You can now return to DAVIMART and sign in.";
+ await db.auth.signOut();
+});
+</script>
+</body>
+</html>
