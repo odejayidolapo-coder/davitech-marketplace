@@ -293,7 +293,7 @@ async function loadSellerVerificationAdmin(){
  if(!data.length){host.textContent="No seller verification applications yet.";return;}
  host.replaceChildren();
  const labels={pending:"Pending",reviewing:"Reviewed",more_info:"Needs changes",approved:"Approved",rejected:"Rejected"};
- data.forEach(app=>{
+ for(const app of data){
   const card=document.createElement("div");card.style.cssText="border:1px solid #dbe2ed;border-radius:9px;padding:12px;margin:10px 0;background:#fff";
   const heading=document.createElement("strong");heading.textContent=(app.seller_type==="business"?"Business":"Individual")+" seller — "+(labels[app.status]||app.status);card.appendChild(heading);
   const details=document.createElement("p");details.className="form-help";details.textContent=["Applicant ID: "+app.user_id,"Business: "+(app.business_name||"—"),"Phone: "+app.contact_phone,"Address: "+app.seller_address,"Identity document: "+app.identity_document_type,"Submitted: "+(app.submitted_at?new Date(app.submitted_at).toLocaleString():"—")].join("\n");details.style.whiteSpace="pre-wrap";card.appendChild(details);
@@ -324,7 +324,7 @@ async function loadSellerVerificationAdmin(){
    result.textContent="Review saved.";await loadSellerVerificationAdmin();await loadAccount();
   };
   card.append(select,note,save,result);host.appendChild(card);
- });
+ }
 }
 document.getElementById("refreshSellerReviews").onclick=loadSellerVerificationAdmin;
 
