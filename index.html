@@ -2,6 +2,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<style>
+.account-avatar{width:36px;height:36px;display:block;object-fit:cover;border-radius:50%;border:2px solid #ffc400;background:#fff}
+.account-action{align-items:center}
+</style>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#102b55">
@@ -1272,8 +1276,9 @@ body.dm-modal-open{overflow:hidden}
   <span>SELL</span>
   <small>Start selling</small>
     </button>
-    <button class="market-action account-action" id="accountBtn">
-    <span>👤</span>
+    <button class="market-action account-action" id="accountBtn" aria-label="Open account menu">
+    <img id="accountAvatar" class="account-avatar" alt="Profile picture" hidden>
+    <span id="accountAvatarFallback">👤</span>
     <span>ACCOUNT</span>
   </button>
     
@@ -1787,8 +1792,16 @@ async function updateSellerDashboardVisibility(session) {
   button.hidden = !!error || data?.seller_status !== "approved";
 }
 
+function updateHeaderAvatar(user) {
+  const image=document.getElementById("accountAvatar");
+  const fallback=document.getElementById("accountAvatarFallback");
+  const url=user?.user_metadata?.avatar_url;
+  if(url){image.src=url;image.hidden=false;fallback.hidden=true;}
+  else{image.removeAttribute("src");image.hidden=true;fallback.hidden=false;}
+}
 async function updateAccountButtons() {
   const { data: { session } } = await db.auth.getSession();
+  updateHeaderAvatar(session?.user);
 
   document.getElementById("menuSignInBtn").hidden = !!session;
   document.getElementById("signoutBtn").hidden = !session;
@@ -1798,6 +1811,7 @@ async function updateAccountButtons() {
 }
 
 db.auth.onAuthStateChange((event, session) => {
+  updateHeaderAvatar(session?.user);
   document.getElementById("menuSignInBtn").hidden = !!session;
   document.getElementById("signoutBtn").hidden = !session;
   document.getElementById("menuAdminBtn").hidden = !(session && session.user.id === DAVIMART_ADMIN_ID);
