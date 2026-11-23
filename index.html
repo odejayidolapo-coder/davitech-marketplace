@@ -1750,9 +1750,19 @@ async function loadHomepageBanner() {
     } else {
       media.alt = "DAVIMART homepage promotional banner";
     }
-    const previous = stage.querySelector(".dm-custom-banner-image");
+    const previous = stage.querySelector(".dm-custom-banner-link, .dm-custom-banner-image");
     if (previous) previous.remove();
-    stage.appendChild(media);
+    if (isVideo) {
+      stage.appendChild(media);
+    } else {
+      const bannerLink = document.createElement("a");
+      bannerLink.className = "dm-custom-banner-link";
+      bannerLink.href = "#products";
+      bannerLink.setAttribute("aria-label", "Shop all DAVIMART products");
+      bannerLink.title = "Shop all products";
+      bannerLink.appendChild(media);
+      stage.appendChild(bannerLink);
+    }
     media.src = url;
     requestAnimationFrame(() => { media.style.opacity = "1"; });
     current = (current + 1) % slides.length;
