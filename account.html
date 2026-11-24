@@ -9,7 +9,18 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;padding-bottom:85px;font-family:Arial,sans-serif;background:#f5f7fa;color:#17243a}
-header{background:#102b55;color:white;padding:18px;font-size:22px;font-weight:bold}
+header{background:#102b55;color:white;padding:14px 18px;display:flex;align-items:center;min-height:76px}
+
+/* DAVIMART official navy-and-gold cart identity */
+.dm-brand{display:flex;align-items:center;gap:11px;min-width:max-content;text-decoration:none}
+.dm-brand-mark{width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;border-radius:14px;background:#ffc400;color:#071f50;border:1px solid #ffd75c;box-shadow:0 4px 12px #0002}
+.dm-brand-mark svg{width:35px;height:35px;display:block}
+.dm-brand-word{display:flex;flex-direction:column;gap:0;line-height:1}
+.dm-brand-name{display:block;color:#fff;font-size:clamp(27px,2.5vw,34px);font-weight:1000;line-height:.95;letter-spacing:-1.2px;white-space:nowrap}
+.dm-brand-name>span{color:#ffc400}
+.dm-brand-word small{display:block;color:#d6e2f5;font-size:8px;font-weight:900;letter-spacing:1.7px;margin-top:6px;white-space:nowrap}
+@media(max-width:700px){.dm-brand-mark{width:43px;height:43px;flex-basis:43px}.dm-brand-mark svg{width:32px;height:32px}.dm-brand-name{font-size:29px}.dm-brand-word small{font-size:7px;letter-spacing:1.2px}}
+
 header span{color:#e4b449}
 .hero{background:linear-gradient(120deg,#102b55,#2874bd);color:white;padding:35px 18px;text-align:center}
 .hero h1{margin:0 0 10px}
@@ -60,7 +71,7 @@ body.camera-open{overflow:hidden}
 
 <div id="loader">Loading DAVIMART Account...</div>
 
-<header>DAVIMART <span>by DAVITECH</span></header>
+<header><a class="dm-brand" href="index.html" aria-label="DAVIMART home"><span class="dm-brand-mark" aria-hidden="true"><svg viewBox="0 0 64 64" role="img" aria-label="DAVIMART shopping cart"><path d="M7 10h7l6.5 31.5a4 4 0 0 0 3.9 3.2h25.8a4 4 0 0 0 3.8-2.8L60 23H18" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 28h32M24 36h27" fill="none" stroke="#9a6b00" stroke-width="3.2" stroke-linecap="round"/><path d="M25 49h24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle cx="27" cy="55" r="4.2" fill="#071f50" stroke="#071f50" stroke-width="1.5"/><circle cx="48" cy="55" r="4.2" fill="#071f50" stroke="#071f50" stroke-width="1.5"/></svg></span><span class="dm-brand-word"><span class="dm-brand-name">DAVI<span>MART</span></span><small>FAST • RELIABLE • AFFORDABLE</small></span></a></header>
 
 <section class="hero">
 <h1>My DAVIMART Account</h1>
