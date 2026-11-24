@@ -90,7 +90,7 @@ body.camera-open{overflow:hidden}
 <h2>Sign in or Create an Account</h2>
 <p>Register as a buyer or sign in to your existing DAVIMART account.</p>
 <input id="fullName" type="text" placeholder="Full name">
-<input id="email" type="email" placeholder="Email address">
+<input id="email" type="text" autocomplete="username" placeholder="Email address (or phone number to sign in)">
 <input id="password" type="password" placeholder="Password (minimum 8 characters)">
 <div class="actions">
 <button id="registerBtn">Create Account</button>
@@ -518,21 +518,29 @@ document.getElementById("registerBtn").onclick = async function(){
  if(!error && data.session) await loadAccount();
 };
 
+function normalizeDavimartPhone(value){
+ const compact = value.replace(/[\\s().-]/g, "");
+ if(compact.startsWith("+")) return compact;
+ if(compact.startsWith("00")) return "+" + compact.slice(2);
+ if(compact.startsWith("234")) return "+" + compact;
+ if(compact.startsWith("0")) return "+234" + compact.slice(1);
+ return "+234" + compact;
+}
+
 document.getElementById("loginBtn").onclick = async function(){
- const email = document.getElementById("email").value.trim();
+ const identifier = document.getElementById("email").value.trim();
  const password = document.getElementById("password").value;
 
- if(!email || !password){
-  authStatus.textContent = "Enter your email and password.";
+ if(!identifier || !password){
+  authStatus.textContent = "Enter your email or phone number and password.";
   return;
  }
 
  authStatus.textContent = "Signing in...";
-
- const {error} = await db.auth.signInWithPassword({
-  email,
-  password
- });
+ const credentials = identifier.includes("@")
+  ? { email: identifier, password }
+  : { phone: normalizeDavimartPhone(identifier), password };
+ const {error} = await db.auth.signInWithPassword(credentials);
 
  if(error){
   authStatus.textContent = error.message;
