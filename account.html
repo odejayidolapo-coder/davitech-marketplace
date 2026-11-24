@@ -87,18 +87,28 @@ body.camera-open{overflow:hidden}
 </a>
 </section>
 <section class="panel" id="authPanel">
-<h2>Sign in or Create an Account</h2>
-<p>Register as a buyer or sign in to your existing DAVIMART account.</p>
-<input id="fullName" type="text" placeholder="Full name">
-<input id="email" type="email" placeholder="Email address">
-<input id="password" type="password" placeholder="Password (minimum 8 characters)">
-<div class="actions">
-<button id="registerBtn">Create Account</button>
-<button class="secondary" id="loginBtn">Sign In</button>
+<h2>DAVIMART Account</h2>
+<div id="loginForm">
+ <h3>Sign In</h3>
+ <p>Welcome back. Sign in with your registered email address.</p>
+ <input id="email" type="email" autocomplete="email" inputmode="email" placeholder="Email address">
+ <input id="password" type="password" autocomplete="current-password" placeholder="Password">
+ <div class="actions"><button id="loginBtn">Sign In</button></div>
+ <p id="authStatus" aria-live="polite"></p>
+ <button type="button" class="secondary" id="forgotPasswordBtn">Forgot password?</button>
+ <p id="forgotPasswordStatus" aria-live="polite"></p>
+ <p>New to DAVIMART? <button type="button" class="secondary" id="showRegisterBtn">Create an account</button></p>
 </div>
-<p id="authStatus" aria-live="polite"></p>
-<button type="button" class="secondary" id="forgotPasswordBtn">Forgot password?</button>
-<p id="forgotPasswordStatus" aria-live="polite"></p>
+<div id="registerForm" hidden>
+ <h3>Create Account</h3>
+ <p>Join DAVIMART to shop and manage your account.</p>
+ <input id="fullName" type="text" autocomplete="name" placeholder="Full name">
+ <input id="registerEmail" type="email" autocomplete="email" inputmode="email" placeholder="Email address" required>
+ <input id="registerPassword" type="password" autocomplete="new-password" placeholder="Create password (minimum 8 characters)">
+ <div class="actions"><button id="registerBtn">Create Account</button></div>
+ <p id="registerStatus" aria-live="polite"></p>
+ <p>Already have an account? <button type="button" class="secondary" id="showLoginBtn">Sign in</button></p>
+</div>
 <section id="passwordRecoveryPanel" class="feature" hidden style="margin-top:14px">
  <strong>Choose a new password</strong>
  <p class="form-help">Use at least 8 characters. You will need to enter it twice.</p>
@@ -487,35 +497,34 @@ document.getElementById("saveAccountPasswordBtn").onclick = async function(){
  document.getElementById("accountStatus").textContent="Your password has been updated successfully.";
 };
 
+document.getElementById("showRegisterBtn").onclick = () => {
+ document.getElementById("loginForm").hidden = true;
+ document.getElementById("registerForm").hidden = false;
+ document.getElementById("authStatus").textContent = "";
+};
+document.getElementById("showLoginBtn").onclick = () => {
+ document.getElementById("registerForm").hidden = true;
+ document.getElementById("loginForm").hidden = false;
+ document.getElementById("registerStatus").textContent = "";
+};
 document.getElementById("registerBtn").onclick = async function(){
- const name = document.getElementById("fullName").value.trim();
- const email = document.getElementById("email").value.trim();
- const password = document.getElementById("password").value;
-
- if(!name || !email || password.length < 8){
-  authStatus.textContent =
-  "Enter your full name, email and a password of at least 8 characters.";
+ const name=document.getElementById("fullName").value.trim();
+ const email=document.getElementById("registerEmail").value.trim();
+ const password=document.getElementById("registerPassword").value;
+ const status=document.getElementById("registerStatus");
+ if(!name || !email || password.length<8){
+  status.textContent="Enter your full name, email address, and a password of at least 8 characters.";
   return;
  }
-
- authStatus.textContent = "Creating your account...";
-
- const {data,error} = await db.auth.signUp({
+ status.textContent="Creating your account...";
+ const {data,error}=await db.auth.signUp({
   email,
   password,
-  options:{
-   data:{full_name:name,role:"buyer"},
-   emailRedirectTo:window.location.origin + "/account.html"
-  }
+  options:{data:{full_name:name,role:"buyer"},emailRedirectTo:window.location.origin+"/account.html"}
  });
-
- authStatus.textContent = error
- ? error.message
- : data.session
- ? "Account created successfully!"
- : "Registration submitted. Check your email for confirmation.";
-
- if(!error && data.session) await loadAccount();
+ if(error){status.textContent=error.message;return;}
+ status.textContent=data.session?"Account created successfully!":"Registration submitted. Check your email for confirmation.";
+ if(data.session) await loadAccount();
 };
 
 document.getElementById("loginBtn").onclick = async function(){
@@ -523,16 +532,12 @@ document.getElementById("loginBtn").onclick = async function(){
  const password = document.getElementById("password").value;
 
  if(!email || !password){
-  authStatus.textContent = "Enter your email and password.";
+  authStatus.textContent = "Enter your email address and password.";
   return;
  }
 
  authStatus.textContent = "Signing in...";
-
- const {error} = await db.auth.signInWithPassword({
-  email,
-  password
- });
+ const {error} = await db.auth.signInWithPassword({ email, password });
 
  if(error){
   authStatus.textContent = error.message;
