@@ -2001,7 +2001,7 @@ window.showMessage = function(type) {
     <h3>DAVIMART Account</h3>
     <div id="authForm">
       <input id="fullName" placeholder="Full name" style="width:100%;padding:12px;margin:8px 0">
-      <input id="email" type="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0">
+      <input id="email" type="text" autocomplete="username" placeholder="Email address (or phone number to sign in)" style="width:100%;padding:12px;margin:8px 0">
       <div style="position:relative;width:100%;margin:8px 0">
         <input id="password" type="password" placeholder="Password (minimum 8 characters)" style="width:100%;padding:12px;padding-right:44px;box-sizing:border-box">
         <button type="button" id="togglePasswordBtn" aria-label="Show password" aria-pressed="false" style="position:absolute;right:9px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;color:#64748b;cursor:pointer;z-index:2"><svg id="passwordEyeIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
@@ -2071,13 +2071,30 @@ window.showMessage = function(type) {
       : "Registration submitted! Check your email for confirmation.";
   };
 
+  function normalizeDavimartPhone(value) {
+    const compact = value.replace(/[\\s().-]/g, "");
+    if (compact.startsWith("+")) return compact;
+    if (compact.startsWith("00")) return "+" + compact.slice(2);
+    if (compact.startsWith("234")) return "+" + compact;
+    if (compact.startsWith("0")) return "+234" + compact.slice(1);
+    return "+234" + compact;
+  }
+
   document.getElementById("loginBtn").onclick = async () => {
-    const email = document.getElementById("email").value.trim();
+    const identifier = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
     const status = document.getElementById("authStatus");
 
+    if (!identifier || !password) {
+      status.textContent = "Enter your email or phone number and password.";
+      return;
+    }
+
     status.textContent = "Signing in...";
-    const { error } = await db.auth.signInWithPassword({ email, password });
+    const credentials = identifier.includes("@")
+      ? { email: identifier, password }
+      : { phone: normalizeDavimartPhone(identifier), password };
+    const { error } = await db.auth.signInWithPassword(credentials);
     status.textContent = error ? error.message : "Signed in successfully!";
     if (!error) {
       await showDashboard();
