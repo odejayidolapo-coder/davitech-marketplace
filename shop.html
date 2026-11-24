@@ -29,6 +29,12 @@ button{background:#102b55;color:white;border:0;border-radius:7px;padding:13px 20
 #loader{position:fixed;inset:0;background:white;display:grid;place-items:center;z-index:100;color:#102b55;font-weight:bold}
 @media(max-width:450px){.search-box{flex-wrap:wrap}.search-box input{width:100%;flex-basis:100%}.search-box button{flex:1}}
 </style>
+<style>
+.product-detail{max-width:850px;margin:20px auto;background:#fff;padding:22px;border-radius:12px;text-align:left;box-shadow:0 3px 14px #0000000c}
+.product-detail img{width:100%;max-height:360px;object-fit:contain;background:#f5f7fa;border-radius:9px}
+.product-detail h2{color:#102b55}.product-price{font-size:24px;font-weight:bold;color:#a47719}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -73,17 +79,74 @@ button{background:#102b55;color:white;border:0;border-radius:7px;padding:13px 20
 </nav>
 
 <script>
+const db = window.supabase.createClient(
+ "https://vaghptbqfjvfhjdhpxrz.supabase.co",
+ "sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p"
+);
 const params = new URLSearchParams(window.location.search);
 const category = params.get("category");
 const query = params.get("q");
+const listingId = params.get("listing");
 
-if(category){
+async function loadNotifiedProduct(){
+ const results = document.querySelector(".results");
+ const {data:listing,error} = await db.from("listings")
+  .select("id,title,description,price,category,location,image_url")
+  .eq("id",listingId)
+  .eq("listing_type","product")
+  .eq("status","approved")
+  .maybeSingle();
+
+ results.innerHTML = "";
+ const heading = document.createElement("h2");
+ heading.textContent = error ? "Unable to load this product" : listing ? listing.title : "Product unavailable";
+ results.appendChild(heading);
+ if(error || !listing){
+  const message = document.createElement("p");
+  message.textContent = "This product may have been removed or is no longer available.";
+  results.appendChild(message);
+  return;
+ }
+ const detail = document.createElement("article");
+ detail.className = "product-detail";
+ if(listing.image_url){
+  try{
+   const imageUrl = new URL(listing.image_url);
+   if(imageUrl.protocol === "https:" || imageUrl.protocol === "http:"){
+    const image = document.createElement("img");
+    image.src = imageUrl.href;
+    image.alt = listing.title;
+    detail.appendChild(image);
+   }
+  }catch(_){}
+ }
+ const title = document.createElement("h2");
+ title.textContent = listing.title;
+ const price = document.createElement("p");
+ price.className = "product-price";
+ price.textContent = "₦" + Number(listing.price).toLocaleString("en-NG");
+ const description = document.createElement("p");
+ description.textContent = listing.description || "Contact the seller for more information.";
+ const categoryText = document.createElement("p");
+ categoryText.textContent = "Category: " + listing.category;
+ const locationText = document.createElement("p");
+ locationText.textContent = listing.location ? "Location: " + listing.location : "";
+ detail.append(title,price,description,categoryText,locationText);
+ results.appendChild(detail);
+}
+
+if(listingId){
+ document.getElementById("resultDescription").textContent = "Loading approved product details...";
+ loadNotifiedProduct();
+}
+
+if(category && !listingId){
  document.getElementById("resultHeading").textContent = category + " Products";
  document.getElementById("resultDescription").textContent =
  "No approved listings are available in " + category + " yet.";
 }
 
-if(query){
+if(query && !listingId){
  document.getElementById("resultHeading").textContent = 'Search results for "' + query + '"';
 }
 
