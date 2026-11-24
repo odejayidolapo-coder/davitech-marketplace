@@ -58,6 +58,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <button type="button" data-panel="notifyPanel">🔔 Notifications</button>
 <button type="button" data-panel="productUploadPanel">🛍️ Add product</button>
 <button type="button" id="bannerNav" data-panel="bannerPanel">▧ Homepage banner</button>
+<button type="button" data-panel="brandLogoPanel">🛒 DAVIMART cart logo</button>
 <button type="button" data-panel="flashSalePanel">⚡ Flash sale images</button>
  <button type="button" data-panel="davitechBannerPanel">🟦 DAVITECH banner</button>
 </aside>
@@ -105,6 +106,25 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <p id="adminProductStatus" role="status"></p>
 </form>
 </section>
+<section class="panel admin-feature" id="brandLogoPanel" hidden>
+<h2>DAVIMART brand logo</h2>
+<p>Upload the official shopping-cart logo that appears beside the bold DAVIMART name in the website header. This logo is separate from homepage promotional banners.</p>
+<div class="drop">
+<b>Current DAVIMART cart logo</b>
+<div style="margin:14px auto;padding:16px;background:#071f50;border-radius:12px;max-width:300px;display:flex;align-items:center;justify-content:center;min-height:110px">
+<img id="currentDavimartLogo" alt="Current DAVIMART cart logo" style="display:none;max-width:220px;max-height:90px;object-fit:contain">
+<span id="defaultDavimartLogo" style="color:#ffc400;font-size:44px">🛒</span>
+</div>
+<label for="davimartLogoFile">Choose a logo image (PNG, JPG or WEBP; maximum 5 MB)</label>
+<input id="davimartLogoFile" type="file" accept="image/png,image/jpeg,image/webp">
+<div id="davimartLogoPreview" style="margin:10px auto;max-width:240px"></div>
+</div>
+<div class="actions">
+<button class="btn btn-gold" id="uploadDavimartLogo" type="button">Publish cart logo</button>
+<button class="btn btn-light" id="resetDavimartLogo" type="button">Use default cart icon</button>
+</div>
+<p id="davimartLogoStatus" role="status">Choose a logo image to preview it before publishing.</p>
+</section>
 <section class="panel" id="bannerPanel"><h2>Homepage banner manager</h2><p>Upload several promotional banners together. DAVIMART will display them in a full-size rotating slideshow on the homepage. Supported: JPG, PNG, WEBP, GIF, MP4 or WEBM, maximum 10 MB per file.</p>
 <div class="drop"><b>Select promotional images or videos</b><br><input id="bannerFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple><div id="previewGrid"></div></div>
 <div class="actions"><button class="btn btn-gold" id="publish">Upload selected banners</button><button class="btn btn-light" id="removeAll">Remove all and restore default artwork</button></div>
@@ -141,6 +161,49 @@ const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co"
 const ADMIN_ID="4aa054c0-97c2-45c3-8c3a-9bf87f2c365c";
 const BUCKET="homepage-banners";
 const LISTING_BUCKET="listing-images";
+const DAVIMART_LOGO_PATH="davimart-cart-logo";
+const logoInput=document.getElementById("davimartLogoFile");
+const logoPreview=document.getElementById("davimartLogoPreview");
+const logoStatus=document.getElementById("davimartLogoStatus");
+const currentLogo=document.getElementById("currentDavimartLogo");
+const defaultLogo=document.getElementById("defaultDavimartLogo");
+function showCurrentDavimartLogo(){
+ const url=db.storage.from(BUCKET).getPublicUrl(DAVIMART_LOGO_PATH).data.publicUrl+"?v="+Date.now();
+ currentLogo.onload=()=>{currentLogo.style.display="block";defaultLogo.style.display="none";};
+ currentLogo.onerror=()=>{currentLogo.style.display="none";defaultLogo.style.display="block";};
+ currentLogo.src=url;
+}
+logoInput.onchange=()=>{
+ logoPreview.innerHTML="";
+ const file=logoInput.files?.[0];if(!file)return;
+ if(!["image/png","image/jpeg","image/webp"].includes(file.type)||file.size>5*1024*1024){
+  logoStatus.textContent="Please choose a PNG, JPG or WEBP image under 5 MB.";logoInput.value="";return;
+ }
+ const img=document.createElement("img");img.src=URL.createObjectURL(file);img.alt="Selected DAVIMART cart logo preview";img.style.cssText="display:block;max-width:100%;max-height:140px;object-fit:contain;margin:auto;background:#071f50;padding:12px;border-radius:10px";logoPreview.appendChild(img);
+ logoStatus.textContent="Logo ready. Publish it when you are satisfied with the preview.";
+};
+document.getElementById("uploadDavimartLogo").onclick=async()=>{
+ const file=logoInput.files?.[0];
+ if(!file){logoStatus.textContent="Choose a logo image first.";return;}
+ const {data:{user}}=await db.auth.getUser();
+ if(!user||user.id!==ADMIN_ID){logoStatus.textContent="Access denied.";return;}
+ logoStatus.textContent="Publishing DAVIMART cart logo…";
+ const {error}=await db.storage.from(BUCKET).upload(DAVIMART_LOGO_PATH,file,{upsert:true,contentType:file.type,cacheControl:"0"});
+ if(error){logoStatus.textContent="Logo upload failed: "+error.message;return;}
+ logoStatus.textContent="DAVIMART cart logo published successfully.";
+ logoInput.value="";logoPreview.innerHTML="";showCurrentDavimartLogo();
+};
+document.getElementById("resetDavimartLogo").onclick=async()=>{
+ const {data:{user}}=await db.auth.getUser();
+ if(!user||user.id!==ADMIN_ID){logoStatus.textContent="Access denied.";return;}
+ if(!confirm("Remove the uploaded DAVIMART cart logo and use the built-in default icon?"))return;
+ logoStatus.textContent="Restoring default cart icon…";
+ const {error}=await db.storage.from(BUCKET).remove([DAVIMART_LOGO_PATH]);
+ if(error){logoStatus.textContent="Could not restore the default logo: "+error.message;return;}
+ logoStatus.textContent="Default DAVIMART cart icon restored.";showCurrentDavimartLogo();
+};
+showCurrentDavimartLogo();
+
 const checking=document.getElementById("checking"),denied=document.getElementById("denied"),dashboard=document.getElementById("dashboard");
 (async()=>{
  const {data:{user},error}=await db.auth.getUser();
