@@ -103,8 +103,12 @@ body.camera-open{overflow:hidden}
  <h3>Create Account</h3>
  <p>Join DAVIMART to shop and manage your account.</p>
  <input id="fullName" type="text" autocomplete="name" placeholder="Full name">
+ <label for="registerMethod">Register with</label>
+ <select id="registerMethod" style="width:100%;padding:12px;margin:8px 0"><option value="email">Email address</option><option value="phone">Phone number</option></select>
  <input id="registerEmail" type="email" autocomplete="email" placeholder="Email address">
+ <input id="registerPhone" type="tel" autocomplete="tel" placeholder="Phone number (e.g. 08012345678)" hidden>
  <input id="registerPassword" type="password" autocomplete="new-password" placeholder="Create password (minimum 8 characters)">
+ <div id="registerOtpPanel" hidden><p>Enter the 6-digit code sent to your phone.</p><input id="registerOtp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="SMS verification code"><button type="button" class="secondary" id="verifyRegisterOtpBtn">Verify phone number</button></div>
  <div class="actions"><button id="registerBtn">Create Account</button></div>
  <p id="registerStatus" aria-live="polite"></p>
  <p>Already have an account? <button type="button" class="secondary" id="showLoginBtn">Sign in</button></p>
@@ -507,33 +511,51 @@ document.getElementById("showLoginBtn").onclick = () => {
  document.getElementById("loginForm").hidden = false;
  document.getElementById("registerStatus").textContent = "";
 };
+document.getElementById("registerMethod").addEventListener("change",function(){
+ const usePhone=this.value==="phone";
+ document.getElementById("registerEmail").hidden=usePhone;
+ document.getElementById("registerPhone").hidden=!usePhone;
+ document.getElementById("registerOtpPanel").hidden=true;
+ document.getElementById("registerStatus").textContent="";
+});
 document.getElementById("registerBtn").onclick = async function(){
- const name = document.getElementById("fullName").value.trim();
- const email = document.getElementById("registerEmail").value.trim();
- const password = document.getElementById("registerPassword").value;
- const status = document.getElementById("registerStatus");
-
- if(!name || !email || password.length < 8){
-  status.textContent = "Enter your full name, email and a password of at least 8 characters.";
+ const name=document.getElementById("fullName").value.trim();
+ const method=document.getElementById("registerMethod").value;
+ const email=document.getElementById("registerEmail").value.trim();
+ const phoneInput=document.getElementById("registerPhone").value.trim();
+ const password=document.getElementById("registerPassword").value;
+ const status=document.getElementById("registerStatus");
+ if(!name || password.length<8 || (method==="email" && !email) || (method==="phone" && !phoneInput)){
+  status.textContent="Enter your full name, your selected email or phone number, and a password of at least 8 characters.";
   return;
  }
-
- status.textContent = "Creating your account...";
- const {data,error} = await db.auth.signUp({
-  email,
-  password,
-  options:{
-   data:{full_name:name,role:"buyer"},
-   emailRedirectTo:window.location.origin + "/account.html"
-  }
- });
-
- status.textContent = error
-  ? error.message
-  : data.session
-  ? "Account created successfully!"
-  : "Registration submitted. Check your email for confirmation.";
- if(!error && data.session) await loadAccount();
+ status.textContent="Creating your account...";
+ const credentials=method==="email"
+  ? {email,password,options:{data:{full_name:name,role:"buyer"},emailRedirectTo:window.location.origin+"/account.html"}}
+  : {phone:normalizeDavimartPhone(phoneInput),password,options:{data:{full_name:name,role:"buyer"}}};
+ const {data,error}=await db.auth.signUp(credentials);
+ if(error){status.textContent=error.message;return;}
+ if(method==="phone"){
+  window.davimartPendingPhone=normalizeDavimartPhone(phoneInput);
+  document.getElementById("registerOtpPanel").hidden=false;
+  status.textContent="Verification code requested. Enter the SMS code to finish creating your account. SMS delivery must be enabled in Supabase.";
+ }else{
+  status.textContent=data.session?"Account created successfully!":"Registration submitted. Check your email for confirmation.";
+  if(data.session) await loadAccount();
+ }
+};
+document.getElementById("verifyRegisterOtpBtn").onclick=async function(){
+ const token=document.getElementById("registerOtp").value.trim();
+ const status=document.getElementById("registerStatus");
+ if(!window.davimartPendingPhone || !/^\\d{6}$/.test(token)){status.textContent="Enter the 6-digit SMS verification code.";return;}
+ this.disabled=true;status.textContent="Verifying your phone number...";
+ const {data,error}=await db.auth.verifyOtp({phone:window.davimartPendingPhone,token,type:"sms"});
+ this.disabled=false;
+ if(error){status.textContent=error.message;return;}
+ window.davimartPendingPhone=null;
+ status.textContent="Phone verified. Your DAVIMART account is ready!";
+ document.getElementById("registerOtpPanel").hidden=true;
+ await loadAccount();
 };
 
 function normalizeDavimartPhone(value){
