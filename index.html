@@ -1549,7 +1549,6 @@ window.showMessage = function(type) {
 <script>
 async function loadNotifications() {
   const { data: { user } } = await db.auth.getUser();
-
   const count = document.getElementById("notificationCount");
   const panel = document.getElementById("headerNotificationPanel");
 
@@ -1561,47 +1560,108 @@ async function loadNotifications() {
 
   const { data, error } = await db
     .from("notifications")
-    .select("id, title, message, is_read, created_at")
+    .select("id, title, message, is_read, created_at, action_url, notification_type")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(20);
 
   if (error) {
-    panel.textContent = "Could not load notifications.";
+    panel.textContent = "Could not load notifications. " + error.message;
     return;
   }
 
-    const unreadIds = data
-    .filter(n => !n.is_read)
-    .map(n => n.id);
+  const unread = data.filter(n => !n.is_read).length;
+  count.textContent = unread > 99 ? "99+" : String(unread);
+  panel.innerHTML = "";
 
-  if (unreadIds.length) {
-    const { error: updateError } = await db
-      .from("notifications")
-      .update({ is_read: true })
-      .in("id", unreadIds)
-      .eq("user_id", user.id);
-
-    if (updateError) {
-      panel.textContent = "Could not mark notifications as read.";
-      return;
-    }
+  if (!data.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "No notifications yet.";
+    panel.appendChild(empty);
+    return;
   }
 
-  count.textContent = "0";
-  panel.textContent = data.length
-    ? data.map(n => n.title + ": " + n.message).join("\n")
-    : "No notifications yet.";
-} 
+  data.forEach(notification => {
+    const item = document.createElement("div");
+    item.style.cssText = "padding:12px;border-bottom:1px solid #e6eaf0;background:" +
+      (notification.is_read ? "#fff" : "#f1f6ff");
+
+    const title = document.createElement("strong");
+    title.textContent = notification.title || "DAVIMART update";
+    title.style.cssText = "display:block;color:#102b55;margin-bottom:5px";
+
+    const message = document.createElement("p");
+    message.textContent = notification.message || "";
+    message.style.cssText = "margin:0 0 7px;color:#46546a;font-size:13px;line-height:1.45";
+
+    const time = document.createElement("small");
+    time.textContent = new Date(notification.created_at).toLocaleString();
+    time.style.color = "#778196";
+
+    item.append(title, message, time);
+
+    if (notification.action_url) {
+      const link = document.createElement("a");
+      link.href = notification.action_url;
+      link.textContent = "View update";
+      link.style.cssText = "display:inline-block;margin-top:8px;color:#174b91;font-weight:bold";
+      item.appendChild(document.createElement("br"));
+      item.appendChild(link);
+    }
+
+    item.addEventListener("click", async event => {
+      if (event.target.closest("a")) return;
+      if (!notification.is_read) {
+        const { error: updateError } = await db
+          .from("notifications")
+          .update({ is_read: true })
+          .eq("id", notification.id)
+          .eq("user_id", user.id);
+        if (!updateError) {
+          notification.is_read = true;
+          item.style.background = "#fff";
+          const nextUnread = Math.max(0, Number(count.textContent.replace("+", "")) - 1);
+          count.textContent = String(nextUnread);
+        }
+      }
+    });
+
+    panel.appendChild(item);
+  });
+}
+
 document.getElementById("headerNotificationBell").onclick = async () => {
   const panel = document.getElementById("headerNotificationPanel");
-
   panel.hidden = !panel.hidden;
+  if (!panel.hidden) await loadNotifications();
+};
 
-  if (!panel.hidden) {
-    await loadNotifications();
+let davimartNotificationChannel;
+async function subscribeToDavimartNotifications() {
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) {
+    document.getElementById("notificationCount").textContent = "0";
+    return;
   }
-};  
+  if (davimartNotificationChannel) {
+    await db.removeChannel(davimartNotificationChannel);
+  }
+  davimartNotificationChannel = db
+    .channel("davimart-notifications-" + user.id)
+    .on("postgres_changes", {
+      event: "INSERT",
+      schema: "public",
+      table: "notifications",
+      filter: "user_id=eq." + user.id
+    }, () => loadNotifications())
+    .subscribe();
+  await loadNotifications();
+}
+
+db.auth.onAuthStateChange(() => {
+  setTimeout(subscribeToDavimartNotifications, 0);
+});
+subscribeToDavimartNotifications();  
 async function showDashboard() {
   const { data: { user } } = await db.auth.getUser();
 
