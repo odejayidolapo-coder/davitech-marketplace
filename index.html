@@ -1278,6 +1278,9 @@ body.dm-modal-open{overflow:hidden}
 .logo .dm-brand-mark{color:#071f50!important;background:#ffc400!important;border:1px solid #ffd75c!important}
 .logo .dm-brand-mark svg{display:block;visibility:visible;opacity:1}
 </style>
+<style>
+#davimartHeaderCartLogo{padding:5px;background:#ffc400}
+</style>
 </head>
 <body>
 
@@ -1287,7 +1290,7 @@ body.dm-modal-open{overflow:hidden}
 
 <header>
   <a class="logo dm-brand" href="#home" aria-label="DAVIMART home">
-    <span class="dm-brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48" role="img"><path d="M5 8h6l5 24h22l6-17H14" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 21h20M20 27h16" stroke="#ffc400" stroke-width="2.5" stroke-linecap="round"/><circle cx="20" cy="39" r="3.2" fill="#ffc400"/><circle cx="36" cy="39" r="3.2" fill="#ffc400"/></svg></span>
+    <span class="dm-brand-mark" aria-hidden="true"><img id="davimartHeaderCartLogo" alt="" style="display:none;width:100%;height:100%;object-fit:contain;border-radius:inherit"><svg id="davimartDefaultCartLogo" viewBox="0 0 48 48" role="img"><path d="M5 8h6l5 24h22l6-17H14" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 21h20M20 27h16" stroke="#ffc400" stroke-width="2.5" stroke-linecap="round"/><circle cx="20" cy="39" r="3.2" fill="#ffc400"/><circle cx="36" cy="39" r="3.2" fill="#ffc400"/></svg></span>
     <span class="dm-brand-word"><span class="dm-brand-name">DAVI<span>MART</span></span><small>FAST • RELIABLE • AFFORDABLE</small></span>
   </a>
   
@@ -1647,6 +1650,17 @@ const db = window.supabase.createClient(
   "sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p"
 );
 const DAVIMART_ADMIN_ID = "4aa054c0-97c2-45c3-8c3a-9bf87f2c365c";
+const DAVIMART_LOGO_PATH = "davimart-cart-logo";
+(function loadCustomDavimartCartLogo(){
+ const image=document.getElementById("davimartHeaderCartLogo");
+ const fallback=document.getElementById("davimartDefaultCartLogo");
+ if(!image||!fallback||!window.supabase)return;
+ const logoUrl=db.storage.from("homepage-banners").getPublicUrl(DAVIMART_LOGO_PATH).data.publicUrl;
+ image.onload=()=>{image.style.display="block";fallback.style.display="none";};
+ image.onerror=()=>{image.style.display="none";fallback.style.display="block";};
+ image.src=logoUrl+"?v="+Date.now();
+})();
+
 const DAVIMART_BANNER_BUCKET = "homepage-banners";
 
 const DAVIMART_PRODUCT_CACHE = new Map();
