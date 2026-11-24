@@ -1262,6 +1262,17 @@ body.dm-modal-open{overflow:hidden}
 .dm-primary-cta:hover{transform:translateY(-2px);box-shadow:0 10px 24px #00133c55}
 @media(max-width:700px){.dm-brand-mark{width:39px;height:39px}.dm-brand-word small{font-size:7px;letter-spacing:1.1px}}
 </style>
+<style>
+/* DAVIMART wordmark refinement */
+.dm-brand{gap:11px}
+.dm-brand-mark{width:48px;height:48px;border-radius:14px;background:#ffc400;color:#071f50;border:0;box-shadow:0 4px 12px #0002}
+.dm-brand-mark svg{width:35px;height:35px}
+.dm-brand-word{gap:0}
+.dm-brand-name{display:block;color:#fff;font-size:clamp(27px,2.5vw,34px);font-weight:1000;line-height:.95;letter-spacing:-1.2px;white-space:nowrap}
+.dm-brand-name>span{color:#ffc400;font-weight:1000}
+.dm-brand-word small{font-size:8px;font-weight:900;letter-spacing:1.7px;margin-top:6px}
+@media(max-width:700px){.dm-brand-mark{width:43px;height:43px}.dm-brand-mark svg{width:32px;height:32px}.dm-brand-name{font-size:29px}}
+</style>
 </head>
 <body>
 
@@ -1271,8 +1282,8 @@ body.dm-modal-open{overflow:hidden}
 
 <header>
   <a class="logo dm-brand" href="#home" aria-label="DAVIMART home">
-    <span class="dm-brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48" role="img"><path d="M7 9h5l4.2 21.1a4 4 0 0 0 3.9 3.2h17.1a4 4 0 0 0 3.8-2.8L45 17H15" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="21" cy="40" r="3" fill="currentColor"/><circle cx="37" cy="40" r="3" fill="currentColor"/><path d="M20 8h10m-5-5v10" stroke="#ffc400" stroke-width="3" stroke-linecap="round"/></svg></span>
-    <span class="dm-brand-word">DAVI<span>MART</span><small>SHOP • SELL • DISCOVER</small></span>
+    <span class="dm-brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48" role="img"><path d="M5 8h6l5 24h22l6-17H14" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 21h20M20 27h16" stroke="#ffc400" stroke-width="2.5" stroke-linecap="round"/><circle cx="20" cy="39" r="3.2" fill="#ffc400"/><circle cx="36" cy="39" r="3.2" fill="#ffc400"/></svg></span>
+    <span class="dm-brand-word"><span class="dm-brand-name">DAVI<span>MART</span></span><small>SHOP • SELL • DISCOVER</small></span>
   </a>
   
 <div class="dm-header-search">
