@@ -26,6 +26,28 @@ button.secondary{background:#e8edf5;color:#102b55}
 .feature strong{display:block;color:#102b55;margin-bottom:7px}
 .feature p{font-size:13px;color:#667085;line-height:1.5;margin:0}
 .status{font-size:12px;color:#8a5b00;margin-top:10px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.form-field{display:flex;flex-direction:column;gap:6px}
+.form-field label{font-size:13px;font-weight:bold;color:#102b55}
+.form-field input,.form-field select,.form-field textarea{width:100%;padding:12px;border:1px solid #ccd3dd;border-radius:7px;font:inherit}
+.form-field textarea{min-height:85px;resize:vertical}
+.form-help{font-size:12px;color:#667085;line-height:1.5}
+.form-message{line-height:1.5;overflow-wrap:anywhere}
+.camera-box{border:1px solid #d9e0ea;border-radius:10px;padding:12px;background:#f8fafc;margin:8px 0;position:relative}.camera-box video,.camera-box img{width:100%;max-height:280px;object-fit:cover;border-radius:8px;background:#17243a}.camera-box[data-camera-kind="profile"] img,.camera-box[data-camera-kind="selfie"] img{width:min(100%,280px);aspect-ratio:1;max-height:none;object-fit:cover;border-radius:50%;display:block;margin:12px auto}.camera-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.camera-help{font-size:12px;color:#667085;line-height:1.5}.camera-status{font-size:13px;color:#102b55;margin-top:7px}
+.profile-avatar{width:104px;height:104px;border-radius:50%;object-fit:cover;border:4px solid #e4b449;background:#eef2f7}
+.profile-avatar-placeholder{width:104px;height:104px;border-radius:50%;display:grid;place-items:center;background:#eef2f7;color:#102b55;font-size:42px;border:4px solid #e4b449}
+.camera-box.camera-live{position:fixed;inset:0;z-index:9999;margin:0;padding:20px 18px 28px;border:0;border-radius:0;background:#05070b;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;overflow:hidden}
+.camera-box.camera-live video{position:absolute;inset:0;width:100%;height:100%;max-height:none;object-fit:cover;border-radius:0;z-index:0}
+.camera-box.camera-live .camera-help{display:none}
+.camera-box.camera-live .camera-actions,.camera-box.camera-live .camera-status{position:relative;z-index:2;color:#fff;text-align:center}
+.camera-box.camera-live .camera-actions{justify-content:center}
+.camera-box.camera-live .camera-actions button{min-width:112px;box-shadow:0 3px 14px #0008}
+.camera-box.camera-live .camera-status{margin:0 0 4px;text-shadow:0 1px 4px #000}.selfie-challenge{position:relative;z-index:2;width:min(100%,520px);margin:0 auto 8px;padding:14px;border:1px solid #ffffff70;border-radius:14px;background:#101827ef;color:#fff;text-align:center;box-shadow:0 8px 28px #0008}.selfie-challenge strong{display:block;font-size:18px;margin-bottom:6px}.selfie-challenge p{margin:4px 0 10px;font-size:14px}.selfie-challenge button{min-width:150px}
+.camera-box[data-camera-kind="profile"].camera-live::after,.camera-box[data-camera-kind="selfie"].camera-live::after{content:"";position:absolute;z-index:1;left:50%;top:40%;transform:translate(-50%,-50%);width:min(76vw,360px);aspect-ratio:1;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,.48);pointer-events:none}
+.camera-box[data-camera-kind="shop"].camera-live::after{content:"";position:absolute;z-index:1;left:7%;right:7%;top:16%;bottom:23%;border:3px solid #fff;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.2);pointer-events:none}
+body.camera-open{overflow:hidden}
+.camera-box.camera-live [hidden]{display:none!important}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}}
 .bottom-nav{position:fixed;bottom:0;left:0;width:100%;display:flex;background:white;border-top:2px solid #e4b449;z-index:10}
 .bottom-nav a{flex:1;text-align:center;text-decoration:none;color:#102b55;font-size:11px;font-weight:900;padding:10px 2px}
 .bottom-nav span{display:block;font-size:21px;margin-bottom:4px}
@@ -75,6 +97,16 @@ button.secondary{background:#e8edf5;color:#102b55}
 <button class="secondary" id="loginBtn">Sign In</button>
 </div>
 <p id="authStatus" aria-live="polite"></p>
+<button type="button" class="secondary" id="forgotPasswordBtn">Forgot password?</button>
+<p id="forgotPasswordStatus" aria-live="polite"></p>
+<section id="passwordRecoveryPanel" class="feature" hidden style="margin-top:14px">
+ <strong>Choose a new password</strong>
+ <p class="form-help">Use at least 8 characters. You will need to enter it twice.</p>
+ <input id="newAccountPassword" type="password" autocomplete="new-password" placeholder="New password (minimum 8 characters)">
+ <input id="confirmAccountPassword" type="password" autocomplete="new-password" placeholder="Confirm new password">
+ <button type="button" id="saveAccountPasswordBtn">Update password</button>
+ <p id="passwordRecoveryStatus" aria-live="polite"></p>
+</section>
 </section>
 
 <section class="panel" id="profilePanel" hidden>
@@ -83,11 +115,61 @@ button.secondary{background:#e8edf5;color:#102b55}
 <p id="profileEmail"></p>
 <p id="profileRole"></p>
 <p id="sellerStatus"></p>
+<section class="feature" id="sellerVerificationTracker" hidden style="margin:14px 0">
+<strong>Seller verification status</strong>
+<p id="sellerTrackerStatus" style="margin:8px 0;font-weight:700;color:#102b55"></p>
+<div id="sellerTrackerSteps" style="display:grid;gap:7px;margin:12px 0"></div>
+<p id="sellerTrackerSubmitted" class="form-help"></p>
+<p id="sellerTrackerNote" class="form-help" hidden></p>
+<p id="sellerTrackerHelp" class="form-help">DAVIMART administrators review applications. AI screening does not verify your identity with NIMC.</p>
+</section>
+<button type="button" class="secondary" id="openSellerVerificationAdmin" hidden style="margin:0 0 12px">Open seller verification reviews</button>
+<section class="feature" id="sellerVerificationAdminPanel" hidden style="margin:14px 0">
+<strong>Seller verification review desk</strong>
+<p class="form-help">Reviewed means checked by an administrator; it is not the same as approval.</p>
+<div class="actions"><button type="button" class="secondary" id="refreshSellerReviews">Refresh applications</button></div>
+<p id="sellerReviewAdminStatus" class="form-help" aria-live="polite"></p>
+<div id="sellerReviewAdminList"></div>
+</section>
 <p id="accountStatus" aria-live="polite"></p>
+<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:14px 0">
+<img id="profileAvatar" class="profile-avatar" alt="Your profile picture" hidden>
+<div id="profileAvatarPlaceholder" class="profile-avatar-placeholder" aria-label="No profile picture yet">👤</div>
+<div><strong>Profile picture</strong><p class="form-help">Take a new picture or choose a JPEG image. It will appear as a circle on DAVIMART.</p><button type="button" id="openProfileCamera">Take profile picture</button><input id="profilePhotoFallback" type="file" accept="image/jpeg" hidden><button type="button" class="secondary" id="chooseProfilePhoto">Upload JPEG</button><button type="button" class="secondary" id="removeProfilePhoto" hidden>Remove picture</button></div>
+</div>
+<div class="camera-box" id="profileCameraBox" data-camera-kind="profile" hidden>
+<video id="profileVideo" autoplay playsinline muted hidden></video><img id="profilePreview" alt="Profile picture preview" hidden><canvas id="profileCanvas" hidden></canvas>
+<p class="camera-help">Position your face inside the circle and use good lighting.</p>
+<div class="camera-actions"><button type="button" id="captureProfile" disabled>Take Picture</button><button type="button" class="secondary" id="retakeProfile" hidden>Retake</button><button type="button" class="secondary" id="cancelProfileCamera">Cancel</button><button type="button" id="saveProfilePhoto" disabled>Save Picture</button></div>
+<p class="camera-status" id="profileCameraStatus" aria-live="polite">Camera is ready when you open it.</p>
+</div>
 <div class="actions">
 <button id="applySellerBtn" hidden>Apply to Become a Seller</button>
 <button class="secondary" id="signOutBtn">Sign Out</button>
 </div>
+</section>
+
+<section class="panel" id="sellerVerificationPanel" hidden>
+<h2>Seller Verification Application</h2>
+<p>Complete the details below. Your documents are stored privately and are visible only to you and authorized DAVIMART verification administrators.</p>
+<form id="sellerVerificationForm">
+<div class="form-grid">
+<div class="form-field"><label for="sellerType">Seller type</label><select id="sellerType" required><option value="individual">Individual seller</option><option value="business">Registered business</option></select></div>
+<div class="form-field"><label for="sellerPhone">Phone number</label><input id="sellerPhone" type="tel" required placeholder="Active phone number"></div>
+<div class="form-field"><label for="sellerAddress">Residential or business address</label><input id="sellerAddress" required placeholder="Full address"></div>
+<div class="form-field"><label for="identityType">Identity document</label><select id="identityType" required><option value="nin">NIN</option><option value="international_passport">International passport</option><option value="drivers_license">Driver's licence</option></select></div>
+<div class="form-field" id="businessNameField" hidden><label for="businessName">Registered business name</label><input id="businessName" placeholder="Business name"></div>
+<div class="form-field" id="cacNumberField" hidden><label for="cacNumber">CAC registration number</label><input id="cacNumber" placeholder="CAC number"></div>
+<div class="form-field"><label for="identityFile">Identity document image or PDF</label><input id="identityFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required></div>
+<div class="form-field" style="grid-column:1/-1"><label>Live selfie (front camera)</label><div class="camera-box" data-camera-kind="selfie"><video id="selfieVideo" autoplay playsinline muted hidden></video><img id="selfiePreview" alt="Captured selfie preview" hidden><canvas id="selfieCanvas" hidden></canvas><p class="camera-help">Allow camera access, position your face clearly in good lighting, then take a fresh selfie.</p><div class="camera-actions"><button type="button" id="startSelfieCamera">Start Guided Selfie</button><button type="button" id="captureSelfie" disabled hidden>Take Selfie</button><button type="button" class="secondary" id="retakeSelfie" hidden>Retake Selfie</button></div><div class="selfie-challenge" id="selfieChallenge" hidden aria-live="polite"><strong id="selfieChallengeTitle">Selfie check</strong><p id="selfieChallengePrompt">Follow the instructions on screen.</p><button type="button" id="nextSelfieChallenge">I have done this — Next</button></div><p class="camera-status" id="selfieCameraStatus" aria-live="polite">A guided live-camera selfie is required. Follow each instruction before taking your picture.</p><input id="selfieFallback" type="file" accept="image/jpeg,image/png,image/webp" capture="user" hidden></div></div>
+<div class="form-field"><label for="addressFile">Proof of address</label><input id="addressFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required></div>
+<div class="form-field" id="cacFileField" hidden><label for="cacFile">CAC certificate/document</label><input id="cacFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></div><div class="form-field" id="businessShopCaptureField" style="grid-column:1/-1" hidden><label>Live shop photo (rear camera)</label><div class="camera-box" data-camera-kind="shop"><video id="shopVideo" autoplay playsinline muted hidden></video><img id="shopPreview" alt="Captured business shop preview" hidden><canvas id="shopCanvas" hidden></canvas><p class="camera-help">Photograph the real shop front. Make sure the business banner or signboard and business name are readable. Do not submit a stock image or another business\u2019s shop.</p><div class="camera-actions"><button type="button" id="startShopCamera">Open Rear Camera</button><button type="button" id="captureShop" disabled>Take Shop Photo</button><button type="button" class="secondary" id="retakeShop" hidden>Retake Shop Photo</button></div><p class="camera-status" id="shopCameraStatus" aria-live="polite">Required for registered businesses.</p><input id="shopFallback" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden></div></div>
+<div class="form-field" style="grid-column:1/-1"><label for="regulatedDetails">Do you sell regulated products or services? (Optional)</label><textarea id="regulatedDetails" placeholder="Mention category and any relevant permit or licence details, if applicable."></textarea></div>
+</div>
+<section class="feature" style="margin-top:14px"><strong>DAVIMART AI Verification Assistant</strong><p id="verificationGuideText">The AI assistant checks image clarity, document visibility and whether a business signboard is readable. It cannot confirm government records, authenticate an ID/CAC certificate or approve you as a seller. Unclear cases go to a human reviewer.</p><label style="display:flex;gap:9px;align-items:flex-start;margin-top:12px"><input id="aiReviewConsent" type="checkbox" required style="width:auto;margin-top:4px"><span>I agree to let DAVIMART send the uploaded identity-document image, selfie and (if applicable) shop photo to its AI service for image-quality and visible-evidence screening. I understand this is not government identity verification and that an administrator reviews the application.</span></label></section><p class="form-help">Accepted documents: JPG, PNG, WEBP or PDF. Maximum 10 MB per file. Business applicants must provide CAC details and a live photo of their shop signboard. Individual sellers do not need CAC registration. Category-specific licences may be requested where legally required.</p>
+<div class="actions"><button id="submitSellerVerification" type="submit">Run AI Check &amp; Submit</button><button class="secondary" id="cancelSellerVerification" type="button">Cancel</button></div><section class="feature" id="aiReviewResult" hidden aria-live="polite" style="margin-top:12px"><strong id="aiReviewTitle">AI review</strong><p id="aiReviewSummary"></p><ul id="aiReviewChecks"></ul><ul id="aiReviewActions"></ul></section>
+<p class="form-message" id="sellerVerificationMessage" aria-live="polite"></p>
+</form>
 </section>
 
 <section class="panel">
@@ -210,8 +292,99 @@ const db = window.supabase.createClient(
 const authPanel = document.getElementById("authPanel");
 const profilePanel = document.getElementById("profilePanel");
 const authStatus = document.getElementById("authStatus");
+const passwordRecoveryPanel = document.getElementById("passwordRecoveryPanel");
+const forgotPasswordStatus = document.getElementById("forgotPasswordStatus");
+let isPasswordRecovery = false;
+
+function showPasswordRecovery(){
+ authPanel.hidden = false;
+ profilePanel.hidden = true;
+ document.getElementById("fullName").hidden = true;
+ document.getElementById("email").hidden = true;
+ document.getElementById("password").hidden = true;
+ document.querySelector("#authPanel .actions").hidden = true;
+ document.getElementById("forgotPasswordBtn").hidden = true;
+ forgotPasswordStatus.hidden = true;
+ passwordRecoveryPanel.hidden = false;
+}
+
+async function loadSellerVerificationAdmin(){
+ const host=document.getElementById("sellerReviewAdminList"),status=document.getElementById("sellerReviewAdminStatus");
+ const {data:{user}}=await db.auth.getUser();
+ if(!user||user.id!=="4aa054c0-97c2-45c3-8c3a-9bf87f2c365c"){status.textContent="Access denied.";return;}
+ host.textContent="Loading applications…";
+ const {data,error}=await db.from("seller_verification_applications").select("id,user_id,seller_type,contact_phone,seller_address,business_name,cac_registration_number,identity_document_type,identity_document_path,selfie_path,proof_of_address_path,cac_document_path,regulated_category_details,status,admin_notes,submitted_at,reviewed_at").order("submitted_at",{ascending:false}).limit(100);
+ if(error){host.textContent="Could not load applications: "+error.message;return;}
+ if(!data.length){host.textContent="No seller verification applications yet.";return;}
+ host.replaceChildren();
+ const labels={pending:"Pending",reviewing:"Reviewed",more_info:"Needs changes",approved:"Approved",rejected:"Rejected"};
+ for(const app of data){
+  const card=document.createElement("div");card.style.cssText="border:1px solid #dbe2ed;border-radius:9px;padding:12px;margin:10px 0;background:#fff";
+  const heading=document.createElement("strong");heading.textContent=(app.seller_type==="business"?"Business":"Individual")+" seller — "+(labels[app.status]||app.status);card.appendChild(heading);
+  const details=document.createElement("p");details.className="form-help";details.textContent=["Applicant ID: "+app.user_id,"Business: "+(app.business_name||"—"),"Phone: "+app.contact_phone,"Address: "+app.seller_address,"Identity document: "+app.identity_document_type,"Submitted: "+(app.submitted_at?new Date(app.submitted_at).toLocaleString():"—")].join("\n");details.style.whiteSpace="pre-wrap";card.appendChild(details);
+  const documentLinks=document.createElement("p");documentLinks.className="form-help";documentLinks.textContent="Private documents: ";card.appendChild(documentLinks);
+  const privateDocs=[["Identity document",app.identity_document_path],["Selfie",app.selfie_path],["Proof of address",app.proof_of_address_path],["CAC document",app.cac_document_path],["Shop photo",app.regulated_category_details?.business_shop_photo_path]].filter(item=>item[1]);
+  if(!privateDocs.length) documentLinks.textContent="No document paths found.";
+  for(let i=0;i<privateDocs.length;i++){
+   const [label,path]=privateDocs[i];
+   const {data:signed,error:signedError}=await db.storage.from("seller-verification-docs").createSignedUrl(path,120);
+   if(i)documentLinks.append(" · ");
+   if(signed?.signedUrl){const link=document.createElement("a");link.href=signed.signedUrl;link.target="_blank";link.rel="noopener noreferrer";link.textContent=label;documentLinks.appendChild(link);}
+   else{const missing=document.createElement("span");missing.textContent=label+" (unavailable)";documentLinks.appendChild(missing);}
+  }
+  const select=document.createElement("select");select.style.width="100%";select.style.margin="6px 0";
+  [["reviewing","Reviewed"],["more_info","Needs changes"],["approved","Approved"],["rejected","Rejected"]].forEach(([v,l])=>{const o=document.createElement("option");o.value=v;o.textContent=l;select.appendChild(o);});
+  select.value=app.status==="pending"?"reviewing":app.status;
+  const note=document.createElement("textarea");note.maxLength=2000;note.placeholder="Admin note for seller (required for Needs changes)";note.value=app.admin_notes||"";note.style.cssText="width:100%;min-height:65px;margin:6px 0";
+  const save=document.createElement("button");save.type="button";save.textContent="Save review";
+  const result=document.createElement("p");result.className="form-help";
+  save.onclick=async()=>{
+   const next=select.value,adminNote=note.value.trim();
+   if(next==="more_info"&&!adminNote){result.textContent="Please explain what the seller needs to change.";return;}
+   save.disabled=true;result.textContent="Saving…";
+   const {data:{user:currentUser}}=await db.auth.getUser();
+   if(!currentUser||currentUser.id!=="4aa054c0-97c2-45c3-8c3a-9bf87f2c365c"){result.textContent="Access denied.";save.disabled=false;return;}
+   const {error:updateError}=await db.from("seller_verification_applications").update({status:next,admin_notes:adminNote||null,reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()}).eq("id",app.id);
+   if(updateError){result.textContent="Could not save: "+updateError.message;save.disabled=false;return;}
+   result.textContent="Review saved.";await loadSellerVerificationAdmin();await loadAccount();
+  };
+  card.append(select,note,save,result);host.appendChild(card);
+ }
+}
+document.getElementById("refreshSellerReviews").onclick=loadSellerVerificationAdmin;
+
+function renderSellerVerificationTracker(application,error){
+ const panel=document.getElementById("sellerVerificationTracker");
+ const title=document.getElementById("sellerTrackerStatus");
+ const steps=document.getElementById("sellerTrackerSteps");
+ const submitted=document.getElementById("sellerTrackerSubmitted");
+ const note=document.getElementById("sellerTrackerNote");
+ if(!application && !error){panel.hidden=true;return;}
+ panel.hidden=false;
+ steps.replaceChildren();
+ if(error){title.textContent="We could not load your latest application status.";submitted.textContent="Please refresh the page or contact DAVIMART support.";return;}
+ const labels={pending:"Pending",reviewing:"Reviewed",more_info:"Needs changes",approved:"Approved",rejected:"Rejected"};
+ const status=application.status;
+ title.textContent=labels[status]||"Status unavailable";
+ const stages=[["Submitted",true],["Reviewed",["reviewing","more_info","approved","rejected"].includes(status)],["Decision",["approved","rejected"].includes(status)]];
+ stages.forEach(([label,complete])=>{
+  const item=document.createElement("div");
+  item.style.cssText="display:flex;align-items:center;gap:9px;font-size:13px;color:"+(complete?"#176b3a":"#667085");
+  const mark=document.createElement("span");
+  mark.textContent=complete?"✓":"○";
+  mark.style.cssText="font-size:18px;font-weight:900";
+  const text=document.createElement("span");text.textContent=label+(complete?" — complete":"");
+  item.append(mark,text);steps.appendChild(item);
+ });
+ submitted.textContent="Submitted: "+(application.submitted_at?new Date(application.submitted_at).toLocaleString():"Date unavailable");
+ note.hidden=!(status==="more_info" && application.admin_notes);
+ note.textContent=status==="more_info"?(application.admin_notes||"Please contact DAVIMART support for the requested changes."):"";
+ if(status==="rejected") note.textContent="Your application was not approved. You may submit a new application if the issue has been resolved.";
+ if(status==="rejected") note.hidden=false;
+}
 
 async function loadAccount(){
+ if(isPasswordRecovery){showPasswordRecovery();return;}
  const {data:{user},error} = await db.auth.getUser();
 
  if(error || !user){
@@ -227,6 +400,9 @@ document.getElementById("welcomeName").textContent =
 
 document.getElementById("welcomeEmail").textContent =
 user.email || "";
+ const avatarUrl=user.user_metadata?.avatar_url;
+ const avatar=document.getElementById("profileAvatar"),placeholder=document.getElementById("profileAvatarPlaceholder");
+ if(avatarUrl){avatar.src=avatarUrl;avatar.hidden=false;placeholder.hidden=true;document.getElementById("removeProfilePhoto").hidden=false;}else{avatar.hidden=true;placeholder.hidden=false;document.getElementById("removeProfilePhoto").hidden=true;}
  document.getElementById("profileEmail").textContent =
  "Email: " + (user.email || "");
 
@@ -245,9 +421,25 @@ user.email || "";
  document.getElementById("sellerStatus").textContent =
  "Seller application: " + (profile?.seller_status || "Not available");
 
+ const {data:verificationApps,error:verificationError} = await db
+  .from("seller_verification_applications")
+  .select("status,verified_level,submitted_at,reviewed_at,admin_notes")
+  .eq("user_id",user.id)
+  .order("created_at",{ascending:false})
+  .limit(1);
+ const latestApplication = verificationApps && verificationApps[0];
+ const statusLabels = {pending:"Pending",reviewing:"Reviewed",more_info:"Needs changes",approved:"Approved",rejected:"Rejected"};
+ const sellerLabel = latestApplication
+  ? "Seller verification: " + (statusLabels[latestApplication.status] || "Status unavailable")
+  : "Seller application: " + (profile?.seller_status || "Not available");
+ document.getElementById("sellerStatus").textContent = sellerLabel;
+ renderSellerVerificationTracker(latestApplication,verificationError);
+ const adminReviewButton=document.getElementById("openSellerVerificationAdmin");
+ if(user.id==="4aa054c0-97c2-45c3-8c3a-9bf87f2c365c") adminReviewButton.hidden=false;
+ adminReviewButton.onclick=()=>{const panel=document.getElementById("sellerVerificationAdminPanel");panel.hidden=!panel.hidden;if(!panel.hidden)loadSellerVerificationAdmin();};
  const applyButton = document.getElementById("applySellerBtn");
- applyButton.hidden = profileError || !profile ||
- !["not_applied","rejected"].includes(profile.seller_status);
+ applyButton.hidden = profile?.seller_status === "approved" ||
+  (latestApplication && ["pending","reviewing"].includes(latestApplication.status));
 
  if(profileError){
   document.getElementById("accountStatus").textContent =
@@ -257,6 +449,43 @@ user.email || "";
   "You are signed in successfully.";
  }
 }
+
+document.getElementById("forgotPasswordBtn").onclick = async function(){
+ const email = document.getElementById("email").value.trim();
+ if(!email){
+  forgotPasswordStatus.textContent = "Enter the email address registered to your DAVIMART account first.";
+  return;
+ }
+ const button = this;
+ button.disabled = true;
+ forgotPasswordStatus.textContent = "Sending password recovery email…";
+ const redirectTo = window.location.origin + "/recovery.html";
+ const {error} = await db.auth.resetPasswordForEmail(email,{redirectTo});
+ button.disabled = false;
+ forgotPasswordStatus.textContent = error
+  ? "We could not send the recovery email: " + error.message
+  : "If an account exists for that email, a password recovery link has been sent. Check your inbox and spam folder.";
+};
+
+document.getElementById("saveAccountPasswordBtn").onclick = async function(){
+ const newPassword = document.getElementById("newAccountPassword").value;
+ const confirmPassword = document.getElementById("confirmAccountPassword").value;
+ const status = document.getElementById("passwordRecoveryStatus");
+ if(newPassword.length < 8){status.textContent="Your new password must contain at least 8 characters.";return;}
+ if(newPassword !== confirmPassword){status.textContent="The passwords do not match.";return;}
+ const button=this;
+ button.disabled=true;
+ status.textContent="Updating your password…";
+ const {error} = await db.auth.updateUser({password:newPassword});
+ button.disabled=false;
+ if(error){status.textContent="We could not update your password: "+error.message;return;}
+ isPasswordRecovery=false;
+ passwordRecoveryPanel.hidden=true;
+ document.getElementById("newAccountPassword").value="";
+ document.getElementById("confirmAccountPassword").value="";
+ await loadAccount();
+ document.getElementById("accountStatus").textContent="Your password has been updated successfully.";
+};
 
 document.getElementById("registerBtn").onclick = async function(){
  const name = document.getElementById("fullName").value.trim();
@@ -323,23 +552,223 @@ document.getElementById("signOutBtn").onclick = async function(){
  }
 };
 
-document.getElementById("applySellerBtn").onclick = async function(){
- const button = this;
- button.disabled = true;
- document.getElementById("accountStatus").textContent =
- "Submitting seller application...";
+const verificationPanel = document.getElementById("sellerVerificationPanel");
+const verificationForm = document.getElementById("sellerVerificationForm");
+const verificationMessage = document.getElementById("sellerVerificationMessage");
+const sellerType = document.getElementById("sellerType");
 
- const {error} = await db.rpc("apply_to_become_seller");
+function updateSellerTypeFields(){
+ const isBusiness = sellerType.value === "business";
+ document.getElementById("businessNameField").hidden = !isBusiness;
+ document.getElementById("cacNumberField").hidden = !isBusiness;
+ document.getElementById("cacFileField").hidden = !isBusiness;
+ document.getElementById("businessShopCaptureField").hidden = !isBusiness;
+ document.getElementById("businessName").required = isBusiness;
+ document.getElementById("cacNumber").required = isBusiness;
+ document.getElementById("cacFile").required = isBusiness;
+}
+sellerType.addEventListener("change",updateSellerTypeFields);
+updateSellerTypeFields();
 
- button.disabled = false;
- document.getElementById("accountStatus").textContent = error
- ? error.message
- : "Your seller application has been submitted. Await admin approval.";
-
- if(!error) await loadAccount();
+document.getElementById("applySellerBtn").onclick = function(){
+ verificationPanel.hidden = false;
+ verificationPanel.scrollIntoView({behavior:"smooth",block:"start"});
+};
+document.getElementById("cancelSellerVerification").onclick = function(){
+ stopCamera("selfie");stopCamera("shop");
+ verificationPanel.hidden = true;
+ verificationMessage.textContent = "";
 };
 
-db.auth.onAuthStateChange(function(){
+const cameraCaptures = {profile:null,selfie:null,shop:null};
+const cameraStreams = {profile:null,selfie:null,shop:null};
+const cameraNames = {profile:"Profile",selfie:"Selfie",shop:"Shop"};
+function cameraBox(kind){return document.querySelector('[data-camera-kind="'+kind+'"]');}
+function closeCameraView(kind){const box=cameraBox(kind);if(box)box.classList.remove("camera-live");document.body.classList.remove("camera-open");if(kind==="selfie"){const challenge=document.getElementById("selfieChallenge");if(challenge)challenge.hidden=true;}}
+function stopCamera(kind){if(cameraStreams[kind]){cameraStreams[kind].getTracks().forEach(track=>track.stop());cameraStreams[kind]=null;}const video=document.getElementById(kind+"Video");if(video)video.srcObject=null;closeCameraView(kind);}
+async function openCamera(kind,facing){
+ const video=document.getElementById(kind+"Video");
+ const status=document.getElementById(kind+"CameraStatus");
+ const box=cameraBox(kind);
+ try{
+  if(!navigator.mediaDevices?.getUserMedia) throw new Error("Live camera is not supported in this browser.");
+  stopCamera(kind);
+  const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:1280},height:{ideal:720}},audio:false});
+  cameraStreams[kind]=stream;video.srcObject=stream;video.hidden=false;
+  document.getElementById(kind+"Preview").hidden=true;
+  const capture=document.getElementById("capture"+cameraNames[kind]);
+  const retake=document.getElementById("retake"+cameraNames[kind]);
+  capture.disabled=false;if(retake)retake.hidden=true;
+  box.hidden=false;box.classList.add("camera-live");document.body.classList.add("camera-open");
+  status.textContent=kind==="shop"?"Frame the shop signboard clearly, then take the photo.":"Position your face inside the circle and follow the guided instructions.";
+ }catch(error){
+  stopCamera(kind);
+  if(kind==="selfie"){status.textContent=(error.message||"Camera access was blocked.")+" A live camera is required for the guided selfie. Please allow camera access and try again.";}else{status.textContent=(error.message||"Camera access was blocked.")+" You can choose a JPEG image instead.";const fallback=document.getElementById(kind==="profile"?"profilePhotoFallback":kind+"Fallback");fallback.hidden=false;fallback.click();}
+ }
+}
+function captureCamera(kind){
+ const video=document.getElementById(kind+"Video"),canvas=document.getElementById(kind+"Canvas");
+ if(!video.videoWidth){document.getElementById(kind+"CameraStatus").textContent="Camera is not ready yet. Please wait and try again.";return;}
+ canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+ canvas.getContext("2d").drawImage(video,0,0,canvas.width,canvas.height);
+ canvas.toBlob(blob=>{
+  if(!blob){document.getElementById(kind+"CameraStatus").textContent="Could not capture the photo. Please try again.";return;}
+  const file=new File([blob],kind+"-"+Date.now()+".jpg",{type:"image/jpeg"});cameraCaptures[kind]=file;
+  const preview=document.getElementById(kind+"Preview");preview.src=URL.createObjectURL(file);preview.hidden=false;
+  video.hidden=true;stopCamera(kind);
+  document.getElementById("capture"+cameraNames[kind]).disabled=true;
+  const retake=document.getElementById("retake"+cameraNames[kind]);if(retake)retake.hidden=false;
+  if(kind==="profile")document.getElementById("saveProfilePhoto").disabled=false;
+  document.getElementById(kind+"CameraStatus").textContent="Photo captured. You can retake it if it is not clear.";
+ }, "image/jpeg",0.9);
+}
+const selfieChallengeSteps=[{title:"Step 1 of 5",prompt:"Look straight at the camera and keep your face inside the circle."},{title:"Step 2 of 5",prompt:"Open your mouth briefly, then close it."},{title:"Step 3 of 5",prompt:"Slowly turn your head to your LEFT, then return to the centre."},{title:"Step 4 of 5",prompt:"Slowly turn your head to your RIGHT, then return to the centre."},{title:"Step 5 of 5",prompt:"Face the camera directly again and hold still for your selfie."}];
+let selfieChallengeIndex=0;
+function speakSelfiePrompt(message){if(!("speechSynthesis" in window))return;window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(message);utterance.rate=0.92;utterance.pitch=1;window.speechSynthesis.speak(utterance);}
+function showSelfieChallengeStep(){const step=selfieChallengeSteps[selfieChallengeIndex];document.getElementById("selfieChallengeTitle").textContent=step.title;document.getElementById("selfieChallengePrompt").textContent=step.prompt;document.getElementById("nextSelfieChallenge").textContent=selfieChallengeIndex===selfieChallengeSteps.length-1?"Finish instructions":"I have done this — Next";speakSelfiePrompt(step.prompt);}
+async function startGuidedSelfie(){selfieChallengeIndex=0;const capture=document.getElementById("captureSelfie");capture.hidden=true;capture.disabled=true;document.getElementById("selfieChallenge").hidden=true;await openCamera("selfie","user");if(cameraStreams.selfie){document.getElementById("selfieChallenge").hidden=false;showSelfieChallengeStep();}}
+document.getElementById("nextSelfieChallenge").onclick=()=>{if(selfieChallengeIndex<selfieChallengeSteps.length-1){selfieChallengeIndex++;showSelfieChallengeStep();return;}if("speechSynthesis" in window)window.speechSynthesis.cancel();document.getElementById("selfieChallenge").hidden=true;const capture=document.getElementById("captureSelfie");capture.hidden=false;capture.disabled=false;document.getElementById("selfieCameraStatus").textContent="Instructions completed. Hold your face in the circle and take your selfie.";speakSelfiePrompt("Thank you. Face the camera and take your selfie now.");};
+document.getElementById("startSelfieCamera").onclick=startGuidedSelfie;
+document.getElementById("captureSelfie").onclick=()=>captureCamera("selfie");
+document.getElementById("retakeSelfie").onclick=()=>{cameraCaptures.selfie=null;startGuidedSelfie();};
+document.getElementById("startShopCamera").onclick=()=>openCamera("shop","environment");
+document.getElementById("captureShop").onclick=()=>captureCamera("shop");
+document.getElementById("retakeShop").onclick=()=>{cameraCaptures.shop=null;openCamera("shop","environment");};
+document.getElementById("selfieFallback").addEventListener("change",e=>{cameraCaptures.selfie=e.target.files[0]||null;if(cameraCaptures.selfie){const p=document.getElementById("selfiePreview");p.src=URL.createObjectURL(cameraCaptures.selfie);p.hidden=false;document.getElementById("selfieCameraStatus").textContent="Selfie photo selected.";}});
+document.getElementById("shopFallback").addEventListener("change",e=>{cameraCaptures.shop=e.target.files[0]||null;if(cameraCaptures.shop){const p=document.getElementById("shopPreview");p.src=URL.createObjectURL(cameraCaptures.shop);p.hidden=false;document.getElementById("shopCameraStatus").textContent="Shop photo selected.";}});
+document.getElementById("openProfileCamera").onclick=()=>openCamera("profile","user");
+document.getElementById("captureProfile").onclick=()=>captureCamera("profile");
+document.getElementById("retakeProfile").onclick=()=>{cameraCaptures.profile=null;document.getElementById("saveProfilePhoto").disabled=true;openCamera("profile","user");};
+document.getElementById("cancelProfileCamera").onclick=()=>{stopCamera("profile");cameraCaptures.profile=null;document.getElementById("profileCameraBox").hidden=true;document.getElementById("profilePreview").hidden=true;};
+document.getElementById("chooseProfilePhoto").onclick=()=>document.getElementById("profilePhotoFallback").click();
+document.getElementById("removeProfilePhoto").onclick=async()=>{
+ const button=document.getElementById("removeProfilePhoto");button.disabled=true;
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();if(userError||!user)throw new Error("Please sign in again.");
+  const {error:removeError}=await db.storage.from("profile-photos").remove([user.id+"/avatar.jpg"]);if(removeError)throw removeError;
+  const {error:updateError}=await db.auth.updateUser({data:{avatar_url:null}});if(updateError)throw updateError;
+  document.getElementById("profileAvatar").hidden=true;document.getElementById("profileAvatarPlaceholder").hidden=false;button.hidden=true;
+  document.getElementById("profileCameraStatus").textContent="Profile picture removed.";
+ }catch(error){document.getElementById("profileCameraStatus").textContent=error.message||"Could not remove the profile picture.";}
+ finally{button.disabled=false;}
+};
+document.getElementById("profilePhotoFallback").addEventListener("change",e=>{const file=e.target.files[0];if(!file)return;if(file.type!=="image/jpeg"||file.size>2*1024*1024){document.getElementById("profileCameraStatus").textContent="Choose a JPEG image under 2 MB.";e.target.value="";return;}cameraCaptures.profile=file;const p=document.getElementById("profilePreview");p.src=URL.createObjectURL(file);p.hidden=false;document.getElementById("profileCameraBox").hidden=false;document.getElementById("saveProfilePhoto").disabled=false;document.getElementById("profileCameraStatus").textContent="JPEG photo selected. Save to use it as your profile picture.";});
+document.getElementById("saveProfilePhoto").onclick=async()=>{
+ const file=cameraCaptures.profile;if(!file)return;
+ const button=document.getElementById("saveProfilePhoto"),status=document.getElementById("profileCameraStatus");button.disabled=true;status.textContent="Saving your profile picture...";
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();if(userError||!user)throw new Error("Please sign in again.");
+  const path=user.id+"/avatar.jpg";
+  const {error:uploadError}=await db.storage.from("profile-photos").upload(path,file,{upsert:true,contentType:"image/jpeg",cacheControl:"3600"});
+  if(uploadError)throw uploadError;
+  const publicUrl=db.storage.from("profile-photos").getPublicUrl(path).data.publicUrl+"?v="+Date.now();
+  const {error:updateError}=await db.auth.updateUser({data:{avatar_url:publicUrl}});
+  if(updateError)throw updateError;
+  document.getElementById("profileAvatar").src=publicUrl;document.getElementById("profileAvatar").hidden=false;document.getElementById("profileAvatarPlaceholder").hidden=true;
+  status.textContent="Profile picture saved successfully.";cameraCaptures.profile=null;stopCamera("profile");document.getElementById("profileCameraBox").hidden=true;
+  const headerImage=window.parent===window?document.getElementById("accountAvatar"):null;if(headerImage){headerImage.src=publicUrl;headerImage.hidden=false;document.getElementById("accountAvatarFallback").hidden=true;}
+ }catch(error){status.textContent=error.message||"Could not save your profile picture. Please try again.";button.disabled=false;}
+};
+
+function safeFileName(file){
+ const ext = (file.name.split(".").pop() || "file").toLowerCase().replace(/[^a-z0-9]/g,"");
+ return Date.now() + "-" + Math.random().toString(36).slice(2) + "." + ext;
+}
+async function uploadVerificationFile(userId,file){
+ if(!file) throw new Error("Please select all required verification documents.");
+ const allowed = ["image/jpeg","image/png","image/webp","application/pdf"];
+ if(!allowed.includes(file.type)) throw new Error("One of your files has an unsupported format.");
+ if(file.size > 10 * 1024 * 1024) throw new Error("Each document must be 10 MB or smaller.");
+ const path = userId + "/" + safeFileName(file);
+ const {error} = await db.storage.from("seller-verification-docs").upload(path,file,{upsert:false,contentType:file.type});
+ if(error) throw error;
+ return path;
+}
+
+verificationForm.addEventListener("submit",async function(event){
+ event.preventDefault();
+ const {data:{user},error:userError} = await db.auth.getUser();
+ if(userError || !user){
+  verificationMessage.textContent = "Please sign in again before submitting.";
+  return;
+ }
+ const isBusiness = sellerType.value === "business";
+ if(!document.getElementById("aiReviewConsent").checked){verificationMessage.textContent="Please read and accept the AI screening consent before continuing.";return;}
+ const submitButton = document.getElementById("submitSellerVerification");
+ const aiResultPanel=document.getElementById("aiReviewResult");aiResultPanel.hidden=true;
+ submitButton.disabled = true;
+ verificationMessage.textContent = "Uploading your documents securely...";
+ const uploadedPaths = [];
+ try{
+  const identityPath = await uploadVerificationFile(user.id,document.getElementById("identityFile").files[0]); uploadedPaths.push(identityPath);
+  const selfiePath = await uploadVerificationFile(user.id,cameraCaptures.selfie); uploadedPaths.push(selfiePath);
+  const addressPath = await uploadVerificationFile(user.id,document.getElementById("addressFile").files[0]); uploadedPaths.push(addressPath);
+  let cacPath = null, shopPhotoPath = null;
+  if(isBusiness){
+   cacPath = await uploadVerificationFile(user.id,document.getElementById("cacFile").files[0]); uploadedPaths.push(cacPath);
+   shopPhotoPath = await uploadVerificationFile(user.id,cameraCaptures.shop); uploadedPaths.push(shopPhotoPath);
+  }
+  verificationMessage.textContent = "DAVIMART AI is checking image clarity and visible evidence. This may take a few seconds...";
+  const {data:aiData,error:aiError}=await db.functions.invoke("seller-verification-ai",{body:{
+   seller_type:sellerType.value,
+   business_name:isBusiness ? document.getElementById("businessName").value.trim() : null,
+   identity_document_path:identityPath,
+   selfie_path:selfiePath,
+   business_shop_photo_path:shopPhotoPath
+  }});
+  if(aiError) throw new Error(aiError.message||"AI screening could not be completed.");
+  if(aiData?.error) throw new Error(aiData.error);
+  const review=aiData?.review;
+  if(!review || !Array.isArray(review.checks) || !Array.isArray(review.required_actions)) throw new Error("AI screening returned an incomplete result. Please try again.");
+  aiResultPanel.hidden=false;
+  document.getElementById("aiReviewTitle").textContent=review.decision==="needs_changes"?"AI review: changes needed":review.decision==="manual_review"?"AI review: human review needed":"AI review: ready for human review";
+  document.getElementById("aiReviewSummary").textContent=review.summary||"AI screening is complete.";
+  const checksList=document.getElementById("aiReviewChecks");checksList.replaceChildren();
+  review.checks.forEach(check=>{const li=document.createElement("li");li.textContent=(check.item||"Check")+": "+(check.result||"manual_review")+" — "+(check.explanation||"");checksList.appendChild(li);});
+  const actionsList=document.getElementById("aiReviewActions");actionsList.replaceChildren();
+  review.required_actions.forEach(action=>{const li=document.createElement("li");li.textContent=action;actionsList.appendChild(li);});
+  if(review.decision==="needs_changes") throw new Error("Please make the changes listed in the AI review, then retake or upload the affected images and submit again.");
+  verificationMessage.textContent = review.decision==="manual_review" ? "AI screening is complete. Some items need human review. Submitting your application for administrator review..." : "AI screening passed its image-quality checks. Submitting your application for administrator review...";
+  const application = {
+   user_id:user.id,
+   seller_type:sellerType.value,
+   contact_phone:document.getElementById("sellerPhone").value.trim(),
+   seller_address:document.getElementById("sellerAddress").value.trim(),
+   business_name:isBusiness ? document.getElementById("businessName").value.trim() : null,
+   cac_registration_number:isBusiness ? document.getElementById("cacNumber").value.trim() : null,
+   identity_document_type:document.getElementById("identityType").value,
+   identity_document_path:identityPath,
+   selfie_path:selfiePath,
+   proof_of_address_path:addressPath,
+   cac_document_path:cacPath,
+   regulated_category_details:{details:document.getElementById("regulatedDetails").value.trim(),business_shop_photo_path:shopPhotoPath,ai_screening:{decision:review.decision,summary:review.summary,checks:review.checks,required_actions:review.required_actions,screened_at:new Date().toISOString(),provider:"OpenAI"}}
+  };
+  const {error:insertError} = await db.from("seller_verification_applications").insert(application);
+  if(insertError) throw insertError;
+  verificationMessage.textContent = "Your seller verification application has been submitted. DAVIMART will review it and update your account.";
+  verificationForm.reset();
+  cameraCaptures.selfie=null;cameraCaptures.shop=null;stopCamera("selfie");stopCamera("shop");
+  document.getElementById("selfiePreview").hidden=true;document.getElementById("shopPreview").hidden=true;
+  document.getElementById("selfieCameraStatus").textContent="A live selfie is required.";
+  document.getElementById("shopCameraStatus").textContent="Required for registered businesses.";
+  updateSellerTypeFields();
+  verificationPanel.hidden = true;
+  await loadAccount();
+ }catch(error){
+  if(uploadedPaths.length) await db.storage.from("seller-verification-docs").remove(uploadedPaths);
+  verificationMessage.textContent = error.message || "We could not submit your application. Please try again.";
+ }finally{
+  submitButton.disabled = false;
+ }
+});
+
+
+db.auth.onAuthStateChange(function(event){
+ if(event === "PASSWORD_RECOVERY"){
+  isPasswordRecovery = true;
+  setTimeout(showPasswordRecovery,0);
+  return;
+ }
  setTimeout(loadAccount,0);
 });
 

@@ -2,6 +2,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<style>
+.account-avatar{width:36px;height:36px;display:block;object-fit:cover;border-radius:50%;border:2px solid #ffc400;background:#fff}
+.account-action{align-items:center}
+</style>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#102b55">
@@ -1057,6 +1061,193 @@ header {
     min-width: 0;
   }
 } 
+
+/* DAVIMART premium homepage refresh — approved working concept */
+:root{--dm-navy:#071f50;--dm-blue:#0b56c5;--dm-gold:#ffc400;--dm-ink:#102044;--dm-muted:#65728a}
+body{background:#f4f6fb;color:var(--dm-ink)}
+header{background:linear-gradient(110deg,#061b48,#092b69);padding:15px clamp(16px,4vw,54px);border:0;box-shadow:0 5px 22px rgba(4,22,61,.18)}
+.logo{color:#fff;font-size:clamp(23px,2.2vw,30px);letter-spacing:-1px}
+.logo span{color:var(--dm-gold)}
+.dm-header-search{border:0;border-radius:999px;height:48px;max-width:560px;box-shadow:0 3px 14px #00133c22}
+.dm-header-search input{padding-left:20px}
+.dm-header-search button{background:var(--dm-gold);padding:0 23px}
+.notification-bell{background:transparent}
+.dm-home-hero{max-width:1440px;min-height:310px;margin:18px auto 24px;padding:42px clamp(22px,5vw,70px);border-radius:22px;overflow:hidden;position:relative;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;color:#fff;background:radial-gradient(circle at 78% 48%,#1269df 0,transparent 35%),linear-gradient(115deg,#061b4b,#0645a8 72%,#09255b);box-shadow:0 12px 28px #092b6930}
+.dm-home-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(125deg,transparent 48%,#ffffff0d 48.2%,transparent 68%);pointer-events:none}
+.dm-hero-copy{position:relative;z-index:2;max-width:600px}
+.dm-kicker,.dm-section-head small{font-size:11px;letter-spacing:1.8px;font-weight:800;color:var(--dm-gold)}
+.dm-hero-copy h1{font-size:clamp(38px,5vw,64px);line-height:.98;letter-spacing:-2px;margin:16px 0}
+.dm-hero-copy h1 em{font-style:normal;color:var(--dm-gold)}
+.dm-hero-copy p{max-width:470px;color:#e1eaff;line-height:1.65;font-size:16px}
+.dm-primary-cta{display:inline-flex;align-items:center;gap:18px;margin-top:17px;padding:14px 21px;border-radius:999px;background:var(--dm-gold);color:#061b48;font-weight:800;box-shadow:0 7px 18px #00133c44}
+.dm-whatsapp-cta{background:#25d366;color:#073b22;box-shadow:0 7px 18px #00133c30}.dm-whatsapp-cta:hover{background:#1fbd5b}
+.dm-hero-art{height:220px;position:relative;display:grid;place-items:center}
+.dm-orbit{position:absolute;border:1px solid #ffffff35;border-radius:50%;width:240px;height:240px}
+.dm-orbit-two{width:310px;height:170px;transform:rotate(-28deg)}
+.dm-art-card{position:relative;z-index:1;width:230px;height:145px;border:1px solid #ffffff65;border-radius:22px;background:linear-gradient(145deg,#ffffff30,#ffffff08);backdrop-filter:blur(9px);box-shadow:0 18px 40px #00133c55;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-7deg)}
+.dm-art-card span{font-size:46px;font-weight:950;letter-spacing:-5px;color:var(--dm-gold)}
+.dm-art-card b{font-size:19px;letter-spacing:2px}.dm-art-card small{font-size:8px;letter-spacing:2px;color:#dce8ff;margin-top:5px}
+.dm-art-bubble{position:absolute;z-index:2;width:54px;height:54px;border-radius:17px;display:grid;place-items:center;background:#fff;color:#09265c;font-size:26px;box-shadow:0 8px 24px #00133c44}
+.dm-bubble-shop{top:12px;right:15%}.dm-bubble-home{bottom:8px;left:13%;font-size:36px;color:#0a56c7}.dm-bubble-star{top:25px;left:15%;background:var(--dm-gold)}
+.dm-shop-strip{max-width:1440px;margin:0 auto 28px;padding:0 clamp(14px,3vw,34px)}
+.dm-section-head{margin-bottom:15px}
+.dm-section-head h2{font-size:25px;letter-spacing:-.6px;color:var(--dm-navy)}
+.dm-section-head a{color:#0a55c5;font-size:13px}
+.dm-category-grid{gap:12px}
+.dm-category-grid a{border:1px solid #e6ebf4;border-radius:17px;padding:18px 8px;background:linear-gradient(145deg,#fff,#f7f9ff);box-shadow:0 5px 15px #102b5510;transition:transform .2s,box-shadow .2s}
+.dm-category-grid a:hover{transform:translateY(-3px);box-shadow:0 10px 22px #102b5520}
+.dm-category-grid span{color:#0b56c5;font-size:31px}
+.dm-category-grid b{font-size:13px;color:#102044}
+.dm-flash-panel{margin-top:26px;padding:22px;border-radius:20px;background:linear-gradient(115deg,#061b48,#0b347c);box-shadow:0 10px 24px #092b6925}
+.dm-flash-panel .dm-section-head h2{color:#fff}
+.dm-lightning{color:var(--dm-gold);font-size:29px;margin-right:7px}
+.dm-coming{background:#fff4c9;color:#805900;padding:9px 14px;border-radius:999px}
+.dm-deal-empty{display:flex;align-items:center;gap:16px;padding:18px 20px;border:1px solid #ffffff24;border-radius:14px;background:#ffffff0d;color:#fff}
+.dm-deal-empty-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:14px;background:#ffc400;color:#082354;font-size:25px}
+.dm-deal-empty b{font-size:16px}.dm-deal-empty p{margin:5px 0 0;color:#d6e2fa;font-size:13px;line-height:1.5}
+#products{max-width:1370px;margin:28px auto;border:1px solid #e7ebf3;box-shadow:0 8px 24px #102b550b}
+#davitech-services{max-width:1370px;margin:28px auto;padding:30px;border-radius:20px;background:linear-gradient(115deg,#061b48,#0b347c);box-shadow:0 10px 25px #092b6925}
+#davitech-services .steps{grid-template-columns:repeat(3,minmax(0,1fr))}
+#davitech-services .step{border:1px solid #e7edf7;box-shadow:none}
+.property{max-width:1370px;margin:28px auto;border-radius:20px;background:linear-gradient(120deg,#e7efff,#f8faff)}
+.dm-bottom-nav{background:#071f50;border-top:1px solid #234b8c}
+.dm-bottom-nav a,.dm-bottom-nav button{color:#fff}
+@media(max-width:700px){
+ .dm-home-hero{margin:10px 10px 20px;padding:28px 22px 18px;min-height:0;grid-template-columns:1fr;border-radius:18px}
+ .dm-hero-copy h1{font-size:42px}
+ .dm-hero-copy p{font-size:14px}
+ .dm-hero-art{height:155px;margin-top:12px}
+ .dm-orbit{width:185px;height:185px}.dm-orbit-two{width:235px;height:125px}
+ .dm-art-card{width:190px;height:120px}.dm-art-card span{font-size:37px}
+ .dm-bubble-shop{right:10%;top:0}.dm-bubble-home{left:9%;bottom:0}
+ .dm-category-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+ .dm-category-grid a{padding:15px 5px;border-radius:14px;gap:8px}
+ .dm-category-grid span{font-size:27px}
+ .dm-flash-panel{padding:16px;margin-top:20px}
+ .dm-deal-empty{padding:14px}
+ #davitech-services{margin:22px 12px;padding:23px 16px}
+ #davitech-services .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .property{margin:22px 12px}
+ #products{margin:22px 12px}
+}
+@media(min-width:701px){.dm-home-hero{margin-left:clamp(20px,3vw,44px);margin-right:clamp(20px,3vw,44px)}}
+
+
+/* Approved DAVIMART marketplace homepage — refined preview */
+.dm-promo-art{height:270px;min-width:0;position:relative;display:flex;align-items:center;justify-content:center;isolation:isolate}
+.dm-promo-glow{position:absolute;width:310px;height:250px;border-radius:50%;background:radial-gradient(ellipse,#5ca5ff66,transparent 68%);filter:blur(8px);z-index:-1}
+.dm-promo-main{width:min(78%,350px);min-height:205px;padding:25px 25px 22px;border:1px solid #ffffff65;border-radius:22px;background:linear-gradient(145deg,#ffffff2e,#ffffff0c);backdrop-filter:blur(10px);box-shadow:0 20px 45px #00133c55;transform:rotate(-4deg);display:flex;flex-direction:column;justify-content:center}
+.dm-promo-label{font-size:9px;letter-spacing:1.7px;font-weight:900;color:#ffda67}
+.dm-promo-main strong{font-size:clamp(25px,3vw,39px);line-height:1.02;letter-spacing:-1.4px;color:white;margin:12px 0}
+.dm-promo-main strong em{font-style:normal;color:var(--dm-gold)}
+.dm-promo-tags{display:flex;flex-wrap:wrap;gap:6px}
+.dm-promo-tags span{font-size:8px;letter-spacing:1px;font-weight:900;padding:7px 9px;border-radius:30px;background:#ffffff20;border:1px solid #ffffff35;color:#fff}
+.dm-promo-tile{position:absolute;z-index:2;min-width:95px;padding:10px 12px;border-radius:14px;background:#fff;color:#102044;box-shadow:0 10px 25px #00133c55;display:flex;align-items:center;gap:8px;font-size:10px}
+.dm-promo-tile span{font-size:22px}.dm-promo-tile b{font-size:10px}
+.dm-tile-electronics{top:9px;right:1%}.dm-tile-fashion{bottom:9px;left:0}.dm-tile-home{right:0;bottom:24px}
+.dm-promo-spark{position:absolute;color:#ffda67;font-size:28px}.dm-promo-spark-one{left:8%;top:12px}.dm-promo-spark-two{right:12%;bottom:0}
+.dm-flash-head{align-items:center}
+.dm-countdown-wrap{display:flex;align-items:center;gap:10px;color:#fff}
+.dm-countdown-wrap>span{font-size:9px;letter-spacing:1px;font-weight:800;color:#dce7ff}
+.dm-countdown{display:flex;align-items:center;gap:5px}
+.dm-countdown b{min-width:30px;padding:8px 5px;text-align:center;border-radius:7px;background:#fff;color:#09265c;font-size:16px}
+.dm-countdown i{font-style:normal;color:#ffc400;font-weight:900}
+.dm-deal-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-top:16px}
+.dm-deal-placeholder{background:#fff;border:1px solid #e9edf5;border-radius:13px;padding:10px;text-align:left;min-width:0}
+.dm-deal-placeholder .dm-deal-art{height:100px;margin:0 0 10px;border-radius:9px;background:linear-gradient(145deg,#f0f4fb,#e3ebf8);font-size:42px}
+.dm-deal-tag{display:block;color:#9a7100;font-size:8px;font-weight:900;letter-spacing:1px;margin-bottom:5px}
+.dm-deal-placeholder>b{display:block;color:#102044;font-size:12px}
+.dm-deal-placeholder>small{display:block;color:#71809a;font-size:10px;margin-top:5px}
+.dm-sale-note{margin:13px 0 0;color:#d3e0fa;font-size:10px}
+@media(max-width:700px){
+ .dm-promo-art{height:205px;margin-top:14px}
+ .dm-promo-main{width:76%;min-height:155px;padding:18px}
+ .dm-promo-main strong{font-size:29px}
+ .dm-promo-tile{min-width:0;padding:8px;font-size:9px}
+ .dm-promo-tile span{font-size:18px}
+ .dm-tile-electronics{right:0;top:0}.dm-tile-fashion{left:0;bottom:0}.dm-tile-home{right:0;bottom:3px}
+ .dm-countdown-wrap{align-items:flex-end;flex-direction:column;gap:5px}
+ .dm-deal-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .dm-deal-placeholder .dm-deal-art{height:82px}
+ .dm-deal-placeholder>b{font-size:11px}
+}
+
+
+/* DAVIMART laptop + phone promotional hero */
+.dm-device-hero{grid-template-columns:1fr 1.08fr;min-height:370px;padding-top:38px;padding-bottom:38px;background:radial-gradient(ellipse at 77% 48%,#1c65bd 0,transparent 40%),linear-gradient(112deg,#061638 0%,#092d69 58%,#071d48 100%)}
+.dm-device-hero:before{content:"";position:absolute;width:440px;height:440px;border:1px solid #ffffff12;border-radius:50%;right:5%;top:50%;transform:translateY(-50%);box-shadow:0 0 0 35px #ffffff08,0 0 0 75px #ffffff05;pointer-events:none}
+.dm-device-hero .dm-hero-copy p{max-width:470px;color:#e0eaff;line-height:1.65}
+.dm-device-hero .dm-hero-copy h1 em{color:#ffd45c}
+.dm-hero-highlights{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+.dm-hero-highlights span{font-size:10px;font-weight:800;color:#f7f9ff;padding:8px 11px;border:1px solid #ffffff35;border-radius:30px;background:#ffffff12}
+.dm-device-stage{height:300px;min-width:0;position:relative;display:flex;align-items:center;justify-content:center;isolation:isolate;perspective:1000px}
+.dm-device-glow{position:absolute;width:75%;height:70%;border-radius:50%;background:radial-gradient(ellipse,#4c9cff65,transparent 70%);filter:blur(18px);z-index:-2}
+.dm-device-orbit{position:absolute;border:1px solid #ffffff1c;border-radius:50%;transform:rotate(-18deg);z-index:-1}
+.dm-orbit-one{width:90%;height:75%}.dm-orbit-two{width:76%;height:62%;transform:rotate(24deg)}
+.dm-laptop{position:absolute;width:76%;left:5%;top:36px;filter:drop-shadow(0 22px 20px #0008);transform:rotateY(-12deg) rotateX(3deg)}
+.dm-laptop-screen{aspect-ratio:1.58;border:7px solid #202a3b;border-bottom-width:10px;border-radius:12px 12px 5px 5px;background:#f8faff;padding:9px 11px;overflow:hidden;box-shadow:inset 0 0 0 1px #ffffff70}
+.dm-screen-top{height:18px;display:flex;align-items:center;justify-content:space-between;color:#13274b;font-size:7px;letter-spacing:.3px}
+.dm-screen-top b{font-size:10px;letter-spacing:-.5px}.dm-screen-top b i{font-style:normal;color:#1d65c7}.dm-screen-top span{font-size:6px;color:#62718a;font-weight:800}.dm-screen-top small{font-size:12px}
+.dm-screen-banner{height:62%;margin-top:7px;border-radius:6px;padding:10px 13px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;color:#fff;background:radial-gradient(circle at 90% 20%,#3986e9,transparent 40%),linear-gradient(110deg,#09204d,#1459ae);position:relative;overflow:hidden}
+.dm-screen-banner:after{content:"✦";position:absolute;right:13%;top:8%;font-size:48px;color:#ffcf55;opacity:.9}
+.dm-screen-banner small{font-size:6px;letter-spacing:1px;color:#ffdb70;font-weight:900}.dm-screen-banner strong{font-size:clamp(15px,2.2vw,25px);line-height:.95;margin:5px 0}.dm-screen-banner span{font-size:6px;color:#dbe8ff}.dm-screen-banner i{font-style:normal;font-size:6px;font-weight:900;color:#09204d;background:#ffcf55;border-radius:20px;padding:5px 8px;margin-top:7px}
+.dm-screen-label{font-size:6px;color:#253b60;font-weight:900;letter-spacing:.8px;margin:7px 0 4px}.dm-screen-cats{display:flex;gap:7px}.dm-screen-cats span{flex:1;background:#edf2fa;border-radius:4px;padding:5px 3px;font-size:10px;display:flex;align-items:center;gap:4px}.dm-screen-cats b{font-size:6px;color:#273d61}
+.dm-laptop-base{height:9px;margin:0 -4.5%;background:linear-gradient(#dce3ed,#77869b 55%,#cbd4df);border-radius:0 0 12px 12px;clip-path:polygon(4% 0,96% 0,100% 80%,0 80%)}.dm-laptop-base span{display:block;width:22%;height:3px;margin:auto;background:#8795a8;border-radius:0 0 5px 5px}
+.dm-smartphone{position:absolute;width:24%;min-width:86px;max-width:130px;right:4%;bottom:5px;padding:5px;border:2px solid #aab5c6;border-radius:22px;background:linear-gradient(145deg,#273449,#050a14);box-shadow:0 22px 28px #0009;transform:rotate(8deg);z-index:3}
+.dm-phone-screen{height:100%;min-height:188px;border-radius:17px;background:#f7f9fd;overflow:hidden;padding:8px 6px 5px;position:relative;color:#14294d}.dm-phone-notch{position:absolute;top:3px;left:36%;width:28%;height:7px;border-radius:0 0 7px 7px;background:#080e18}.dm-phone-status{display:flex;justify-content:space-between;font-size:6px;font-weight:900;padding:4px 2px 7px}.dm-phone-brand{display:flex;justify-content:space-between;align-items:center;font-size:9px}.dm-phone-brand span{color:#1d65c7}.dm-phone-brand small{font-size:9px}.dm-phone-search{margin:7px 0;padding:6px;border-radius:6px;background:#e9eef7;color:#75839b;font-size:6px}.dm-phone-promo{height:75px;border-radius:7px;padding:8px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;color:#fff;background:linear-gradient(130deg,#082454,#1766c6)}.dm-phone-promo small{font-size:5px;color:#ffdb70;font-weight:900;letter-spacing:.6px}.dm-phone-promo b{font-size:13px;line-height:1;margin:4px 0}.dm-phone-promo span{font-size:6px;color:#ffdc72}.dm-phone-section{font-size:7px;font-weight:900;margin:9px 0 5px}.dm-phone-section small{float:right;color:#2466bd;font-size:6px}.dm-phone-products{display:flex;gap:4px}.dm-phone-products span{flex:1;min-width:0;padding:7px 2px;background:#edf2fa;border-radius:5px;text-align:center;font-size:13px}.dm-phone-products b{display:block;font-size:5px;color:#52627d}.dm-phone-nav{display:flex;justify-content:space-around;border-top:1px solid #e6eaf1;margin-top:9px;padding-top:6px;color:#3267ad;font-size:10px}
+.dm-float-tag{position:absolute;padding:8px 11px;border:1px solid #ffffff45;border-radius:30px;background:#ffffffeb;color:#122a51;font-size:8px;font-weight:900;letter-spacing:.4px;box-shadow:0 8px 20px #00143b55;z-index:4}.dm-tag-one{top:10px;right:5%}.dm-tag-two{bottom:9px;left:0}
+@media(max-width:700px){.dm-device-hero{grid-template-columns:1fr;gap:5px;padding:28px 20px 22px;min-height:0}.dm-device-hero .dm-hero-copy h1{font-size:42px;margin:12px 0}.dm-device-hero .dm-hero-copy p{font-size:13px}.dm-hero-highlights{gap:6px;margin-top:15px}.dm-hero-highlights span{font-size:8px;padding:7px 8px}.dm-device-stage{height:235px;margin-top:3px}.dm-laptop{width:78%;left:3%;top:35px}.dm-laptop-screen{border-width:5px;border-bottom-width:7px;padding:6px 7px}.dm-screen-banner{margin-top:4px;padding:7px 9px}.dm-screen-banner strong{font-size:18px}.dm-screen-cats span{font-size:8px}.dm-screen-cats b{font-size:5px}.dm-smartphone{width:25%;min-width:82px;right:4%;bottom:2px}.dm-phone-screen{min-height:174px;padding:7px 5px 4px}.dm-phone-promo{height:65px}.dm-phone-promo b{font-size:11px}.dm-float-tag{font-size:7px;padding:7px 9px}.dm-tag-one{right:2%;top:8px}.dm-tag-two{left:1%;bottom:0}}
+
+
+/* Public banner image viewer */
+.dm-custom-banner-link{display:block;width:100%;height:100%;padding:0;border:0;background:transparent;cursor:zoom-in;position:relative;z-index:2}
+.dm-custom-banner-link:focus-visible{outline:3px solid #ffc400;outline-offset:-4px}
+.dm-banner-viewer{display:none;position:fixed;inset:0;z-index:10000;background:rgba(2,9,25,.94);align-items:center;justify-content:center;padding:24px}
+.dm-banner-viewer.is-open{display:flex}
+.dm-banner-viewer img,.dm-banner-viewer video{display:block;max-width:96vw;max-height:90vh;width:auto;height:auto;object-fit:contain;border-radius:8px}
+.dm-banner-viewer-close{position:absolute;top:14px;right:16px;width:46px;height:46px;border:0;border-radius:50%;background:#fff;color:#071f50;font-size:30px;line-height:1;cursor:pointer}
+.dm-banner-viewer-hint{position:absolute;bottom:12px;left:0;right:0;text-align:center;color:#fff;font-size:13px}
+@media(max-width:700px){.dm-banner-viewer{padding:12px}.dm-banner-viewer img,.dm-banner-viewer video{max-width:100%;max-height:86vh}}
+
+/* DAVIMART admin homepage banner manager */
+.dm-device-stage.has-custom-banner{height:300px;min-height:260px;perspective:none;overflow:hidden;border-radius:14px;background:#061b48}
+.dm-device-stage.has-custom-banner>.dm-device-glow,
+.dm-device-stage.has-custom-banner>.dm-device-orbit,
+.dm-device-stage.has-custom-banner>.dm-laptop,
+.dm-device-stage.has-custom-banner>.dm-smartphone,
+.dm-device-stage.has-custom-banner>.dm-float-tag{display:none}
+.dm-custom-banner-image{display:block;width:100%;height:100%;max-height:none;aspect-ratio:auto;object-fit:cover;border-radius:14px;filter:none;transition:opacity .45s ease}
+.dm-admin-banner-tools{margin:14px 0;padding:16px;border:1px solid #d9e2f1;border-radius:14px;background:#f7f9fd;color:#14294d}
+.dm-admin-banner-tools h3{margin:0 0 8px}.dm-admin-banner-tools p{font-size:13px;line-height:1.5}
+.dm-admin-banner-tools input[type=file]{display:block;width:100%;margin:12px 0;padding:10px;background:white;border:1px solid #cbd6e6;border-radius:8px;color:#14294d}
+.dm-admin-banner-tools button{margin:6px 6px 6px 0}
+#dmBannerPreviewWrap{margin:12px 0}#dmBannerPreview{display:block;width:100%;max-height:220px;object-fit:contain;border-radius:10px;background:#e7edf6}
+@media(max-width:700px){.dm-device-stage.has-custom-banner{height:230px;min-height:230px}.dm-custom-banner-image{height:100%}}
+
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin:20px 0}.product-card{background:#fff;border:1px solid #e4e9f2;border-radius:14px;padding:12px;box-shadow:0 5px 18px rgba(8,31,80,.07);display:flex;flex-direction:column;gap:8px}.product-card img{width:100%;height:165px;object-fit:cover;border-radius:10px;background:#f1f4f8}.product-card h3{font-size:16px;margin:4px 0}.product-card p{font-size:13px;color:#65728a;flex:1}.product-card strong{color:#071f50;font-size:17px}.product-card small{color:#65728a}
+.dm-view-details{margin-top:7px;padding:11px 14px;border:0;border-radius:8px;background:#071f50;color:#fff;font-weight:800;cursor:pointer}
+.dm-view-details:hover{background:#0b56c5}
+.dm-product-modal{display:none;position:fixed;inset:0;z-index:5000;background:rgba(4,15,38,.72);padding:18px;align-items:center;justify-content:center;overflow-y:auto}
+.dm-product-modal.show{display:flex}
+.dm-product-modal-card{position:relative;width:min(100%,560px);max-height:92vh;overflow-y:auto;background:#fff;border-radius:18px;padding:22px;box-shadow:0 18px 55px #0005}
+.dm-product-close{position:absolute;right:12px;top:10px;width:38px;height:38px;border:0;border-radius:50%;background:#eef2f8;color:#102b55;font-size:27px;cursor:pointer}
+.dm-product-content{padding-top:24px}
+.dm-product-content>img{width:100%;max-height:310px;object-fit:contain;border-radius:12px;background:#f3f5f9}
+.dm-product-content h2{margin:16px 0 8px;color:#071f50}
+.dm-product-content h3{font-size:15px;color:#102b55;margin:20px 0 6px}
+.dm-product-content p{color:#59677e;line-height:1.6}
+.dm-detail-price{display:block;color:#071f50;font-size:23px;margin:8px 0}
+body.dm-modal-open{overflow:hidden}
+
+
+/* Separate DAVITECH promotional banner, managed in the admin dashboard */
+#davitech-services .davitech-banner-media{position:relative;width:100%;min-height:220px;margin:22px 0 18px;border:1px solid #ffffff35;border-radius:16px;overflow:hidden;background:linear-gradient(120deg,#102b55,#174b91);display:flex;align-items:center;justify-content:center}
+#davitech-services .davitech-banner-media img,#davitech-services .davitech-banner-media video{display:block;width:100%;max-height:430px;min-height:220px;object-fit:cover}
+#davitech-services .davitech-banner-empty{min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:25px;text-align:center;color:#fff}
+#davitech-services .davitech-banner-empty strong{font-size:clamp(30px,5vw,52px);font-weight:900;letter-spacing:2px;color:#ffc400}
+#davitech-services .davitech-banner-empty span{color:#e7edf7;font-size:15px}
+#davitech-services .davitech-contact{background:#25d366;color:#062b19;margin-top:0}
+@media(max-width:700px){#davitech-services .davitech-banner-media,#davitech-services .davitech-banner-empty{min-height:175px}#davitech-services .davitech-banner-media img,#davitech-services .davitech-banner-media video{min-height:175px}}
 </style>
 </head>
 <body>
@@ -1095,8 +1286,9 @@ header {
   <span>SELL</span>
   <small>Start selling</small>
     </button>
-    <button class="market-action account-action" id="accountBtn">
-    <span>👤</span>
+    <button class="market-action account-action" id="accountBtn" aria-label="Open account menu">
+    <img id="accountAvatar" class="account-avatar" alt="Profile picture" hidden>
+    <span id="accountAvatarFallback">👤</span>
     <span>ACCOUNT</span>
   </button>
     
@@ -1108,116 +1300,86 @@ header {
   </div>
 <div id="accountMenu" class="account-menu" hidden>
   <button id="menuSignInBtn" onclick="showMessage('signin')">Sign In</button>
+  <button onclick="window.location.href='settings.html'">⚙️ Settings</button>
   <button>My Profile</button>
   <button>My Orders</button>
   <button>My Wishlist</button>
   <button>My Inbox</button>
   <button>My Notifications</button>
-  <button>Seller Dashboard</button>
+  <button id="sellerDashboardBtn" hidden>🏪 Seller Dashboard</button>
+  <button id="menuAdminBtn" hidden>🔐 Admin Dashboard</button>
   <button id="signoutBtn">Sign Out</button>
 </div>
 </header>
 
 <main id="home">
 
-<section class="jumia-home">
-  <aside class="jumia-categories">
-    <h3>SHOP BY CATEGORY</h3>
-    <a href="#products">📱 Phones & Accessories</a>
-    <a href="#products">💻 Computing</a>
-    <a href="#products">📺 Electronics</a>
-    <a href="#products">🏠 Home & Living</a>
-    <a href="#products">👗 Fashion</a>
-    <a href="#products">💄 Beauty</a>
-    <a href="#properties">🏡 Real Estate</a>
-    <a href="#products">🛍️ Other Products</a>
-  </aside>
-
-  <div class="jumia-banner">
-    <span>WELCOME TO DAVIMART</span>
-    <h1>Everything you need, all in one place.</h1>
-    <p>Shop products, discover great deals and find properties.</p>
-    <a href="#products">SHOP NOW →</a>
+<section class="dm-home-hero dm-device-hero" aria-label="DAVIMART featured shopping promotion">
+  <div class="dm-hero-copy">
+    <span class="dm-kicker">WELCOME TO DAVIMART</span>
+    <h1>Shop more.<br><em>Live better.</em></h1>
+    <p>Find the things you love, discover trusted services and explore property opportunities — all in one marketplace.</p>
+    <a class="dm-primary-cta" href="#products">Explore the marketplace <span>→</span></a>
+    <a class="dm-primary-cta dm-whatsapp-cta" href="https://wa.me/2349068847614" target="_blank" rel="noopener noreferrer">Chat with us on WhatsApp <span>↗</span></a>
+    <div class="dm-hero-highlights"><span>✦ Electronics</span><span>✦ Fashion</span><span>✦ Home &amp; Living</span></div>
   </div>
-
-  <aside class="jumia-promos">
-    <div>
-      <h3>Become a Seller</h3>
-      <p>Reach more customers with DAVIMART.</p>
-      <button onclick="handleSellClick()">START SELLING</button>
+  <div class="dm-device-stage" aria-label="Laptop and smartphone displaying the DAVIMART marketplace">
+    <div class="dm-device-glow"></div>
+    <div class="dm-device-orbit dm-orbit-one"></div><div class="dm-device-orbit dm-orbit-two"></div>
+    <div class="dm-laptop">
+      <div class="dm-laptop-screen">
+        <div class="dm-screen-top"><b><i>DAVI</i>MART</b><span>SHOP&nbsp;&nbsp; SERVICES&nbsp;&nbsp; PROPERTY</span><small>⌕</small></div>
+        <div class="dm-screen-banner"><small>THE EVERYDAY MARKETPLACE</small><strong>Everything<br>you need.</strong><span>Discover great finds and more.</span><i>SHOP NOW&nbsp; →</i></div>
+        <div class="dm-screen-label">EXPLORE CATEGORIES</div>
+        <div class="dm-screen-cats"><span>📱<b>Electronics</b></span><span>👟<b>Fashion</b></span><span>🏡<b>Home</b></span></div>
+      </div>
+      <div class="dm-laptop-base"><span></span></div>
     </div>
-    <div>
-      <h3>Find Your Property</h3>
-      <p>Explore properties in one marketplace.</p>
-      <a href="#properties">EXPLORE →</a>
+    <div class="dm-smartphone">
+      <div class="dm-phone-side"></div><div class="dm-phone-screen">
+        <div class="dm-phone-notch"></div>
+        <div class="dm-phone-status"><span>9:41</span><span>●●● ▰</span></div>
+        <div class="dm-phone-brand"><b>DAVI<span>MART</span></b><small>🔔</small></div>
+        <div class="dm-phone-search">⌕&nbsp; Search products...</div>
+        <div class="dm-phone-promo"><small>DAVIMART PICKS</small><b>Good finds.<br>Great value.</b><span>Explore now&nbsp; →</span></div>
+        <div class="dm-phone-section">Popular today <small>See all</small></div>
+        <div class="dm-phone-products"><span>🎧<b>Audio</b></span><span>⌚<b>Gadgets</b></span><span>👟<b>Style</b></span></div>
+        <div class="dm-phone-nav"><span>⌂</span><span>♡</span><span>▤</span><span>●</span></div>
+      </div>
     </div>
-  </aside>
+    <div class="dm-float-tag dm-tag-one">✦&nbsp; SHOP SMARTER</div>
+    <div class="dm-float-tag dm-tag-two">✧&nbsp; ALL IN ONE PLACE</div>
+  </div>
 </section>
   
-  <section class="hero">
-  <div class="hero-content">
-    <div class="eyebrow">YOUR MARKETPLACE, MADE SIMPLE</div>
-    <h1>Find what you need. Sell with confidence.</h1>
-    <p>
-      Discover products and properties in one convenient marketplace.
-      Browse freely and connect with sellers directly.
-    </p>
-    <div class="hero-buttons">
-      <a class="btn gold" href="#products">Explore marketplace →</a>
-      <a class="btn outline" href="#properties">Explore properties</a>
-    </div>
-  </div>
-</section>
+  
 
 <section class="dm-shop-strip" id="shopCategories">
   <div class="dm-section-head">
-    <div>
-      <small>EXPLORE DAVIMART</small>
-      <h2>Shop by Category</h2>
-    </div>
-    <a href="#products">View all →</a>
+    <div><small>DISCOVER DAVIMART</small><h2>Explore categories</h2></div>
+    <a href="#products">Browse all <span>→</span></a>
   </div>
-
   <div class="dm-category-grid">
-    <a href="#products"><span>📱</span><b>Phones</b></a>
-    <a href="#products"><span>💻</span><b>Computing</b></a>
-    <a href="#products"><span>📺</span><b>Electronics</b></a>
-    <a href="#products"><span>🏠</span><b>Home & Living</b></a>
-    <a href="#products"><span>👗</span><b>Fashion</b></a>
-    <a href="#products"><span>💄</span><b>Beauty</b></a>
+    <a href="#products"><span>🛍️</span><b>Shop</b></a>
+    <a href="#davitech-services"><span>⚙️</span><b>Services</b></a>
+    <a href="#properties"><span>⌂</span><b>Properties</b></a>
+    <a href="#products"><span>💻</span><b>Electronics</b></a>
+    <a href="#products"><span>◈</span><b>Fashion</b></a>
+    <a href="#products"><span>•••</span><b>More</b></a>
   </div>
 
   <div class="dm-flash-panel">
-    <div class="dm-section-head">
-      <div>
-        <small>GREAT DEALS ARE COMING</small>
-        <h2>⚡ Flash Deals</h2>
-      </div>
-      <span class="dm-coming">Coming soon</span>
+    <div class="dm-section-head dm-flash-head">
+      <div><small>DON'T MISS WHAT'S NEXT</small><h2><span class="dm-lightning">ϟ</span> Flash Sale</h2></div>
+      <div class="dm-countdown-wrap"><span>SALE COUNTDOWN</span><div class="dm-countdown" id="dmSaleCountdown"><b>--</b><i>:</i><b>--</b><i>:</i><b>--</b><i>:</i><b>--</b></div></div>
     </div>
-
-    <div class="dm-deal-grid">
-      <div class="dm-deal-card">
-        <div class="dm-deal-art">📱</div>
-        <b>Phones & Accessories</b>
-        <p>Exciting offers coming soon.</p>
-      </div>
-      <div class="dm-deal-card">
-        <div class="dm-deal-art">🎧</div>
-        <b>Electronics</b>
-        <p>Discover upcoming deals.</p>
-      </div>
-      <div class="dm-deal-card">
-        <div class="dm-deal-art">🏠</div>
-        <b>Home & Living</b>
-        <p>Great home offers coming soon.</p>
-      </div>
-      <div class="dm-deal-card">
-        <div class="dm-deal-art">👟</div>
-        <b>Fashion</b>
-        <p>New styles coming soon.</p>
-      </div>
+    <div class="dm-deal-grid" id="dmFlashSaleGrid">
+      <article class="dm-deal-card dm-deal-placeholder"><div class="dm-deal-art">📱</div><span class="dm-deal-tag">ELECTRONICS</span><b>Featured tech deals</b><small>Offers coming soon</small></article>
+      <article class="dm-deal-card dm-deal-placeholder"><div class="dm-deal-art">👟</div><span class="dm-deal-tag">FASHION</span><b>Style picks</b><small>Offers coming soon</small></article>
+      <article class="dm-deal-card dm-deal-placeholder"><div class="dm-deal-art">🏠</div><span class="dm-deal-tag">HOME & LIVING</span><b>Home essentials</b><small>Offers coming soon</small></article>
+      <article class="dm-deal-card dm-deal-placeholder"><div class="dm-deal-art">🎧</div><span class="dm-deal-tag">ACCESSORIES</span><b>Everyday accessories</b><small>Offers coming soon</small></article>
     </div>
+    <p class="dm-sale-note">The countdown and live offers will activate when the first sale campaign is scheduled.</p>
   </div>
   </section>
   
@@ -1262,6 +1424,7 @@ header {
     </div>
   </div>
 
+  <div id="homepageProducts" class="product-grid" aria-live="polite"></div>
   <div class="empty" id="listingMessage">
     <div style="font-size:35px">🛍️</div>
     <h3>New listings are coming soon</h3>
@@ -1288,47 +1451,6 @@ header {
     </button>
   </div>
 </div>
-<section id="davitech-services">
-  <div class="container">
-    <div class="eyebrow">POWERED BY DAVITECH</div>
-    <h2>DAVITECH Digital & Business Services</h2>
-    <p>Fast, reliable and affordable support for your everyday business and digital needs.</p>
-
-    <div class="steps">
-      <div class="step">
-        <h3>Business Registration</h3>
-        <p>Get assistance with CAC business registration.</p>
-      </div>
-
-      <div class="step">
-        <h3>NIN & BVN Services</h3>
-        <p>Get assistance with NIN and BVN retrieval.</p>
-      </div>
-
-      <div class="step">
-        <h3>Graphic Design</h3>
-        <p>Flyers, birthday designs and photo editing.</p>
-      </div>
-
-      <div class="step">
-        <h3>CV Design</h3>
-        <p>Professional CV creation and editing.</p>
-      </div>
-
-      <div class="step">
-        <h3>Online Applications</h3>
-        <p>Assistance with online applications and digital tasks.</p>
-      </div>
-
-      <div class="step">
-        <h3>Digital Support</h3>
-        <p>Practical business and technology support.</p>
-      </div>
-    </div>
-
-    <a class="btn primary" href="https://wa.me/2349068847614">CONTACT DAVITECH</a>
-  </div>
-</section>
 <section id="how">
 <div class="container">
   <h2>How DAVIMART works</h2>
@@ -1348,6 +1470,18 @@ header {
   </div>
 </div>
 </section>
+<section id="davitech-services">
+  <div class="container">
+    <div class="eyebrow">POWERED BY DAVITECH</div>
+    <h2>DAVITECH Digital & Business Services</h2>
+    <p>Fast, reliable and affordable support for your everyday business and digital needs.</p>
+    <div id="davitechBannerMedia" class="davitech-banner-media" aria-label="DAVITECH promotional banner">
+      <div class="davitech-banner-empty"><strong>DAVITECH</strong><span>Your digital and business support partner</span></div>
+    </div>
+    <a class="btn primary davitech-contact" href="https://wa.me/2349068847614?text=Hello%20DAVITECH%2C%20I%27m%20interested%20in%20your%20services.%20Please%20tell%20me%20more." target="_blank" rel="noopener">CHAT WITH DAVITECH ON WHATSAPP</a>
+  </div>
+</section>
+
 </main>
 
 <nav class="dm-bottom-nav">
@@ -1357,16 +1491,7 @@ header {
   <a href="real-estate.html"><span>🏡</span>Real Estate</a>
   <a href="account.html"><span>👤</span>Account</a>
 </nav>
-  
-<footer>
-  <div class="container">
-    <h2 style="color:white">DAVIMART by DAVITECH</h2>
-    <p>Fast Reliable Affordable.</p>
-    <p>Products and properties in one marketplace.</p>
-    <p><a href="https://wa.me/2349068847614">Contact DAVITECH on WhatsApp</a></p>
-    <p>© <span id="year"></span> DAVITECH. All rights reserved.</p>
-  </div>
-</footer>
+
 
 <div class="modal" id="messageModal">
   <div class="modal-box">
@@ -1398,10 +1523,33 @@ function showMessage(type) {
   document.getElementById("modalText").textContent = message[1];
   document.getElementById("messageModal").classList.add("show");
 }
+let loginSuccessInterval = null;
 function closeMessage() {
+  if (loginSuccessInterval) {
+    window.clearInterval(loginSuccessInterval);
+    loginSuccessInterval = null;
+  }
   document.getElementById("messageModal").classList.remove("show");
 }
-function searchProducts() {
+function startLoginSuccessCountdown() {
+  if (loginSuccessInterval) window.clearInterval(loginSuccessInterval);
+  let secondsLeft = 20;
+  const countdown = document.getElementById("loginSuccessCountdown");
+  if (!countdown) return;
+  const updateCountdown = () => {
+    countdown.textContent = "This message closes in " + secondsLeft + " seconds.";
+  };
+  updateCountdown();
+  loginSuccessInterval = window.setInterval(() => {
+    secondsLeft -= 1;
+    if (secondsLeft <= 0) {
+      closeMessage();
+      return;
+    }
+    updateCountdown();
+  }, 1000);
+}
+async function searchProducts() {
   const query = document.getElementById("searchInput").value.trim();
   const category = document.getElementById("categorySelect").value;
 
@@ -1409,8 +1557,20 @@ function searchProducts() {
     query ? 'Results for "' + query + '"' :
     category ? "Category: " + category : "All products";
 
-  document.getElementById("searchResultList").innerHTML =
-    "<p>No approved products are available yet. Please check back soon.</p>";
+  const results=document.getElementById("searchResultList");
+  results.innerHTML="<p>Loading products…</p>";
+  let request=db.from("listings").select("id,title,description,price,category,location,image_url").eq("status","approved").eq("listing_type","product").order("created_at",{ascending:false});
+  if(query) request=request.or("title.ilike.%"+query.replace(/[%_,]/g," ")+"%,description.ilike.%"+query.replace(/[%_,]/g," ")+"%,category.ilike.%"+query.replace(/[%_,]/g," ")+"%");
+  if(category) request=request.ilike("category","%"+category+"%");
+  const {data,error}=await request.limit(60);
+  if(error){results.textContent="Could not load products: "+error.message;}
+  else if(!data?.length){results.textContent="No approved products match your search yet.";}
+  else{
+    results.innerHTML="";
+    const grid=document.createElement("div");grid.className="product-grid";
+    data.forEach(item=>renderProductCard(item,grid));
+    results.appendChild(grid);
+  }
 
   Array.from(document.getElementById("home").children).forEach(section => {
     if (section.id !== "searchResults") {
@@ -1438,12 +1598,14 @@ function closeSearchResults() {
     "No published listings in " + category + " yet.";
   document.getElementById("listingMessage").scrollIntoView({behavior:"smooth"});
 }
-document.getElementById("year").textContent = new Date().getFullYear();
   document.getElementById("accountBtn").onclick = () => {
   const menu = document.getElementById("accountMenu");
   menu.hidden = !menu.hidden;
 };
 </script>
+
+
+
 </body>
 </html>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1452,20 +1614,280 @@ const db = window.supabase.createClient(
   "https://vaghptbqfjvfhjdhpxrz.supabase.co",
   "sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p"
 );
+const DAVIMART_ADMIN_ID = "4aa054c0-97c2-45c3-8c3a-9bf87f2c365c";
+const DAVIMART_BANNER_BUCKET = "homepage-banners";
+
+const DAVIMART_PRODUCT_CACHE = new Map();
+
+function renderProductCard(item, host) {
+  const card = document.createElement("article");
+  card.className = "product-card";
+  if (item.image_url) {
+    const img = document.createElement("img");
+    img.src = item.image_url;
+    img.alt = item.title || "Product image";
+    img.loading = "lazy";
+    card.appendChild(img);
+    img.style.cursor = "pointer";
+    img.addEventListener("click", () => openProductDetails(String(item.id)));
+  }
+  const title = document.createElement("h3");
+  title.textContent = item.title || "Product";
+  title.style.cursor = "pointer";
+  title.addEventListener("click", () => openProductDetails(String(item.id)));
+  const desc = document.createElement("p");
+  desc.textContent = item.description || item.category || "Product details";
+  const price = document.createElement("strong");
+  price.textContent = "₦" + Number(item.price || 0).toLocaleString("en-NG");
+  const place = document.createElement("small");
+  place.textContent = item.location || "Nigeria";
+  const view = document.createElement("button");
+  view.type = "button";
+  view.className = "dm-view-details";
+  view.textContent = "View details";
+  DAVIMART_PRODUCT_CACHE.set(String(item.id), item);
+  view.addEventListener("click", () => openProductDetails(String(item.id)));
+  card.append(title, desc, price, place, view);
+  host.appendChild(card);
+}
+
+function openProductDetails(productId) {
+  if (!productId) return;
+  window.location.href = "product.html?id=" + encodeURIComponent(productId);
+}
+
+async function loadHomepageProducts(){
+ const host=document.getElementById("homepageProducts");if(!host)return;
+ const {data,error}=await db.from("listings").select("id,title,description,price,category,location,image_url").eq("status","approved").eq("listing_type","product").order("created_at",{ascending:false}).limit(12);
+ if(error){host.textContent="Products could not be loaded right now.";return;}
+ if(!data?.length)return;
+ document.getElementById("listingMessage").style.display="none";
+ host.innerHTML="";
+ data.forEach(item=>renderProductCard(item,host));
+}
+const DAVIMART_FLASH_CONFIG_FILE = "flash-sale-countdown.png";
+async function loadFlashSaleCountdown() {
+  const display = document.getElementById("dmSaleCountdown");
+  const note = document.querySelector(".dm-sale-note");
+  if (!display) return;
+  const url = db.storage.from(DAVIMART_BANNER_BUCKET).getPublicUrl(DAVIMART_FLASH_CONFIG_FILE).data.publicUrl;
+  let endTime = null;
+  try {
+    const response = await fetch(url + "?v=" + Date.now(), { cache: "no-store" });
+    if (response.ok) {
+      const config = await response.json();
+      const parsed = new Date(config.endsAt).getTime();
+      if (Number.isFinite(parsed)) endTime = parsed;
+    }
+  } catch (error) {
+    console.warn("Flash sale countdown settings could not be loaded.", error);
+  }
+  if (!endTime) {
+    display.innerHTML = "<b>--</b><i>:</i><b>--</b><i>:</i><b>--</b><i>:</i><b>--</b>";
+    if (note) note.textContent = "The countdown will begin when a sale campaign is scheduled.";
+    return;
+  }
+  if (note) note.textContent = "Hurry! Shop available offers before this sale ends.";
+  const tick = () => {
+    const remaining = endTime - Date.now();
+    if (remaining <= 0) {
+      display.innerHTML = '<b style="min-width:auto">Sale Ended</b>';
+      if (note) note.textContent = "This flash sale has ended. Watch this space for the next offer.";
+      return false;
+    }
+    const days = Math.floor(remaining / 86400000);
+    const hours = Math.floor((remaining % 86400000) / 3600000);
+    const minutes = Math.floor((remaining % 3600000) / 60000);
+    const seconds = Math.floor((remaining % 60000) / 1000);
+    display.innerHTML = [days,hours,minutes,seconds].map(n => "<b>" + String(n).padStart(2,"0") + "</b>").join("<i>:</i>");
+    return true;
+  };
+  if (tick()) {
+    const timer = window.setInterval(() => { if (!tick()) window.clearInterval(timer); }, 1000);
+  }
+}
+async function loadFlashSaleImages() {
+  const grid=document.getElementById("dmFlashSaleGrid");
+  if(!grid)return;
+  const {data:files,error}=await db.storage.from(DAVIMART_BANNER_BUCKET).list("",{limit:100});
+  if(error||!files)return;
+  const images=files.filter(file=>file.name.startsWith("flash-sale-")&&/\.(jpg|jpeg|png|webp)$/i.test(file.name))
+    .sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0)).slice(0,4);
+  if(!images.length)return;
+  grid.innerHTML="";
+  images.forEach((file,index)=>{
+    const url=db.storage.from(DAVIMART_BANNER_BUCKET).getPublicUrl(file.name).data.publicUrl;
+    const card=document.createElement("article");card.className="dm-deal-card dm-deal-placeholder";
+    const art=document.createElement("div");art.className="dm-deal-art";
+    const img=document.createElement("img");img.src=url+"?v="+encodeURIComponent(file.updated_at||file.created_at||Date.now());
+    img.alt="DAVIMART flash sale offer "+(index+1);img.loading="lazy";
+    img.style.cssText="width:100%;height:100%;object-fit:cover;border-radius:9px";
+    art.appendChild(img);
+    const tag=document.createElement("span");tag.className="dm-deal-tag";tag.textContent="FLASH SALE";
+    const title=document.createElement("b");title.textContent="Special offer";
+    const note=document.createElement("small");note.textContent="Limited-time deal";
+    card.append(art,tag,title,note);grid.appendChild(card);
+  });
+}
+function openDavimartBannerViewer(url, isVideo) {
+  let viewer = document.getElementById("dmBannerViewer");
+  if (!viewer) {
+    viewer = document.createElement("div");
+    viewer.id = "dmBannerViewer";
+    viewer.className = "dm-banner-viewer";
+    viewer.setAttribute("role", "dialog");
+    viewer.setAttribute("aria-modal", "true");
+    viewer.setAttribute("aria-label", "Promotional banner viewer");
+    viewer.innerHTML = '<button type="button" class="dm-banner-viewer-close" aria-label="Close banner viewer">×</button><div class="dm-banner-viewer-content"></div><div class="dm-banner-viewer-hint">Tap outside or press Escape to close</div>';
+    document.body.appendChild(viewer);
+    viewer.querySelector(".dm-banner-viewer-close").addEventListener("click", closeDavimartBannerViewer);
+    viewer.addEventListener("click", event => {
+      if (event.target === viewer) closeDavimartBannerViewer();
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") closeDavimartBannerViewer();
+    });
+  }
+  const content = viewer.querySelector(".dm-banner-viewer-content");
+  content.replaceChildren();
+  const media = document.createElement(isVideo ? "video" : "img");
+  media.src = url;
+  if (isVideo) {
+    media.controls = true;
+    media.autoplay = true;
+    media.playsInline = true;
+  } else {
+    media.alt = "DAVIMART promotional banner";
+  }
+  content.appendChild(media);
+  viewer.classList.add("is-open");
+  document.body.style.overflow = "hidden";
+  viewer.querySelector(".dm-banner-viewer-close").focus();
+}
+function closeDavimartBannerViewer() {
+  const viewer = document.getElementById("dmBannerViewer");
+  if (!viewer) return;
+  const video = viewer.querySelector("video");
+  if (video) video.pause();
+  viewer.classList.remove("is-open");
+  viewer.querySelector(".dm-banner-viewer-content").replaceChildren();
+  document.body.style.overflow = "";
+}
+
+async function loadHomepageBanner() {
+  const stage = document.querySelector(".dm-device-stage");
+  if (!stage) return;
+  const { data: files, error } = await db.storage.from(DAVIMART_BANNER_BUCKET).list("", { limit: 100 });
+  if (error || !files) return;
+  const slides = files
+    .filter(item => item.name === "homepage-banner" || item.name.startsWith("slide-"))
+    .sort((a,b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+  if (!slides.length) return;
+  stage.classList.add("has-custom-banner");
+  let current = 0;
+  let timer = null;
+  function showNext() {
+    if (timer) window.clearTimeout(timer);
+    const file = slides[current];
+    const { data } = db.storage.from(DAVIMART_BANNER_BUCKET).getPublicUrl(file.name);
+    const url = data.publicUrl + "?v=" + encodeURIComponent(file.updated_at || file.created_at || Date.now());
+    const isVideo = /\.(mp4|webm)$/i.test(file.name);
+    const media = document.createElement(isVideo ? "video" : "img");
+    media.className = "dm-custom-banner-image";
+    media.style.opacity = "0";
+    if (isVideo) {
+      media.muted = true;
+      media.autoplay = true;
+      media.playsInline = true;
+      media.controls = false;
+      media.preload = "metadata";
+      media.addEventListener("ended", advance, { once: true });
+    } else {
+      media.alt = "DAVIMART homepage promotional banner";
+    }
+    const previous = stage.querySelector(".dm-custom-banner-link, .dm-custom-banner-image");
+    if (previous) previous.remove();
+    const bannerTrigger = document.createElement("button");
+    bannerTrigger.type = "button";
+    bannerTrigger.className = "dm-custom-banner-link";
+    bannerTrigger.setAttribute("aria-label", "View promotional banner full screen");
+    bannerTrigger.title = "Tap to view full image";
+    bannerTrigger.addEventListener("click", () => openDavimartBannerViewer(url, isVideo));
+    bannerTrigger.appendChild(media);
+    stage.appendChild(bannerTrigger);
+    media.src = url;
+    requestAnimationFrame(() => { media.style.opacity = "1"; });
+    current = (current + 1) % slides.length;
+    if (slides.length > 1) {
+      timer = window.setTimeout(advance, isVideo ? 20000 : 5000);
+    }
+    if (isVideo) media.play().catch(() => { /* muted autoplay may be restricted */ });
+  }
+  function advance() {
+    if (slides.length > 1) showNext();
+  }
+  showNext();
+}
+
+async function loadDavitechBanner(){
+ const stage=document.getElementById("davitechBannerMedia");if(!stage)return;
+ const {data:files,error}=await db.storage.from(DAVIMART_BANNER_BUCKET).list("",{limit:100});if(error||!files)return;
+ const slides=files.filter(f=>f.name.startsWith("davitech-banner-")&&/\.(jpg|jpeg|png|webp|gif|mp4|webm)$/i.test(f.name)).sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
+ if(!slides.length)return;let current=0,timer=null;
+ function advance(){if(slides.length>1)showNext();}
+ function showNext(){if(timer)window.clearTimeout(timer);const file=slides[current];const url=db.storage.from(DAVIMART_BANNER_BUCKET).getPublicUrl(file.name).data.publicUrl+"?v="+encodeURIComponent(file.updated_at||file.created_at||Date.now());const video=/\.(mp4|webm)$/i.test(file.name);const media=document.createElement(video?"video":"img");media.style.cssText="display:block;width:100%;max-height:430px;min-height:220px;object-fit:cover";if(video){media.muted=true;media.autoplay=true;media.playsInline=true;media.controls=true;media.preload="metadata";media.addEventListener("ended",advance,{once:true});}else{media.alt="DAVITECH services promotional banner";media.loading="lazy";}stage.replaceChildren(media);media.src=url;current=(current+1)%slides.length;if(slides.length>1)timer=window.setTimeout(advance,video?20000:5000);if(video)media.play().catch(()=>{});}
+ showNext();
+}
+
+loadHomepageProducts();
+loadHomepageBanner();
+loadDavitechBanner();
+loadFlashSaleImages();
+loadFlashSaleCountdown();
+
+async function updateSellerDashboardVisibility(session) {
+  const button = document.getElementById("sellerDashboardBtn");
+  button.hidden = true;
+  if (!session) return;
+  const { data, error } = await db.from("profiles")
+    .select("seller_status").eq("id", session.user.id).maybeSingle();
+  button.hidden = !!error || data?.seller_status !== "approved";
+}
+
+function updateHeaderAvatar(user) {
+  const image=document.getElementById("accountAvatar");
+  const fallback=document.getElementById("accountAvatarFallback");
+  const url=user?.user_metadata?.avatar_url;
+  if(url){image.src=url;image.hidden=false;fallback.hidden=true;}
+  else{image.removeAttribute("src");image.hidden=true;fallback.hidden=false;}
+}
 async function updateAccountButtons() {
   const { data: { session } } = await db.auth.getSession();
+  updateHeaderAvatar(session?.user);
 
   document.getElementById("menuSignInBtn").hidden = !!session;
-document.getElementById("signoutBtn").hidden = !session;
+  document.getElementById("signoutBtn").hidden = !session;
+  document.getElementById("menuAdminBtn").hidden = !(session && session.user.id === DAVIMART_ADMIN_ID);
+  await updateSellerDashboardVisibility(session);
   document.getElementById("accountMenu").hidden = true;
 }
 
 db.auth.onAuthStateChange((event, session) => {
+  if (event === "PASSWORD_RECOVERY") {
+    setTimeout(showHomepagePasswordRecovery, 0);
+    return;
+  }
+  updateHeaderAvatar(session?.user);
   document.getElementById("menuSignInBtn").hidden = !!session;
   document.getElementById("signoutBtn").hidden = !session;
+  document.getElementById("menuAdminBtn").hidden = !(session && session.user.id === DAVIMART_ADMIN_ID);
+  document.getElementById("sellerDashboardBtn").hidden = true;
+  if (session) setTimeout(() => updateSellerDashboardVisibility(session), 0);
 });
 
 updateAccountButtons();
+  document.getElementById("menuAdminBtn").onclick = () => { window.location.href = "admin.html"; };
+  document.getElementById("sellerDashboardBtn").onclick = () => { window.location.href = "seller-dashboard.html"; };
   document.getElementById("signoutBtn").onclick = async () => {
   const { error } = await db.auth.signOut();
 
@@ -1487,6 +1909,44 @@ updateAccountButtons();
     showMessage("seller");
   }
   }
+function showHomepagePasswordRecovery() {
+  const box = document.querySelector(".modal-box");
+  if (!box) return;
+  box.innerHTML = `
+    <h3>Reset your DAVIMART password</h3>
+    <p>Choose a new password of at least 8 characters.</p>
+    <input id="homepageNewPassword" type="password" autocomplete="new-password" placeholder="New password" style="width:100%;padding:12px;margin:8px 0">
+    <input id="homepageConfirmPassword" type="password" autocomplete="new-password" placeholder="Confirm new password" style="width:100%;padding:12px;margin:8px 0">
+    <p id="homepagePasswordRecoveryStatus" aria-live="polite"></p>
+    <button type="button" class="btn primary" id="homepageSavePasswordBtn">Update password</button>
+  `;
+  document.getElementById("messageModal").classList.add("show");
+  document.getElementById("homepageSavePasswordBtn").onclick = async function() {
+    const password = document.getElementById("homepageNewPassword").value;
+    const confirmation = document.getElementById("homepageConfirmPassword").value;
+    const status = document.getElementById("homepagePasswordRecoveryStatus");
+    if (password.length < 8) {
+      status.textContent = "Your new password must contain at least 8 characters.";
+      return;
+    }
+    if (password !== confirmation) {
+      status.textContent = "The passwords do not match.";
+      return;
+    }
+    this.disabled = true;
+    status.textContent = "Updating your password…";
+    const { error } = await db.auth.updateUser({ password });
+    this.disabled = false;
+    if (error) {
+      status.textContent = "We could not update your password: " + error.message;
+      return;
+    }
+    status.textContent = "Your password has been updated successfully. You can now sign in with it.";
+    document.getElementById("homepageNewPassword").value = "";
+    document.getElementById("homepageConfirmPassword").value = "";
+  };
+}
+
 window.showMessage = function(type) {
   const role = type === "seller" ? "seller" : "buyer";
   const box = document.querySelector(".modal-box");
@@ -1496,14 +1956,47 @@ window.showMessage = function(type) {
     <div id="authForm">
       <input id="fullName" placeholder="Full name" style="width:100%;padding:12px;margin:8px 0">
       <input id="email" type="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0">
-      <input id="password" type="password" placeholder="Password (minimum 8 characters)" style="width:100%;padding:12px;margin:8px 0">
+      <div style="position:relative;width:100%;margin:8px 0">
+        <input id="password" type="password" placeholder="Password (minimum 8 characters)" style="width:100%;padding:12px;padding-right:44px;box-sizing:border-box">
+        <button type="button" id="togglePasswordBtn" aria-label="Show password" aria-pressed="false" style="position:absolute;right:9px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;color:#64748b;cursor:pointer;z-index:2"><svg id="passwordEyeIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+      </div>
       
       <p id="authStatus"></p>
       <button class="btn primary" id="registerBtn">Create account</button>
       <button class="btn outline" id="loginBtn" style="margin-top:8px">Sign in instead</button>
+      <button type="button" class="btn outline" id="forgotPasswordBtn" style="margin-top:8px">Forgot password?</button>
+      <p id="forgotPasswordStatus" aria-live="polite"></p>
       <button class="btn outline" onclick="closeMessage()" style="margin-top:8px">Close</button>
     </div>
   `;
+
+  const passwordInput = document.getElementById("password");
+  const togglePasswordBtn = document.getElementById("togglePasswordBtn");
+  togglePasswordBtn.onclick = () => {
+    const showing = passwordInput.type === "password";
+    passwordInput.type = showing ? "text" : "password";
+    document.getElementById("passwordEyeIcon").innerHTML = showing ? '<path d="M3 3l18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a15.8 15.8 0 0 1-3 3.8"></path><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4-.8"></path>' : '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle>';
+    togglePasswordBtn.setAttribute("aria-label", showing ? "Hide password" : "Show password");
+    togglePasswordBtn.setAttribute("aria-pressed", String(showing));
+  };
+
+  document.getElementById("forgotPasswordBtn").onclick = async function() {
+    const email = document.getElementById("email").value.trim();
+    const status = document.getElementById("forgotPasswordStatus");
+    if (!email) {
+      status.textContent = "Enter the email address registered to your DAVIMART account first.";
+      return;
+    }
+    const button = this;
+    button.disabled = true;
+    status.textContent = "Sending password recovery email…";
+    const redirectTo = window.location.origin + "/recovery.html";
+    const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo });
+    button.disabled = false;
+    status.textContent = error
+      ? "We could not send the recovery email: " + error.message
+      : "If an account exists for that email, a password recovery link has been sent. Check your inbox and spam folder.";
+  };
 
   document.getElementById("registerBtn").onclick = async () => {
     const name = document.getElementById("fullName").value.trim();
@@ -1540,7 +2033,10 @@ window.showMessage = function(type) {
     status.textContent = "Signing in...";
     const { error } = await db.auth.signInWithPassword({ email, password });
     status.textContent = error ? error.message : "Signed in successfully!";
-    if (!error) await showDashboard();
+    if (!error) {
+      await showDashboard();
+      startLoginSuccessCountdown();
+    }
   };
 
   document.getElementById("messageModal").classList.add("show");
@@ -1616,7 +2112,9 @@ async function showDashboard() {
   const box = document.querySelector(".modal-box");
 
   box.innerHTML = `
+    <button type="button" id="closeLoginMessage" aria-label="Close login message" title="Close" style="float:right;border:0;background:transparent;color:#53627c;font-size:25px;line-height:1;cursor:pointer;padding:4px 8px">×</button>
     <h3>Welcome to DAVIMART!</h3>
+    <p id="loginSuccessCountdown" role="status" aria-live="polite" style="font-size:13px;color:#64748b;font-weight:600">This message closes in 20 seconds.</p>
     <button class="btn primary" id="notificationBell">🔔 Notifications</button>
 <div id="notificationPanel" style="display:none;">
   <p>No notifications yet.</p>
@@ -1627,6 +2125,7 @@ async function showDashboard() {
     <p id="dashStatus"></p>
     <div id="sellerNotice"></div>
     <div id="sellerListingArea"></div>
+    ${user.id === DAVIMART_ADMIN_ID ? '<button class="btn primary" id="adminBannerBtn" style="margin:12px 0">🔐 Open Admin Dashboard</button>' : ''}
     <button class="btn primary" id="okayBtn">Okay, start shopping</button>
   `;
   document.getElementById("notificationBell").onclick = () => {
@@ -1634,6 +2133,11 @@ async function showDashboard() {
     panel.style.display =
       panel.style.display === "none" ? "block" : "none";
   };
+  if (user.id === DAVIMART_ADMIN_ID) {
+    document.getElementById("adminBannerBtn").onclick = () => { window.location.href = "admin.html"; };
+  }
+
+
   document.getElementById("dashName").textContent =
     profile?.full_name || user.email;
 
@@ -1661,7 +2165,7 @@ async function showDashboard() {
   } else if (profile?.seller_status === "pending") {
     notice.textContent = "Your seller application is awaiting admin approval.";
   } else if (profile?.seller_status === "approved") {
-    notice.textContent = "Your seller application is approved. You can now submit listings.";
+    notice.innerHTML = 'Your seller application is approved. <a class="btn primary" href="seller-dashboard.html">Open Seller Dashboard</a>';
   } else if (profile?.seller_status === "rejected") {
     notice.textContent = "Your seller application was not approved. You may apply again.";
     notice.innerHTML += `
@@ -1720,8 +2224,9 @@ async function showDashboard() {
     };
   }
   document.getElementById("okayBtn").onclick = () => {
-  closeMessage();
-};
+    closeMessage();
+  };
+  document.getElementById("closeLoginMessage").onclick = closeMessage;
 
 }
 

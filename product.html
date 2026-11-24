@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Product details | DAVIMART</title>
+<meta name="theme-color" content="#071f50">
+<style>
+:root{--navy:#071f50;--gold:#d9a72e;--ink:#17233b;--muted:#68758b;--line:#e6eaf0}
+*{box-sizing:border-box}body{margin:0;background:#f5f7fb;color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+.top{background:var(--navy);color:#fff;padding:9px 4%;font-size:12px}
+header{background:#fff;border-bottom:1px solid var(--line);padding:14px 4%;display:flex;align-items:center;gap:20px;justify-content:space-between}
+.logo{font-weight:900;font-size:25px;color:var(--navy);text-decoration:none;letter-spacing:-1px}.logo span{color:var(--gold)}
+.back{border:1px solid var(--line);background:#fff;border-radius:8px;padding:10px 14px;color:var(--navy);font-weight:700;text-decoration:none}
+main{max-width:1180px;margin:22px auto;padding:0 16px}
+.crumb{font-size:13px;color:var(--muted);margin:0 0 16px}
+.product-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:20px;align-items:start}
+.panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:22px}
+.gallery{display:flex;align-items:center;justify-content:center;min-height:390px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px}
+.gallery img{max-width:100%;max-height:470px;object-fit:contain}
+h1{font-size:25px;line-height:1.3;margin:0 0 16px;color:#17233b}
+.price{font-size:29px;font-weight:800;color:var(--navy);margin:14px 0 6px}
+.meta{font-size:13px;color:var(--muted);line-height:1.7}
+.rule{height:1px;background:var(--line);margin:18px 0}
+h2{font-size:17px;color:var(--navy);margin:0 0 10px}
+.description{line-height:1.7;color:#48566e;white-space:pre-wrap}
+.info{background:#f7f9fc;border-radius:9px;padding:13px;margin-top:14px;font-size:13px;line-height:1.6;color:#536179}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.actions button{padding:14px 10px;border:0;border-radius:8px;font-weight:800;font-size:14px;cursor:not-allowed;opacity:.65}
+.cart{background:var(--navy);color:#fff}.buy{background:var(--gold);color:#17233b}
+.status{padding:35px;text-align:center;color:var(--muted);background:#fff;border-radius:12px}
+@media(max-width:760px){header{padding:12px 16px}.product-layout{grid-template-columns:1fr;gap:12px}.panel{padding:17px}.gallery{min-height:280px}.gallery img{max-height:340px}h1{font-size:21px}.price{font-size:26px}.actions{grid-template-columns:1fr}}
+.below-product{margin-top:18px;display:grid;gap:18px}
+.section-panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px}
+.section-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.section-heading h2{font-size:19px;margin:0}
+.rating-empty{border:1px dashed #d7deea;background:#fafbfd;border-radius:10px;padding:18px;color:var(--muted);font-size:14px;line-height:1.6}
+.related-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.related-card{display:flex;flex-direction:column;gap:8px;min-width:0;border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff;color:inherit;text-decoration:none;transition:box-shadow .15s,border-color .15s}
+.related-card:hover{border-color:#c9d5e8;box-shadow:0 5px 18px #071f5014}
+.related-card img{width:100%;height:145px;object-fit:contain;background:#f7f8fb;border-radius:7px}
+.related-card .related-name{font-size:13px;line-height:1.4;min-height:36px;color:#28364d}
+.related-card strong{font-size:16px;color:var(--navy)}
+.related-card small{font-size:11px;color:var(--muted)}
+.related-empty{color:var(--muted);font-size:14px;padding:10px 0}
+@media(max-width:760px){.section-panel{padding:15px}.related-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.related-card img{height:125px}.related-card{padding:8px}}
+</style>
+</head>
+<body>
+<div class="top">DAVIMART by DAVITECH — Fast Reliable Affordable</div>
+<header><a class="logo" href="index.html">DAVI<span>MART</span></a><a class="back" href="index.html#products">← Back to shopping</a></header>
+<main>
+<p class="crumb"><a href="index.html" style="color:inherit">Home</a> &nbsp;›&nbsp; Products &nbsp;›&nbsp; Product details</p>
+<div id="productRoot" class="status">Loading product details…</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
+const root=document.getElementById("productRoot");
+const id=new URLSearchParams(location.search).get("id");
+const money=value=>"₦"+Number(value||0).toLocaleString("en-NG");
+function renderRelatedProducts(items, host) {
+ host.innerHTML="";
+ if(!items?.length){const empty=document.createElement("p");empty.className="related-empty";empty.textContent="No similar products are available yet. Check back soon.";host.appendChild(empty);return;}
+ items.forEach(product=>{
+  const link=document.createElement("a");link.className="related-card";link.href="product.html?id="+encodeURIComponent(product.id);
+  if(product.image_url){const img=document.createElement("img");img.src=product.image_url;img.alt=product.title||"Product";img.loading="lazy";link.appendChild(img);}
+  const name=document.createElement("span");name.className="related-name";name.textContent=product.title||"Product";
+  const price=document.createElement("strong");price.textContent=money(product.price);
+  const category=document.createElement("small");category.textContent=product.category||"General";
+  link.append(name,price,category);host.appendChild(link);
+ });
+}
+async function loadRelatedProducts(item) {
+ const section=document.getElementById("relatedProducts");
+ let matches=[];
+ if(item.category){
+  const sameCategory=await db.from("listings").select("id,title,price,category,location,image_url").eq("status","approved").eq("listing_type","product").eq("category",item.category).neq("id",item.id).order("created_at",{ascending:false}).limit(8);
+  if(sameCategory.error){section.textContent="More products could not be loaded right now.";return;}
+  matches=sameCategory.data||[];
+ }
+ if(matches.length<8){
+  const others=await db.from("listings").select("id,title,price,category,location,image_url").eq("status","approved").eq("listing_type","product").neq("id",item.id).order("created_at",{ascending:false}).limit(12);
+  if(others.error&&matches.length===0){section.textContent="More products could not be loaded right now.";return;}
+  const seen=new Set(matches.map(product=>String(product.id)));
+  for(const product of (others.data||[])){
+   if(!seen.has(String(product.id))){matches.push(product);seen.add(String(product.id));}
+   if(matches.length===8)break;
+  }
+ }
+ renderRelatedProducts(matches.slice(0,8),section);
+}
+async function loadProduct(){
+ if(!id){root.textContent="No product was selected. Please return to shopping.";return;}
+ const {data:item,error}=await db.from("listings").select("id,title,description,price,category,location,image_url").eq("id",id).eq("status","approved").eq("listing_type","product").maybeSingle();
+ if(error||!item){root.textContent="This product is unavailable or could not be loaded. Please return to shopping.";return;}
+ document.title=(item.title||"Product")+" | DAVIMART";
+ root.className="product-layout";
+ root.innerHTML="";
+ const gallery=document.createElement("section");gallery.className="gallery";
+ if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt=item.title||"Product image";gallery.appendChild(img);}
+ else gallery.textContent="No product image available";
+ const panel=document.createElement("section");panel.className="panel";
+ const title=document.createElement("h1");title.textContent=item.title||"Product";
+ const price=document.createElement("div");price.className="price";price.textContent=money(item.price);
+ const meta=document.createElement("div");meta.className="meta";meta.textContent=(item.category||"General")+" · "+(item.location||"Nigeria");
+ const rule=document.createElement("div");rule.className="rule";
+ const descTitle=document.createElement("h2");descTitle.textContent="Product description";
+ const desc=document.createElement("div");desc.className="description";desc.textContent=item.description||"The seller has not provided a description yet.";
+ const delivery=document.createElement("div");delivery.className="info";delivery.textContent="Delivery: Contact the seller for delivery options and charges. Delivery details will be shown here when DAVIMART checkout is introduced.";
+ const actions=document.createElement("div");actions.className="actions";
+ const cart=document.createElement("button");cart.className="cart";cart.textContent="Add to Cart";cart.disabled=true;cart.title="Shopping cart is being built next.";
+ const buy=document.createElement("button");buy.className="buy";buy.textContent="Buy Now";buy.disabled=true;buy.title="Checkout is being built after the product page.";
+ actions.append(cart,buy);
+ panel.append(title,price,meta,rule,descTitle,desc,delivery,actions);
+ root.append(gallery,panel);
+
+ const below=document.createElement("div");below.className="below-product";
+ const ratings=document.createElement("section");ratings.className="section-panel";
+ const ratingHeading=document.createElement("div");ratingHeading.className="section-heading";
+ const ratingTitle=document.createElement("h2");ratingTitle.textContent="Ratings & Reviews";
+ ratingHeading.appendChild(ratingTitle);
+ const ratingEmpty=document.createElement("div");ratingEmpty.className="rating-empty";
+ ratingEmpty.textContent="No customer ratings yet. Be the first to share your experience when DAVIMART reviews are available.";
+ ratings.append(ratingHeading,ratingEmpty);
+ const related=document.createElement("section");related.className="section-panel";
+ related.id="moreProductsSection";
+ const relatedHeading=document.createElement("div");relatedHeading.className="section-heading";
+ const relatedTitle=document.createElement("h2");relatedTitle.textContent="More products you may like";
+ relatedHeading.appendChild(relatedTitle);
+ const relatedGrid=document.createElement("div");relatedGrid.id="relatedProducts";relatedGrid.className="related-grid";
+ related.append(relatedHeading,relatedGrid);
+ below.append(ratings,related);
+ document.querySelector("main").appendChild(below);
+ loadRelatedProducts(item);
+}
+loadProduct();
+</script>
+</body>
+</html>

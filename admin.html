@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071f50">
+<title>DAVIMART Admin Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--navy:#071f50;--blue:#0b56c5;--gold:#ffc400;--ink:#102044;--muted:#65728a;--bg:#f4f6fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px Arial,sans-serif;color:var(--ink)}
+header{background:linear-gradient(110deg,#061b48,#092b69);color:#fff;padding:18px clamp(16px,4vw,48px);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-weight:900;font-size:23px}.brand span{color:var(--gold)}header small{display:block;color:#dbe7ff;font-size:11px;margin-top:4px}
+button,a.btn{border:0;border-radius:9px;padding:12px 16px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
+.btn-gold{background:var(--gold);color:var(--navy)}.btn-light{background:#fff;color:var(--navy);border:1px solid #dbe2ed}
+main{max-width:1100px;margin:28px auto;padding:0 16px}
+.welcome{margin-bottom:22px}.welcome h1{margin:0 0 7px;color:var(--navy);font-size:28px}.welcome p{margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px}
+aside,.panel,.stat{background:#fff;border:1px solid #e7ebf2;border-radius:15px;box-shadow:0 5px 18px #1020440a}
+aside{padding:14px;height:max-content}aside button{width:100%;text-align:left;background:transparent;color:var(--ink);margin:3px 0}aside button.active{background:#edf3ff;color:var(--blue)}
+.content{min-width:0}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}.stat{padding:17px}.stat b{display:block;color:var(--navy);font-size:14px}.stat span{display:block;color:var(--muted);font-size:12px;margin-top:7px}
+.panel{padding:22px;margin-bottom:16px}.panel h2{margin:0 0 8px;color:var(--navy);font-size:20px}.panel p{color:var(--muted);line-height:1.6}
+.drop{border:2px dashed #c7d3e6;border-radius:13px;padding:22px;text-align:center;background:#f9fbff}
+input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-top:14px}#previewGrid img{width:100%;height:100px;object-fit:cover;border-radius:9px;background:#e7edf6}#bannerGallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:16px}.banner-card{border:1px solid #e2e8f1;border-radius:11px;padding:9px;min-width:0}.banner-card img{width:100%;height:105px;object-fit:cover;border-radius:7px}.banner-card small{display:block;overflow-wrap:anywhere;color:var(--muted);margin:7px 0}.banner-card button{padding:8px 10px;background:#fff0f0;color:#a32929}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}#status{font-weight:700;overflow-wrap:anywhere}
+.notice{padding:13px;border-radius:10px;background:#fff7df;color:#725400;font-size:13px;line-height:1.5}
+
+.admin-feature[hidden]{display:none!important}
+.content-edit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.content-edit-grid input,.content-edit-grid textarea{border:1px solid #dbe2ed;border-radius:8px}
+.admin-table-wrap{overflow-x:auto;margin-top:14px}
+.admin-table{width:100%;border-collapse:collapse;min-width:560px;font-size:13px}
+.admin-table th,.admin-table td{padding:11px 9px;border-bottom:1px solid #e8edf4;text-align:left;vertical-align:top}
+.admin-table th{color:#52627b;background:#f7f9fc}
+.admin-table td button{padding:8px 10px;margin:2px;font-size:12px}
+.action-approve{background:#e7f7ee;color:#176b3a}.action-reject{background:#fff0f0;color:#a32929}
+.status-pill{display:inline-block;padding:4px 8px;border-radius:20px;background:#edf2fa;font-size:11px}
+
+.hidden{display:none!important}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}aside{display:flex;gap:6px;overflow:auto}aside button{white-space:nowrap;width:auto}.panel{padding:17px}header{align-items:flex-start;flex-direction:column}}
+
+#davitechBannerPreview{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-top:14px}
+#davitechBannerPreview img,#davitechBannerPreview video{width:100%;height:100px;object-fit:cover;border-radius:9px;background:#e7edf6}
+.banner-card video{width:100%;height:105px;object-fit:cover;border-radius:7px;background:#e7edf6}
+</style>
+</head>
+<body>
+<header><div class="brand">DAVI<span>MART</span><small>PRIVATE ADMIN CONSOLE</small></div><a class="btn btn-light" href="index.html">← Back to shop</a></header>
+<main>
+<div id="checking" class="panel">Checking administrator access…</div>
+<div id="denied" class="panel hidden"><h2>Access restricted</h2><p>This page is for the DAVIMART administrator only. Sign in with the authorized administrator account.</p><div class="actions"><a class="btn btn-gold" href="index.html">Go to DAVIMART sign in</a></div></div>
+<div id="dashboard" class="hidden">
+<div class="welcome"><h1>Admin Dashboard</h1><p>Welcome back. Manage your DAVIMART marketplace from one place.</p></div>
+<div class="grid">
+<aside>
+<button class="active" type="button" data-panel="overview">▣ Overview</button>
+<button type="button" data-panel="usersPanel">👥 Users & sellers</button>
+<button type="button" data-panel="listingsPanel">▤ Listings review</button>
+<button type="button" data-panel="notifyPanel">🔔 Notifications</button>
+<button type="button" data-panel="productUploadPanel">🛍️ Add product</button>
+<button type="button" id="bannerNav" data-panel="bannerPanel">▧ Homepage banner</button>
+<button type="button" data-panel="flashSalePanel">⚡ Flash sale images</button>
+ <button type="button" data-panel="davitechBannerPanel">🟦 DAVITECH banner</button>
+</aside>
+<div class="content">
+<div class="stats">
+<div class="stat"><b>Admin access</b><span>Authorized account</span></div>
+<div class="stat"><b>Homepage banner</b><span>Manage live promotion</span></div>
+<div class="stat"><b>Marketplace</b><span>DAVIMART</span></div>
+</div>
+<section class="panel" id="overview"><h2>Welcome to your control centre</h2><p>Use the Homepage banner section to choose an image, preview it, and publish it to the DAVIMART homepage. Other management tools will be added one feature at a time after testing.</p><button class="btn btn-gold" id="openBanner">Manage homepage banner</button></section>
+
+<section class="panel admin-feature" id="usersPanel" hidden>
+<h2>Users & seller applications</h2>
+<p>Review accounts and approve or reject seller applications. Account access is protected by the admin-only database rules.</p>
+<div class="actions"><button class="btn btn-light" id="refreshUsers">Refresh users</button></div>
+<div id="usersTable">Loading users…</div>
+</section>
+<section class="panel admin-feature" id="listingsPanel" hidden>
+<h2>Product & property review</h2>
+<p>Review submitted listings before they appear publicly. You can approve or reject each submission.</p>
+<div class="actions"><button class="btn btn-light" id="refreshListings">Refresh listings</button></div>
+<div id="listingsTable">Loading listings…</div>
+</section>
+<section class="panel admin-feature" id="notifyPanel" hidden>
+<h2>Send a user notification</h2>
+<p>Send an in-app message to a registered DAVIMART user.</p>
+<label for="notifyUser">Recipient</label><select id="notifyUser" style="display:block;width:100%;padding:12px;margin:8px 0 14px;border:1px solid #dbe2ed;border-radius:8px"><option value="">Choose a user</option></select>
+<input id="notifyTitle" maxlength="100" placeholder="Notification title" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #dbe2ed;border-radius:8px">
+<textarea id="notifyMessage" maxlength="1000" placeholder="Write your message" style="width:100%;min-height:100px;padding:12px;border:1px solid #dbe2ed;border-radius:8px"></textarea>
+<div class="actions"><button class="btn btn-gold" id="sendNotification">Send notification</button></div>
+<p id="notifyStatus" role="status"></p>
+</section>
+<section class="panel admin-feature" id="productUploadPanel" hidden>
+<h2>Add a product to DAVIMART</h2>
+<p>Products published here appear immediately in the marketplace. Add clear product details and one good photo.</p>
+<form id="adminProductForm">
+<label for="adminProductTitle">Product name</label><input id="adminProductTitle" required maxlength="120" placeholder="e.g. Android smartphone">
+<label for="adminProductDescription">Description</label><textarea id="adminProductDescription" required maxlength="3000" placeholder="Describe the product"></textarea>
+<label for="adminProductPrice">Price (₦)</label><input id="adminProductPrice" type="number" min="0" step="0.01" required placeholder="Price in Naira">
+<label for="adminProductCategory">Category</label><input id="adminProductCategory" required placeholder="e.g. Phones & Accessories">
+<label for="adminProductLocation">Location</label><input id="adminProductLocation" placeholder="e.g. Ikorodu, Lagos">
+<label for="adminProductImage">Product photo (JPG, PNG or WEBP; max 5 MB)</label><input id="adminProductImage" type="file" accept="image/jpeg,image/png,image/webp">
+<div id="adminProductPreview"></div>
+<button class="btn btn-gold" id="adminProductPublish" type="submit">Publish product</button>
+<p id="adminProductStatus" role="status"></p>
+</form>
+</section>
+<section class="panel" id="bannerPanel"><h2>Homepage banner manager</h2><p>Upload several promotional banners together. DAVIMART will display them in a full-size rotating slideshow on the homepage. Supported: JPG, PNG, WEBP, GIF, MP4 or WEBM, maximum 10 MB per file.</p>
+<div class="drop"><b>Select promotional images or videos</b><br><input id="bannerFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple><div id="previewGrid"></div></div>
+<div class="actions"><button class="btn btn-gold" id="publish">Upload selected banners</button><button class="btn btn-light" id="removeAll">Remove all and restore default artwork</button></div>
+<p id="status" role="status">Choose images or videos to preview them before uploading.</p>
+<div class="notice">Each banner fills the promotional image area. If you upload more than one, they rotate automatically every 5 seconds. You can remove individual banners below.</div>
+<h2 style="margin-top:24px">Published homepage banners</h2><div id="bannerGallery">Loading banners…</div>
+</section>
+<section class="panel admin-feature" id="davitechBannerPanel" hidden>
+ <h2>DAVITECH promotional banner</h2>
+ <p>Manage the separate DAVITECH banner shown on the DAVIMART homepage. This does not change the main DAVIMART banner. Supported: JPG, PNG, WEBP, GIF, MP4 or WEBM, maximum 10 MB per file.</p>
+ <div class="drop"><b>Select DAVITECH banner images or videos</b><br><input id="davitechBannerFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple><div id="davitechBannerPreview"></div></div>
+ <div class="actions"><button class="btn btn-gold" id="uploadDavitechBanner" type="button">Upload DAVITECH media</button></div>
+ <p id="davitechBannerStatus" role="status">Choose images or videos to preview them before uploading.</p>
+ <h2 style="margin-top:24px">Published DAVITECH banner media</h2><div id="davitechBannerGallery">Loading media…</div>
+</section>
+<section class="panel admin-feature" id="flashSalePanel" hidden>
+<h2>Flash sale images</h2>
+<p>Upload up to four product or deal images for the Flash Sale section on the DAVIMART homepage. Supported formats: JPG, PNG or WEBP. Maximum 5 MB per image. Images appear in the order uploaded.</p>
+<div class="drop"><b>Choose flash sale images</b><br><input id="flashSaleFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple><div id="flashSalePreview"></div></div>
+<div class="actions"><button class="btn btn-gold" id="uploadFlashSale" type="button">Upload flash sale images</button></div>
+<p id="flashSaleStatus" role="status">Choose up to four images.</p>
+<h2 style="margin-top:26px">Flash sale countdown settings</h2>
+<p>Choose the exact date and local time when this sale should end. The homepage countdown will use this setting.</p>
+<label for="flashSaleEndTime">Sale end date and time</label>
+<input id="flashSaleEndTime" type="datetime-local" style="display:block;width:100%;max-width:420px;padding:12px;margin:8px 0 12px;border:1px solid #dbe2ed;border-radius:8px">
+<div class="actions"><button class="btn btn-gold" id="saveFlashSaleCountdown" type="button">Save countdown</button><button class="btn btn-light" id="clearFlashSaleCountdown" type="button">Clear countdown</button></div>
+<p id="flashSaleCountdownStatus" role="status">Loading countdown settings…</p>
+<h2 style="margin-top:24px">Published flash sale images</h2><div id="flashSaleGallery">Loading images…</div>
+</section>
+</div></div></div>
+</main>
+<script>
+const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
+const ADMIN_ID="4aa054c0-97c2-45c3-8c3a-9bf87f2c365c";
+const BUCKET="homepage-banners";
+const LISTING_BUCKET="listing-images";
+const checking=document.getElementById("checking"),denied=document.getElementById("denied"),dashboard=document.getElementById("dashboard");
+(async()=>{
+ const {data:{user},error}=await db.auth.getUser();
+ checking.classList.add("hidden");
+ if(error||!user||user.id!==ADMIN_ID){denied.classList.remove("hidden");return;}
+ dashboard.classList.remove("hidden");
+})();
+const bannerPanel=document.getElementById("bannerPanel");
+document.getElementById("openBanner").onclick=()=>bannerPanel.scrollIntoView({behavior:"smooth"});
+document.getElementById("bannerNav").onclick=()=>bannerPanel.scrollIntoView({behavior:"smooth"});
+const fileInput=document.getElementById("bannerFile");
+const previewGrid=document.getElementById("previewGrid");
+const status=document.getElementById("status");
+const gallery=document.getElementById("bannerGallery");
+const allowedTypes=["image/jpeg","image/png","image/webp","image/gif","video/mp4","video/webm"];
+fileInput.onchange=()=>{
+  previewGrid.innerHTML="";
+  const files=Array.from(fileInput.files||[]);
+  for(const file of files){
+    if(!allowedTypes.includes(file.type)||file.size>10*1024*1024){
+      status.textContent="One or more files are not supported or exceed 10 MB. Use JPG, PNG, WEBP, GIF, MP4 or WEBM files under 10 MB each.";
+      fileInput.value="";previewGrid.innerHTML="";return;
+    }
+    const url=URL.createObjectURL(file);
+    if(file.type.startsWith("video/")){const video=document.createElement("video");video.src=url;video.muted=true;video.controls=true;video.playsInline=true;video.style.cssText="width:100%;height:100px;object-fit:cover;border-radius:9px;background:#e7edf6";previewGrid.appendChild(video);}
+    else{const img=document.createElement("img");img.alt=file.name;img.src=url;previewGrid.appendChild(img);}
+  }
+  status.textContent=files.length?files.length+" banner image(s) ready to upload.":"Choose one or more images.";
+};
+async function loadBannerGallery(){
+  gallery.textContent="Loading banners…";
+  const {data:files,error}=await db.storage.from(BUCKET).list("",{limit:100});
+  if(error){gallery.textContent="Could not load banners: "+error.message;return;}
+  const banners=(files||[]).filter(f=>f.name==="homepage-banner"||f.name.startsWith("slide-"))
+    .sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
+  gallery.innerHTML="";
+  if(!banners.length){gallery.textContent="No custom banners published. The default DAVIMART artwork is showing.";return;}
+  for(const file of banners){
+    const {data}=db.storage.from(BUCKET).getPublicUrl(file.name);
+    const card=document.createElement("div");card.className="banner-card";
+    const mediaUrl=data.publicUrl+"?v="+encodeURIComponent(file.updated_at||file.created_at||Date.now());
+    const isVideo=/\.(mp4|webm)$/i.test(file.name);
+    let img;
+    if(isVideo){img=document.createElement("video");img.src=mediaUrl;img.muted=true;img.controls=true;img.playsInline=true;}
+    else{img=document.createElement("img");img.src=mediaUrl;img.alt="Published homepage banner";}
+    const label=document.createElement("small");label.textContent=file.name;
+    const removeButton=document.createElement("button");removeButton.type="button";removeButton.textContent="Remove banner";
+    removeButton.onclick=()=>removeOneBanner(file.name);
+    card.append(img,label,removeButton);gallery.appendChild(card);
+  }
+}
+async function removeOneBanner(name){
+  const {data:{user}}=await db.auth.getUser();
+  if(!user||user.id!==ADMIN_ID){status.textContent="Access denied.";return;}
+  if(!confirm("Remove this homepage banner?"))return;
+  const {error}=await db.storage.from(BUCKET).remove([name]);
+  status.textContent=error?"Could not remove banner: "+error.message:"Banner removed.";
+  await loadBannerGallery();
+}
+
+const davitechBannerFiles=document.getElementById("davitechBannerFiles"),davitechBannerPreview=document.getElementById("davitechBannerPreview"),davitechBannerStatus=document.getElementById("davitechBannerStatus"),davitechBannerGallery=document.getElementById("davitechBannerGallery");
+const davitechBannerTypes=["image/jpeg","image/png","image/webp","image/gif","video/mp4","video/webm"];
+davitechBannerFiles.onchange=()=>{davitechBannerPreview.innerHTML="";const files=Array.from(davitechBannerFiles.files||[]);for(const file of files){if(!davitechBannerTypes.includes(file.type)||file.size>10*1024*1024){davitechBannerStatus.textContent="Use JPG, PNG, WEBP, GIF, MP4 or WEBM files under 10 MB each.";davitechBannerFiles.value="";davitechBannerPreview.innerHTML="";return;}const url=URL.createObjectURL(file);if(file.type.startsWith("video/")){const v=document.createElement("video");v.src=url;v.muted=true;v.controls=true;v.playsInline=true;davitechBannerPreview.appendChild(v);}else{const img=document.createElement("img");img.src=url;img.alt=file.name;davitechBannerPreview.appendChild(img);}}davitechBannerStatus.textContent=files.length?files.length+" DAVITECH media file(s) selected.":"Choose images or videos.";};
+async function loadDavitechBannerGallery(){davitechBannerGallery.textContent="Loading DAVITECH media…";const {data:files,error}=await db.storage.from(BUCKET).list("",{limit:100});if(error){davitechBannerGallery.textContent="Could not load media: "+error.message;return;}const media=(files||[]).filter(f=>f.name.startsWith("davitech-banner-")&&/\.(jpg|jpeg|png|webp|gif|mp4|webm)$/i.test(f.name)).sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));davitechBannerGallery.innerHTML="";if(!media.length){davitechBannerGallery.textContent="No DAVITECH banner media uploaded yet.";return;}for(const file of media){const url=db.storage.from(BUCKET).getPublicUrl(file.name).data.publicUrl+"?v="+encodeURIComponent(file.updated_at||file.created_at||Date.now());const card=document.createElement("div");card.className="banner-card";const video=/\.(mp4|webm)$/i.test(file.name);const preview=document.createElement(video?"video":"img");preview.src=url;if(video){preview.muted=true;preview.controls=true;preview.playsInline=true;}else preview.alt="DAVITECH banner image";const label=document.createElement("small");label.textContent=file.name;const remove=document.createElement("button");remove.type="button";remove.textContent="Remove media";remove.onclick=async()=>{const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_ID){davitechBannerStatus.textContent="Access denied.";return;}if(!confirm("Remove this DAVITECH banner media?"))return;const {error}=await db.storage.from(BUCKET).remove([file.name]);davitechBannerStatus.textContent=error?"Could not remove media: "+error.message:"DAVITECH banner media removed.";await loadDavitechBannerGallery();};card.append(preview,label,remove);davitechBannerGallery.appendChild(card);}}
+document.getElementById("uploadDavitechBanner").onclick=async()=>{const files=Array.from(davitechBannerFiles.files||[]);if(!files.length){davitechBannerStatus.textContent="Choose at least one image or video first.";return;}const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_ID){davitechBannerStatus.textContent="Access denied.";return;}davitechBannerStatus.textContent="Uploading DAVITECH banner media…";let uploaded=0;for(const file of files){const ext=file.name.split(".").pop().toLowerCase(),path="davitech-banner-"+Date.now()+"-"+Math.random().toString(36).slice(2,9)+"."+ext;const {error}=await db.storage.from(BUCKET).upload(path,file,{upsert:false,contentType:file.type,cacheControl:"0"});if(error){davitechBannerStatus.textContent="Uploaded "+uploaded+" of "+files.length+". Upload failed: "+error.message;await loadDavitechBannerGallery();return;}uploaded++;}davitechBannerStatus.textContent=uploaded+" DAVITECH media file(s) uploaded successfully.";davitechBannerFiles.value="";davitechBannerPreview.innerHTML="";await loadDavitechBannerGallery();};
+
+const flashSaleFiles=document.getElementById("flashSaleFiles");
+const flashSalePreview=document.getElementById("flashSalePreview");
+const flashSaleStatus=document.getElementById("flashSaleStatus");
+const flashSaleGallery=document.getElementById("flashSaleGallery");
+const flashSaleTypes=["image/jpeg","image/png","image/webp"];
+flashSaleFiles.onchange=()=>{
+  flashSalePreview.innerHTML="";
+  const files=Array.from(flashSaleFiles.files||[]);
+  if(files.length>4){flashSaleStatus.textContent="Choose no more than four images at a time.";flashSaleFiles.value="";return;}
+  for(const file of files){
+    if(!flashSaleTypes.includes(file.type)||file.size>5*1024*1024){
+      flashSaleStatus.textContent="Use JPG, PNG or WEBP images under 5 MB each.";
+      flashSaleFiles.value="";flashSalePreview.innerHTML="";return;
+    }
+    const img=document.createElement("img");
+    img.src=URL.createObjectURL(file);img.alt=file.name;
+    img.style.cssText="width:110px;height:90px;object-fit:cover;border-radius:9px;margin:6px";
+    flashSalePreview.appendChild(img);
+  }
+  flashSaleStatus.textContent=files.length?files.length+" image(s) selected.":"Choose up to four images.";
+};
+async function loadFlashSaleGallery(){
+  flashSaleGallery.textContent="Loading images…";
+  const {data:files,error}=await db.storage.from(BUCKET).list("",{limit:100});
+  if(error){flashSaleGallery.textContent="Could not load flash sale images: "+error.message;return;}
+  const images=(files||[]).filter(f=>f.name.startsWith("flash-sale-")&&/\.(jpg|jpeg|png|webp)$/i.test(f.name))
+    .sort((x,y)=>new Date(x.created_at||0)-new Date(y.created_at||0));
+  flashSaleGallery.innerHTML="";
+  if(!images.length){flashSaleGallery.textContent="No flash sale images uploaded yet.";return;}
+  for(const file of images){
+    const url=db.storage.from(BUCKET).getPublicUrl(file.name).data.publicUrl;
+    const card=document.createElement("div");card.className="banner-card";
+    const img=document.createElement("img");img.src=url+"?v="+encodeURIComponent(file.updated_at||file.created_at||Date.now());img.alt="Flash sale image";
+    const label=document.createElement("small");label.textContent=file.name;
+    const remove=document.createElement("button");remove.type="button";remove.textContent="Remove image";
+    remove.onclick=async()=>{
+      const {data:{user}}=await db.auth.getUser();
+      if(!user||user.id!==ADMIN_ID){flashSaleStatus.textContent="Access denied.";return;}
+      if(!confirm("Remove this flash sale image?"))return;
+      const {error}=await db.storage.from(BUCKET).remove([file.name]);
+      flashSaleStatus.textContent=error?"Could not remove image: "+error.message:"Flash sale image removed.";
+      await loadFlashSaleGallery();
+    };
+    card.append(img,label,remove);flashSaleGallery.appendChild(card);
+  }
+}
+document.getElementById("uploadFlashSale").onclick=async()=>{
+  const files=Array.from(flashSaleFiles.files||[]);
+  if(!files.length){flashSaleStatus.textContent="Choose at least one image first.";return;}
+  const {data:{user}}=await db.auth.getUser();
+  if(!user||user.id!==ADMIN_ID){flashSaleStatus.textContent="Access denied.";return;}
+  const {data:existing,error:listError}=await db.storage.from(BUCKET).list("",{limit:100});
+  if(listError){flashSaleStatus.textContent="Could not check existing images: "+listError.message;return;}
+  const current=(existing||[]).filter(f=>f.name.startsWith("flash-sale-")&&/\.(jpg|jpeg|png|webp)$/i.test(f.name));
+  if(current.length+files.length>4){flashSaleStatus.textContent="The homepage supports four flash sale images. Remove an existing image first.";return;}
+  flashSaleStatus.textContent="Uploading images…";
+  let uploaded=0;
+  for(const file of files){
+    const ext=file.name.split(".").pop().toLowerCase();
+    const path="flash-sale-"+Date.now()+"-"+Math.random().toString(36).slice(2,9)+"."+ext;
+    const {error}=await db.storage.from(BUCKET).upload(path,file,{upsert:false,contentType:file.type,cacheControl:"0"});
+    if(error){flashSaleStatus.textContent="Uploaded "+uploaded+" of "+files.length+". Upload failed: "+error.message;await loadFlashSaleGallery();return;}
+    uploaded++;
+  }
+  flashSaleStatus.textContent=uploaded+" flash sale image(s) uploaded successfully.";
+  flashSaleFiles.value="";flashSalePreview.innerHTML="";
+  await loadFlashSaleGallery();
+};
+const flashSaleEndInput=document.getElementById("flashSaleEndTime");
+const flashSaleCountdownStatus=document.getElementById("flashSaleCountdownStatus");
+const FLASH_COUNTDOWN_FILE="flash-sale-countdown.png";
+async function loadFlashSaleCountdownSettings(){
+  if(!flashSaleEndInput)return;
+  flashSaleCountdownStatus.textContent="Loading countdown settings…";
+  const url=db.storage.from(BUCKET).getPublicUrl(FLASH_COUNTDOWN_FILE).data.publicUrl;
+  try{
+    const response=await fetch(url+"?v="+Date.now(),{cache:"no-store"});
+    if(response.status===404){flashSaleCountdownStatus.textContent="No countdown has been scheduled yet.";return;}
+    if(!response.ok)throw new Error("Could not load saved settings.");
+    const config=await response.json();
+    const date=new Date(config.endsAt);
+    if(!Number.isFinite(date.getTime()))throw new Error("Saved countdown date is invalid.");
+    const local=new Date(date.getTime()-date.getTimezoneOffset()*60000);
+    flashSaleEndInput.value=local.toISOString().slice(0,16);
+    flashSaleCountdownStatus.textContent="Saved sale end: "+date.toLocaleString();
+  }catch(error){flashSaleCountdownStatus.textContent="Could not load countdown: "+error.message;}
+}
+async function saveFlashSaleCountdown(){
+  const {data:{user}}=await db.auth.getUser();
+  if(!user||user.id!==ADMIN_ID){flashSaleCountdownStatus.textContent="Access denied.";return;}
+  if(!flashSaleEndInput.value){flashSaleCountdownStatus.textContent="Choose the sale end date and time.";return;}
+  const endDate=new Date(flashSaleEndInput.value);
+  if(!Number.isFinite(endDate.getTime())||endDate.getTime()<=Date.now()){flashSaleCountdownStatus.textContent="Choose a future date and time.";return;}
+  flashSaleCountdownStatus.textContent="Saving countdown…";
+  const config={endsAt:endDate.toISOString(),updatedAt:new Date().toISOString()};
+  const file=new Blob([JSON.stringify(config)],{type:"image/png"});
+  const {error}=await db.storage.from(BUCKET).upload(FLASH_COUNTDOWN_FILE,file,{upsert:true,contentType:"image/png",cacheControl:"0"});
+  flashSaleCountdownStatus.textContent=error?"Could not save countdown: "+error.message:"Countdown saved successfully. The homepage will now count down to "+endDate.toLocaleString()+".";
+}
+async function clearFlashSaleCountdown(){
+  const {data:{user}}=await db.auth.getUser();
+  if(!user||user.id!==ADMIN_ID){flashSaleCountdownStatus.textContent="Access denied.";return;}
+  if(!confirm("Clear the scheduled flash sale countdown?"))return;
+  const {error}=await db.storage.from(BUCKET).remove([FLASH_COUNTDOWN_FILE]);
+  flashSaleCountdownStatus.textContent=error?"Could not clear countdown: "+error.message:"Countdown cleared. The homepage will show that no sale is scheduled.";
+  if(!error)flashSaleEndInput.value="";
+}
+document.getElementById("saveFlashSaleCountdown").onclick=saveFlashSaleCountdown;
+document.getElementById("clearFlashSaleCountdown").onclick=clearFlashSaleCountdown;
+loadFlashSaleCountdownSettings();
+function showAdminPanel(id){
+ document.querySelectorAll(".content > section").forEach(p=>{p.hidden=p.id!==id;});
+ document.querySelectorAll("aside button[data-panel]").forEach(b=>b.classList.toggle("active",b.dataset.panel===id));
+ if(id==="usersPanel") loadUsers();
+ if(id==="listingsPanel") loadListings();
+ if(id==="notifyPanel") loadNotificationRecipients();
+ if(id==="flashSalePanel") loadFlashSaleGallery();
+ if(id==="davitechBannerPanel") loadDavitechBannerGallery();
+}
+document.querySelectorAll("aside button[data-panel]").forEach(b=>b.addEventListener("click",()=>showAdminPanel(b.dataset.panel)));
+document.getElementById("openBanner").onclick=()=>showAdminPanel("bannerPanel");
+document.getElementById("bannerNav").onclick=()=>showAdminPanel("bannerPanel");
+document.getElementById("refreshUsers").onclick=loadUsers;
+document.getElementById("refreshListings").onclick=loadListings;
+
+function cellText(row,value){const td=document.createElement("td");td.textContent=value??"—";row.appendChild(td);return td;}
+function makeTable(target,headers,rows){
+ const host=document.getElementById(target);host.innerHTML="";
+ if(!rows.length){host.textContent="No records found.";return;}
+ const wrap=document.createElement("div");wrap.className="admin-table-wrap";
+ const table=document.createElement("table");table.className="admin-table";
+ const thead=document.createElement("thead"),tr=document.createElement("tr");
+ headers.forEach(h=>{const th=document.createElement("th");th.textContent=h;tr.appendChild(th);});thead.appendChild(tr);table.appendChild(thead);
+ const tbody=document.createElement("tbody");
+ rows.forEach(row=>tbody.appendChild(row));table.appendChild(tbody);wrap.appendChild(table);host.appendChild(wrap);
+}
+document.getElementById("adminProductImage").onchange=()=>{
+ const f=document.getElementById("adminProductImage").files[0];
+ const p=document.getElementById("adminProductPreview");p.innerHTML="";
+ if(!f)return;
+ if(!["image/jpeg","image/png","image/webp"].includes(f.type)||f.size>5*1024*1024){document.getElementById("adminProductStatus").textContent="Choose JPG, PNG or WEBP under 5 MB.";document.getElementById("adminProductImage").value="";return;}
+ const img=document.createElement("img");img.src=URL.createObjectURL(f);img.style.cssText="max-width:180px;max-height:150px;border-radius:10px;margin:10px 0";p.appendChild(img);
+};
+document.getElementById("adminProductForm").onsubmit=async(e)=>{
+ e.preventDefault();
+ const status=document.getElementById("adminProductStatus"),file=document.getElementById("adminProductImage").files[0];
+ const {data:{user}}=await db.auth.getUser();
+ if(!user||user.id!==ADMIN_ID){status.textContent="Access denied.";return;}
+ status.textContent="Publishing product…";
+ let imageUrl=null;
+ if(file){
+  if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>5*1024*1024){status.textContent="Choose JPG, PNG or WEBP under 5 MB.";return;}
+  const ext=file.name.split(".").pop().toLowerCase(),path=user.id+"/"+crypto.randomUUID()+"."+ext;
+  const up=await db.storage.from(LISTING_BUCKET).upload(path,file,{contentType:file.type,upsert:false});
+  if(up.error){status.textContent="Photo upload failed: "+up.error.message;return;}
+  imageUrl=db.storage.from(LISTING_BUCKET).getPublicUrl(path).data.publicUrl;
+ }
+ const {error}=await db.from("listings").insert({
+  seller_id:user.id,title:document.getElementById("adminProductTitle").value.trim(),
+  description:document.getElementById("adminProductDescription").value.trim(),
+  price:Number(document.getElementById("adminProductPrice").value),
+  category:document.getElementById("adminProductCategory").value.trim(),
+  listing_type:"product",location:document.getElementById("adminProductLocation").value.trim()||"Nigeria",
+  image_url:imageUrl,status:"approved"
+ });
+ status.textContent=error?"Could not publish product: "+error.message:"Product published successfully and is now live on DAVIMART.";
+ if(!error){document.getElementById("adminProductForm").reset();document.getElementById("adminProductPreview").innerHTML="";}
+};
+async function loadUsers(){
+ const host=document.getElementById("usersTable");host.textContent="Loading users…";
+ const {data,error}=await db.from("profiles").select("id,full_name,email,role,approval_status,seller_status,created_at").order("created_at",{ascending:false}).limit(200);
+ if(error){host.textContent="Could not load users: "+error.message;return;}
+ const rows=(data||[]).map(u=>{
+  const tr=document.createElement("tr");cellText(tr,u.full_name||"Unnamed");cellText(tr,u.email||"—");cellText(tr,u.role);cellText(tr,u.seller_status);
+  const action= document.createElement("td");
+  if(u.seller_status==="pending"){
+   const yes=document.createElement("button");yes.className="action-approve";yes.textContent="Approve seller";yes.onclick=()=>changeSeller(u.id,"approved");
+   const no=document.createElement("button");no.className="action-reject";no.textContent="Reject";no.onclick=()=>changeSeller(u.id,"rejected");action.append(yes,no);
+  } else action.textContent="No pending action";
+  tr.appendChild(action);return tr;
+ });
+ makeTable("usersTable",["Name","Email","Role","Seller status","Action"],rows);
+}
+async function changeSeller(id,statusValue){
+ const label=statusValue==="approved"?"approve":"reject";
+ if(!confirm("Are you sure you want to "+label+" this seller application?"))return;
+ const {error}=await db.from("profiles").update(statusValue==="approved"?{seller_status:statusValue,role:"seller"}:{seller_status:statusValue}).eq("id",id);
+ if(error){alert("Could not update seller: "+error.message);return;}
+ await db.from("notifications").insert({user_id:id,title:"Seller application update",message:statusValue==="approved"?"Your DAVIMART seller application has been approved. You can now submit listings.":"Your DAVIMART seller application was not approved. You may apply again."});
+ await loadUsers();
+}
+async function loadListings(){
+ const host=document.getElementById("listingsTable");host.textContent="Loading listings…";
+ const {data,error}=await db.from("listings").select("id,seller_id,title,category,listing_type,price,location,status,created_at").order("created_at",{ascending:false}).limit(200);
+ if(error){host.textContent="Could not load listings: "+error.message;return;}
+ const rows=(data||[]).map(item=>{
+  const tr=document.createElement("tr");cellText(tr,item.title);cellText(tr,item.listing_type);cellText(tr,item.category);cellText(tr,item.price==null?"—":"₦"+Number(item.price).toLocaleString());cellText(tr,item.status);
+  const td=document.createElement("td");
+  if(item.status==="pending"){
+   const yes=document.createElement("button");yes.className="action-approve";yes.textContent="Approve";yes.onclick=()=>moderateListing(item.id,"approved");
+   const no=document.createElement("button");no.className="action-reject";no.textContent="Reject";no.onclick=()=>moderateListing(item.id,"rejected");td.append(yes,no);
+  }else td.textContent="Reviewed";
+  tr.appendChild(td);return tr;
+ });
+ makeTable("listingsTable",["Title","Type","Category","Price","Status","Action"],rows);
+}
+async function moderateListing(id,statusValue){
+ if(!confirm("Set this listing to "+statusValue+"?"))return;
+ const {error}=await db.from("listings").update({status:statusValue}).eq("id",id);
+ if(error){alert("Could not update listing: "+error.message);return;}
+ await loadListings();
+}
+async function loadNotificationRecipients(){
+ const select=document.getElementById("notifyUser");select.innerHTML='<option value="">Choose a user</option>';
+ const {data,error}=await db.from("profiles").select("id,full_name,email").order("created_at",{ascending:false}).limit(200);
+ if(error){document.getElementById("notifyStatus").textContent="Could not load recipients: "+error.message;return;}
+ (data||[]).forEach(u=>{const o=document.createElement("option");o.value=u.id;o.textContent=(u.full_name||u.email||u.id)+" — "+(u.email||"");select.appendChild(o);});
+}
+document.getElementById("sendNotification").onclick=async()=>{
+ const userId=document.getElementById("notifyUser").value,title=document.getElementById("notifyTitle").value.trim(),message=document.getElementById("notifyMessage").value.trim(),status=document.getElementById("notifyStatus");
+ if(!userId||!title||!message){status.textContent="Choose a recipient and enter both a title and message.";return;}
+ status.textContent="Sending…";
+ const {error}=await db.from("notifications").insert({user_id:userId,title,message});
+ status.textContent=error?"Could not send notification: "+error.message:"Notification sent successfully.";
+ if(!error){document.getElementById("notifyTitle").value="";document.getElementById("notifyMessage").value="";}
+};
+
+document.getElementById("publish").onclick=async()=>{
+  const files=Array.from(fileInput.files||[]);
+  if(!files.length){status.textContent="Choose at least one image or video first.";return;}
+  const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_ID){status.textContent="Access denied.";return;}
+  status.textContent="Uploading "+files.length+" banner file(s)…";
+  let uploaded=0;
+  for(const file of files){
+    const safeName="slide-"+Date.now()+"-"+Math.random().toString(36).slice(2,9)+"."+file.name.split(".").pop().toLowerCase();
+    const {error}=await db.storage.from(BUCKET).upload(safeName,file,{upsert:false,contentType:file.type,cacheControl:"0"});
+    if(error){status.textContent="Uploaded "+uploaded+" of "+files.length+". Upload error: "+error.message;await loadBannerGallery();return;}
+    uploaded++;
+  }
+  status.textContent=uploaded+" banner file(s) uploaded successfully. They will rotate on the homepage.";
+  fileInput.value="";previewGrid.innerHTML="";await loadBannerGallery();
+};
+document.getElementById("removeAll").onclick=async()=>{
+  const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_ID){status.textContent="Access denied.";return;}
+  if(!confirm("Remove all custom homepage banners and restore the original laptop and phone artwork?"))return;
+  status.textContent="Restoring default artwork…";
+  const {data:files,error:listError}=await db.storage.from(BUCKET).list("",{limit:100});
+  if(listError){status.textContent="Could not list banners: "+listError.message;return;}
+  const names=(files||[]).filter(f=>f.name==="homepage-banner"||f.name.startsWith("slide-")).map(f=>f.name);
+  if(!names.length){status.textContent="Default artwork is already active.";return;}
+  const {error}=await db.storage.from(BUCKET).remove(names);
+  status.textContent=error?"Could not restore default: "+error.message:"All custom banners removed. Default artwork restored.";
+  await loadBannerGallery();
+};
+loadBannerGallery();
+</script>
+</body></html>
