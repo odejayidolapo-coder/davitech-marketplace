@@ -1249,6 +1249,38 @@ body.dm-modal-open{overflow:hidden}
 #davitech-services .davitech-contact{background:#25d366;color:#062b19;margin-top:0}
 @media(max-width:700px){#davitech-services .davitech-banner-media,#davitech-services .davitech-banner-empty{min-height:175px}#davitech-services .davitech-banner-media img,#davitech-services .davitech-banner-media video{min-height:175px}}
 </style>
+<style>
+/* DAVIMART cart-led brand polish */
+.dm-brand{display:flex;align-items:center;gap:10px;min-width:max-content}
+.dm-brand-mark{width:43px;height:43px;display:grid;place-items:center;border-radius:13px;background:rgba(255,196,0,.12);color:#ffc400;border:1px solid rgba(255,196,0,.35)}
+.dm-brand-mark svg{width:32px;height:32px;display:block}
+.dm-brand-word{display:flex;flex-direction:column;line-height:1;letter-spacing:-.7px}
+.dm-brand-word>span{color:#ffc400;display:inline}
+.dm-brand-word small{font-size:8px;letter-spacing:1.45px;font-weight:800;color:#d6e2f5;margin-top:5px}
+.dm-home-hero{border:1px solid rgba(255,196,0,.18)}
+.dm-primary-cta{transition:transform .2s ease,box-shadow .2s ease}
+.dm-primary-cta:hover{transform:translateY(-2px);box-shadow:0 10px 24px #00133c55}
+@media(max-width:700px){.dm-brand-mark{width:39px;height:39px}.dm-brand-word small{font-size:7px;letter-spacing:1.1px}}
+</style>
+<style>
+/* DAVIMART wordmark refinement */
+.dm-brand{gap:11px}
+.dm-brand-mark{width:48px;height:48px;border-radius:14px;background:#ffc400;color:#071f50;border:0;box-shadow:0 4px 12px #0002}
+.dm-brand-mark svg{width:35px;height:35px}
+.dm-brand-word{gap:0}
+.dm-brand-name{display:block;color:#fff;font-size:clamp(27px,2.5vw,34px);font-weight:1000;line-height:.95;letter-spacing:-1.2px;white-space:nowrap}
+.dm-brand-name>span{color:#ffc400;font-weight:1000}
+.dm-brand-word small{font-size:8px;font-weight:900;letter-spacing:1.7px;margin-top:6px}
+@media(max-width:700px){.dm-brand-mark{width:43px;height:43px}.dm-brand-mark svg{width:32px;height:32px}.dm-brand-name{font-size:29px}}
+</style>
+<style>
+/* Ensure the cart mark contrasts against its gold tile */
+.logo .dm-brand-mark{color:#071f50!important;background:#ffc400!important;border:1px solid #ffd75c!important}
+.logo .dm-brand-mark svg{display:block;visibility:visible;opacity:1}
+</style>
+<style>
+#davimartHeaderCartLogo{padding:5px;background:#ffc400}
+</style>
 </head>
 <body>
 
@@ -1257,7 +1289,10 @@ body.dm-modal-open{overflow:hidden}
 </div>
 
 <header>
-  <a class="logo" href="#home">DAVI<span>MART</span></a>
+  <a class="logo dm-brand" href="#home" aria-label="DAVIMART home">
+    <span class="dm-brand-mark" aria-hidden="true"><img id="davimartHeaderCartLogo" alt="" style="display:none;width:100%;height:100%;object-fit:contain;border-radius:inherit"><svg id="davimartDefaultCartLogo" viewBox="0 0 64 64" role="img" aria-label="DAVIMART shopping cart"><path d="M7 10h7l6.5 31.5a4 4 0 0 0 3.9 3.2h25.8a4 4 0 0 0 3.8-2.8L60 23H18" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 28h32M24 36h27" fill="none" stroke="#9a6b00" stroke-width="3.2" stroke-linecap="round"/><path d="M25 49h24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle cx="27" cy="55" r="4.2" fill="#071f50" stroke="#071f50" stroke-width="1.5"/><circle cx="48" cy="55" r="4.2" fill="#071f50" stroke="#071f50" stroke-width="1.5"/></svg></span>
+    <span class="dm-brand-word"><span class="dm-brand-name">DAVI<span>MART</span></span><small>FAST • RELIABLE • AFFORDABLE</small></span>
+  </a>
   
 <div class="dm-header-search">
   <input id="headerSearchInput" type="search"
@@ -1317,8 +1352,8 @@ body.dm-modal-open{overflow:hidden}
 <section class="dm-home-hero dm-device-hero" aria-label="DAVIMART featured shopping promotion">
   <div class="dm-hero-copy">
     <span class="dm-kicker">WELCOME TO DAVIMART</span>
-    <h1>Shop more.<br><em>Live better.</em></h1>
-    <p>Find the things you love, discover trusted services and explore property opportunities — all in one marketplace.</p>
+    <h1>Everything you need.<br><em>All in one place.</em></h1>
+    <p>Discover great products, shop with confidence, and connect with sellers on DAVIMART — your everyday online marketplace.</p>
     <a class="dm-primary-cta" href="#products">Explore the marketplace <span>→</span></a>
     <a class="dm-primary-cta dm-whatsapp-cta" href="https://wa.me/2349068847614" target="_blank" rel="noopener noreferrer">Chat with us on WhatsApp <span>↗</span></a>
     <div class="dm-hero-highlights"><span>✦ Electronics</span><span>✦ Fashion</span><span>✦ Home &amp; Living</span></div>
@@ -1615,6 +1650,17 @@ const db = window.supabase.createClient(
   "sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p"
 );
 const DAVIMART_ADMIN_ID = "4aa054c0-97c2-45c3-8c3a-9bf87f2c365c";
+const DAVIMART_LOGO_PATH = "davimart-cart-logo";
+(function loadCustomDavimartCartLogo(){
+ const image=document.getElementById("davimartHeaderCartLogo");
+ const fallback=document.getElementById("davimartDefaultCartLogo");
+ if(!image||!fallback||!window.supabase)return;
+ const logoUrl=db.storage.from("homepage-banners").getPublicUrl(DAVIMART_LOGO_PATH).data.publicUrl;
+ image.onload=()=>{image.style.display="block";fallback.style.display="none";};
+ image.onerror=()=>{image.style.display="none";fallback.style.display="block";};
+ image.src=logoUrl+"?v="+Date.now();
+})();
+
 const DAVIMART_BANNER_BUCKET = "homepage-banners";
 
 const DAVIMART_PRODUCT_CACHE = new Map();
@@ -1954,18 +2000,29 @@ window.showMessage = function(type) {
   box.innerHTML = `
     <h3>DAVIMART Account</h3>
     <div id="authForm">
-      <input id="fullName" placeholder="Full name" style="width:100%;padding:12px;margin:8px 0">
-      <input id="email" type="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0">
-      <div style="position:relative;width:100%;margin:8px 0">
-        <input id="password" type="password" placeholder="Password (minimum 8 characters)" style="width:100%;padding:12px;padding-right:44px;box-sizing:border-box">
-        <button type="button" id="togglePasswordBtn" aria-label="Show password" aria-pressed="false" style="position:absolute;right:9px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;color:#64748b;cursor:pointer;z-index:2"><svg id="passwordEyeIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
-      </div>
-      
-      <p id="authStatus"></p>
-      <button class="btn primary" id="registerBtn">Create account</button>
-      <button class="btn outline" id="loginBtn" style="margin-top:8px">Sign in instead</button>
-      <button type="button" class="btn outline" id="forgotPasswordBtn" style="margin-top:8px">Forgot password?</button>
-      <p id="forgotPasswordStatus" aria-live="polite"></p>
+      <section id="loginForm">
+        <h4>Sign In</h4>
+        <p>Use your registered email address.</p>
+        <input id="email" type="email" autocomplete="email" inputmode="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0">
+        <div style="position:relative;width:100%;margin:8px 0">
+          <input id="password" type="password" autocomplete="current-password" placeholder="Password" style="width:100%;padding:12px;padding-right:44px;box-sizing:border-box">
+          <button type="button" id="togglePasswordBtn" aria-label="Show password" aria-pressed="false" style="position:absolute;right:9px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;color:#64748b;cursor:pointer;z-index:2"><svg id="passwordEyeIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+        </div>
+        <p id="authStatus" aria-live="polite"></p>
+        <button class="btn primary" id="loginBtn">Sign in</button>
+        <button type="button" class="btn outline" id="forgotPasswordBtn" style="margin-top:8px">Forgot password?</button>
+        <p id="forgotPasswordStatus" aria-live="polite"></p>
+        <p>New to DAVIMART? <button type="button" class="btn outline" id="showRegisterBtn">Create an account</button></p>
+      </section>
+      <section id="registerForm" hidden>
+        <h4>Create Account</h4>
+        <input id="fullName" placeholder="Full name" autocomplete="name" style="width:100%;padding:12px;margin:8px 0">
+        <input id="registerEmail" type="email" autocomplete="email" inputmode="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0" required>
+        <input id="registerPassword" type="password" autocomplete="new-password" placeholder="Create password (minimum 8 characters)" style="width:100%;padding:12px;margin:8px 0">
+        <p id="registerStatus" aria-live="polite"></p>
+        <button class="btn primary" id="registerBtn">Create account</button>
+        <p>Already registered? <button type="button" class="btn outline" id="showLoginBtn">Sign in</button></p>
+      </section>
       <button class="btn outline" onclick="closeMessage()" style="margin-top:8px">Close</button>
     </div>
   `;
@@ -2000,35 +2057,43 @@ window.showMessage = function(type) {
 
   document.getElementById("registerBtn").onclick = async () => {
     const name = document.getElementById("fullName").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-    
-    const status = document.getElementById("authStatus");
-
+    const email = document.getElementById("registerEmail").value.trim();
+    const password = document.getElementById("registerPassword").value;
+    const status = document.getElementById("registerStatus");
     if (!name || !email || password.length < 8) {
-      status.textContent = "Enter your name, email and a password of at least 8 characters.";
+      status.textContent = "Enter your name, email address, and a password of at least 8 characters.";
       return;
     }
-
     status.textContent = "Creating account...";
-    const { error } = await db.auth.signUp({
+    const { data, error } = await db.auth.signUp({
       email,
       password,
-      options: {
-        data: { full_name: name, role: "buyer" },
-        emailRedirectTo: window.location.origin
-      }
+      options: { data: { full_name: name, role }, emailRedirectTo: window.location.origin }
     });
+    if (error) { status.textContent = error.message; return; }
+    status.textContent = data.session ? "Account created successfully!" : "Registration submitted! Check your email for confirmation.";
+  };
 
-    status.textContent = error
-      ? error.message
-      : "Registration submitted! Check your email for confirmation.";
+  document.getElementById("showRegisterBtn").onclick = () => {
+    document.getElementById("loginForm").hidden = true;
+    document.getElementById("registerForm").hidden = false;
+    document.getElementById("authStatus").textContent = "";
+  };
+  document.getElementById("showLoginBtn").onclick = () => {
+    document.getElementById("registerForm").hidden = true;
+    document.getElementById("loginForm").hidden = false;
+    document.getElementById("registerStatus").textContent = "";
   };
 
   document.getElementById("loginBtn").onclick = async () => {
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
     const status = document.getElementById("authStatus");
+
+    if (!email || !password) {
+      status.textContent = "Enter your email address and password.";
+      return;
+    }
 
     status.textContent = "Signing in...";
     const { error } = await db.auth.signInWithPassword({ email, password });
@@ -2045,7 +2110,6 @@ window.showMessage = function(type) {
 <script>
 async function loadNotifications() {
   const { data: { user } } = await db.auth.getUser();
-
   const count = document.getElementById("notificationCount");
   const panel = document.getElementById("headerNotificationPanel");
 
@@ -2057,47 +2121,108 @@ async function loadNotifications() {
 
   const { data, error } = await db
     .from("notifications")
-    .select("id, title, message, is_read, created_at")
+    .select("id, title, message, is_read, created_at, action_url, notification_type")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(20);
 
   if (error) {
-    panel.textContent = "Could not load notifications.";
+    panel.textContent = "Could not load notifications. " + error.message;
     return;
   }
 
-    const unreadIds = data
-    .filter(n => !n.is_read)
-    .map(n => n.id);
+  const unread = data.filter(n => !n.is_read).length;
+  count.textContent = unread > 99 ? "99+" : String(unread);
+  panel.innerHTML = "";
 
-  if (unreadIds.length) {
-    const { error: updateError } = await db
-      .from("notifications")
-      .update({ is_read: true })
-      .in("id", unreadIds)
-      .eq("user_id", user.id);
-
-    if (updateError) {
-      panel.textContent = "Could not mark notifications as read.";
-      return;
-    }
+  if (!data.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "No notifications yet.";
+    panel.appendChild(empty);
+    return;
   }
 
-  count.textContent = "0";
-  panel.textContent = data.length
-    ? data.map(n => n.title + ": " + n.message).join("\n")
-    : "No notifications yet.";
-} 
+  data.forEach(notification => {
+    const item = document.createElement("div");
+    item.style.cssText = "padding:12px;border-bottom:1px solid #e6eaf0;background:" +
+      (notification.is_read ? "#fff" : "#f1f6ff");
+
+    const title = document.createElement("strong");
+    title.textContent = notification.title || "DAVIMART update";
+    title.style.cssText = "display:block;color:#102b55;margin-bottom:5px";
+
+    const message = document.createElement("p");
+    message.textContent = notification.message || "";
+    message.style.cssText = "margin:0 0 7px;color:#46546a;font-size:13px;line-height:1.45";
+
+    const time = document.createElement("small");
+    time.textContent = new Date(notification.created_at).toLocaleString();
+    time.style.color = "#778196";
+
+    item.append(title, message, time);
+
+    if (notification.action_url) {
+      const link = document.createElement("a");
+      link.href = notification.action_url;
+      link.textContent = "View update";
+      link.style.cssText = "display:inline-block;margin-top:8px;color:#174b91;font-weight:bold";
+      item.appendChild(document.createElement("br"));
+      item.appendChild(link);
+    }
+
+    item.addEventListener("click", async event => {
+      if (event.target.closest("a")) return;
+      if (!notification.is_read) {
+        const { error: updateError } = await db
+          .from("notifications")
+          .update({ is_read: true })
+          .eq("id", notification.id)
+          .eq("user_id", user.id);
+        if (!updateError) {
+          notification.is_read = true;
+          item.style.background = "#fff";
+          const nextUnread = Math.max(0, Number(count.textContent.replace("+", "")) - 1);
+          count.textContent = String(nextUnread);
+        }
+      }
+    });
+
+    panel.appendChild(item);
+  });
+}
+
 document.getElementById("headerNotificationBell").onclick = async () => {
   const panel = document.getElementById("headerNotificationPanel");
-
   panel.hidden = !panel.hidden;
+  if (!panel.hidden) await loadNotifications();
+};
 
-  if (!panel.hidden) {
-    await loadNotifications();
+let davimartNotificationChannel;
+async function subscribeToDavimartNotifications() {
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) {
+    document.getElementById("notificationCount").textContent = "0";
+    return;
   }
-};  
+  if (davimartNotificationChannel) {
+    await db.removeChannel(davimartNotificationChannel);
+  }
+  davimartNotificationChannel = db
+    .channel("davimart-notifications-" + user.id)
+    .on("postgres_changes", {
+      event: "INSERT",
+      schema: "public",
+      table: "notifications",
+      filter: "user_id=eq." + user.id
+    }, () => loadNotifications())
+    .subscribe();
+  await loadNotifications();
+}
+
+db.auth.onAuthStateChange(() => {
+  setTimeout(subscribeToDavimartNotifications, 0);
+});
+subscribeToDavimartNotifications();  
 async function showDashboard() {
   const { data: { user } } = await db.auth.getUser();
 
