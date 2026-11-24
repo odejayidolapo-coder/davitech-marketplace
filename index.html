@@ -1249,6 +1249,19 @@ body.dm-modal-open{overflow:hidden}
 #davitech-services .davitech-contact{background:#25d366;color:#062b19;margin-top:0}
 @media(max-width:700px){#davitech-services .davitech-banner-media,#davitech-services .davitech-banner-empty{min-height:175px}#davitech-services .davitech-banner-media img,#davitech-services .davitech-banner-media video{min-height:175px}}
 </style>
+<style>
+/* DAVIMART cart-led brand polish */
+.dm-brand{display:flex;align-items:center;gap:10px;min-width:max-content}
+.dm-brand-mark{width:43px;height:43px;display:grid;place-items:center;border-radius:13px;background:rgba(255,196,0,.12);color:#ffc400;border:1px solid rgba(255,196,0,.35)}
+.dm-brand-mark svg{width:32px;height:32px;display:block}
+.dm-brand-word{display:flex;flex-direction:column;line-height:1;letter-spacing:-.7px}
+.dm-brand-word>span{color:#ffc400;display:inline}
+.dm-brand-word small{font-size:8px;letter-spacing:1.45px;font-weight:800;color:#d6e2f5;margin-top:5px}
+.dm-home-hero{border:1px solid rgba(255,196,0,.18)}
+.dm-primary-cta{transition:transform .2s ease,box-shadow .2s ease}
+.dm-primary-cta:hover{transform:translateY(-2px);box-shadow:0 10px 24px #00133c55}
+@media(max-width:700px){.dm-brand-mark{width:39px;height:39px}.dm-brand-word small{font-size:7px;letter-spacing:1.1px}}
+</style>
 </head>
 <body>
 
@@ -1257,7 +1270,10 @@ body.dm-modal-open{overflow:hidden}
 </div>
 
 <header>
-  <a class="logo" href="#home">DAVI<span>MART</span></a>
+  <a class="logo dm-brand" href="#home" aria-label="DAVIMART home">
+    <span class="dm-brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48" role="img"><path d="M7 9h5l4.2 21.1a4 4 0 0 0 3.9 3.2h17.1a4 4 0 0 0 3.8-2.8L45 17H15" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="21" cy="40" r="3" fill="currentColor"/><circle cx="37" cy="40" r="3" fill="currentColor"/><path d="M20 8h10m-5-5v10" stroke="#ffc400" stroke-width="3" stroke-linecap="round"/></svg></span>
+    <span class="dm-brand-word">DAVI<span>MART</span><small>SHOP • SELL • DISCOVER</small></span>
+  </a>
   
 <div class="dm-header-search">
   <input id="headerSearchInput" type="search"
@@ -1317,8 +1333,8 @@ body.dm-modal-open{overflow:hidden}
 <section class="dm-home-hero dm-device-hero" aria-label="DAVIMART featured shopping promotion">
   <div class="dm-hero-copy">
     <span class="dm-kicker">WELCOME TO DAVIMART</span>
-    <h1>Shop more.<br><em>Live better.</em></h1>
-    <p>Find the things you love, discover trusted services and explore property opportunities — all in one marketplace.</p>
+    <h1>Everything you need.<br><em>All in one place.</em></h1>
+    <p>Discover great products, shop with confidence, and connect with sellers on DAVIMART — your everyday online marketplace.</p>
     <a class="dm-primary-cta" href="#products">Explore the marketplace <span>→</span></a>
     <a class="dm-primary-cta dm-whatsapp-cta" href="https://wa.me/2349068847614" target="_blank" rel="noopener noreferrer">Chat with us on WhatsApp <span>↗</span></a>
     <div class="dm-hero-highlights"><span>✦ Electronics</span><span>✦ Fashion</span><span>✦ Home &amp; Living</span></div>
