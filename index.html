@@ -2002,8 +2002,8 @@ window.showMessage = function(type) {
     <div id="authForm">
       <section id="loginForm">
         <h4>Sign In</h4>
-        <p>Use your registered email address or phone number.</p>
-        <input id="email" type="text" autocomplete="username" placeholder="Email address or phone number" style="width:100%;padding:12px;margin:8px 0">
+        <p>Use your registered email address.</p>
+        <input id="email" type="email" autocomplete="email" inputmode="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0">
         <div style="position:relative;width:100%;margin:8px 0">
           <input id="password" type="password" autocomplete="current-password" placeholder="Password" style="width:100%;padding:12px;padding-right:44px;box-sizing:border-box">
           <button type="button" id="togglePasswordBtn" aria-label="Show password" aria-pressed="false" style="position:absolute;right:9px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;color:#64748b;cursor:pointer;z-index:2"><svg id="passwordEyeIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
@@ -2017,12 +2017,8 @@ window.showMessage = function(type) {
       <section id="registerForm" hidden>
         <h4>Create Account</h4>
         <input id="fullName" placeholder="Full name" autocomplete="name" style="width:100%;padding:12px;margin:8px 0">
-        <label for="registerMethod">Register with</label>
-        <select id="registerMethod" style="width:100%;padding:12px;margin:8px 0"><option value="email">Email address</option><option value="phone">Phone number</option></select>
-        <input id="registerEmail" type="email" autocomplete="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0">
-        <input id="registerPhone" type="tel" autocomplete="tel" placeholder="Phone number (e.g. 08012345678)" style="width:100%;padding:12px;margin:8px 0" hidden>
+        <input id="registerEmail" type="email" autocomplete="email" inputmode="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0" required>
         <input id="registerPassword" type="password" autocomplete="new-password" placeholder="Create password (minimum 8 characters)" style="width:100%;padding:12px;margin:8px 0">
-        <div id="registerOtpPanel" hidden><p>Enter the 6-digit code sent to your phone.</p><input id="registerOtp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="SMS verification code" style="width:100%;padding:12px;margin:8px 0"><button type="button" class="btn outline" id="verifyRegisterOtpBtn">Verify phone number</button></div>
         <p id="registerStatus" aria-live="polite"></p>
         <button class="btn primary" id="registerBtn">Create account</button>
         <p>Already registered? <button type="button" class="btn outline" id="showLoginBtn">Sign in</button></p>
@@ -2059,52 +2055,23 @@ window.showMessage = function(type) {
       : "If an account exists for that email, a password recovery link has been sent. Check your inbox and spam folder.";
   };
 
-  document.getElementById("registerMethod").addEventListener("change", function() {
-    const usePhone = this.value === "phone";
-    document.getElementById("registerEmail").hidden = usePhone;
-    document.getElementById("registerPhone").hidden = !usePhone;
-    document.getElementById("registerOtpPanel").hidden = true;
-    document.getElementById("registerStatus").textContent = "";
-  });
   document.getElementById("registerBtn").onclick = async () => {
     const name = document.getElementById("fullName").value.trim();
-    const method = document.getElementById("registerMethod").value;
     const email = document.getElementById("registerEmail").value.trim();
-    const phoneInput = document.getElementById("registerPhone").value.trim();
     const password = document.getElementById("registerPassword").value;
     const status = document.getElementById("registerStatus");
-    if (!name || password.length < 8 || (method === "email" && !email) || (method === "phone" && !phoneInput)) {
-      status.textContent = "Enter your name, your selected email or phone number, and a password of at least 8 characters.";
+    if (!name || !email || password.length < 8) {
+      status.textContent = "Enter your name, email address, and a password of at least 8 characters.";
       return;
     }
     status.textContent = "Creating account...";
-    const phone = method === "phone" ? normalizeDavimartPhone(phoneInput) : null;
-    const credentials = method === "email"
-      ? { email, password, options: { data: { full_name: name, role }, emailRedirectTo: window.location.origin } }
-      : { phone, password, options: { data: { full_name: name, role } } };
-    const { data, error } = await db.auth.signUp(credentials);
+    const { data, error } = await db.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name, role }, emailRedirectTo: window.location.origin }
+    });
     if (error) { status.textContent = error.message; return; }
-    if (method === "phone") {
-      window.davimartPendingPhone = phone;
-      document.getElementById("registerOtpPanel").hidden = false;
-      status.textContent = "Verification code requested. Enter the SMS code to finish creating your account. SMS delivery must be enabled in Supabase.";
-    } else {
-      status.textContent = data.session ? "Account created successfully!" : "Registration submitted! Check your email for confirmation.";
-    }
-  };
-  document.getElementById("verifyRegisterOtpBtn").onclick = async function() {
-    const token = document.getElementById("registerOtp").value.trim();
-    const status = document.getElementById("registerStatus");
-    if (!window.davimartPendingPhone || !/^\\d{6}$/.test(token)) { status.textContent = "Enter the 6-digit SMS verification code."; return; }
-    this.disabled = true; status.textContent = "Verifying your phone number...";
-    const { error } = await db.auth.verifyOtp({ phone: window.davimartPendingPhone, token, type: "sms" });
-    this.disabled = false;
-    if (error) { status.textContent = error.message; return; }
-    window.davimartPendingPhone = null;
-    status.textContent = "Phone verified. Your DAVIMART account is ready!";
-    document.getElementById("registerOtpPanel").hidden = true;
-    await showDashboard();
-    startLoginSuccessCountdown();
+    status.textContent = data.session ? "Account created successfully!" : "Registration submitted! Check your email for confirmation.";
   };
 
   document.getElementById("showRegisterBtn").onclick = () => {
@@ -2118,30 +2085,18 @@ window.showMessage = function(type) {
     document.getElementById("registerStatus").textContent = "";
   };
 
-  function normalizeDavimartPhone(value) {
-    const compact = value.replace(/[\\s().-]/g, "");
-    if (compact.startsWith("+")) return compact;
-    if (compact.startsWith("00")) return "+" + compact.slice(2);
-    if (compact.startsWith("234")) return "+" + compact;
-    if (compact.startsWith("0")) return "+234" + compact.slice(1);
-    return "+234" + compact;
-  }
-
   document.getElementById("loginBtn").onclick = async () => {
-    const identifier = document.getElementById("email").value.trim();
+    const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
     const status = document.getElementById("authStatus");
 
-    if (!identifier || !password) {
-      status.textContent = "Enter your email or phone number and password.";
+    if (!email || !password) {
+      status.textContent = "Enter your email address and password.";
       return;
     }
 
     status.textContent = "Signing in...";
-    const credentials = identifier.includes("@")
-      ? { email: identifier, password }
-      : { phone: normalizeDavimartPhone(identifier), password };
-    const { error } = await db.auth.signInWithPassword(credentials);
+    const { error } = await db.auth.signInWithPassword({ email, password });
     status.textContent = error ? error.message : "Signed in successfully!";
     if (!error) {
       await showDashboard();
