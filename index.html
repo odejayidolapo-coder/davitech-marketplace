@@ -1375,6 +1375,98 @@ body{padding-bottom:78px!important}
  .dm-bottom-nav{display:none}
  body{padding-bottom:0!important}
 }
+</style><style>
+/* Header alignment refinement only: brand left, alerts/profile right, navy premium backdrop */
+.dm-market-header{
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ gap:12px!important;padding:13px 16px 14px!important;
+ background:
+  radial-gradient(ellipse at 12% 0%,rgba(39,91,171,.42),transparent 48%),
+  linear-gradient(112deg,#061943 0%,#08265d 58%,#061a43 100%)!important;
+ border:0!important;border-bottom:3px solid #f4bd18!important;
+ box-shadow:0 5px 18px rgba(3,20,55,.24)!important;
+}
+.dm-market-header .dm-brand-row{
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+ align-items:center!important;justify-content:initial!important;gap:12px!important;
+ width:100%!important;min-height:54px!important;
+}
+.dm-market-header .davimart-brand-lockup{
+ grid-column:1!important;grid-row:1!important;
+ display:flex!important;align-items:center!important;justify-self:start!important;
+ gap:9px!important;width:auto!important;max-width:100%!important;min-width:0!important;
+ min-height:50px!important;overflow:visible!important;
+}
+.dm-market-header .davimart-cart-mark{
+ width:48px!important;height:48px!important;flex:0 0 48px!important;
+ display:grid!important;place-items:center!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;color:#fff!important;
+}
+.dm-market-header .davimart-cart-mark svg{width:48px!important;height:48px!important}
+.dm-market-header .davimart-wordmark{
+ display:flex!important;flex-wrap:wrap!important;align-items:baseline!important;
+ line-height:.92!important;font-family:Arial,Helvetica,sans-serif!important;
+ font-size:clamp(23px,5.8vw,29px)!important;font-weight:950!important;
+ letter-spacing:-1.1px!important;text-shadow:none!important;
+}
+.dm-market-header .davimart-wordmark .davi{color:#fff!important}
+.dm-market-header .davimart-wordmark .mart{color:#ffc400!important}
+.dm-market-header .davimart-wordmark small{
+ display:block!important;flex-basis:100%!important;margin-top:5px!important;
+ color:#e7efff!important;font-size:9px!important;letter-spacing:.45px!important;
+ font-weight:600!important;line-height:1.1!important;
+}
+.dm-market-header .davimart-brand-lockup .logo-image{display:none!important;max-width:180px!important;max-height:52px!important;width:auto!important;height:auto!important;object-fit:contain!important}
+.dm-market-header .davimart-brand-lockup.has-custom-image .logo-image{display:block!important}
+.dm-market-header .davimart-brand-lockup.has-custom-image .davimart-cart-mark,
+.dm-market-header .davimart-brand-lockup.has-custom-image .davimart-wordmark{display:none!important}
+.dm-market-header .dm-header-tools{
+ grid-column:2!important;grid-row:1!important;
+ display:flex!important;align-items:center!important;justify-self:end!important;
+ justify-content:flex-end!important;gap:13px!important;position:relative!important;
+ min-width:0!important;margin:0!important;
+}
+.dm-market-header .dm-header-tools .notification-bell{
+ position:relative!important;display:grid!important;place-items:center!important;
+ width:42px!important;height:42px!important;min-width:42px!important;
+ margin:0!important;padding:0!important;background:transparent!important;
+ color:#fff!important;border:0!important;font-size:25px!important;
+}
+.dm-market-header #notificationCount{
+ position:absolute!important;top:-2px!important;right:-2px!important;
+ min-width:17px!important;height:17px!important;padding:0 4px!important;
+ display:grid!important;place-items:center!important;border-radius:99px!important;
+ background:#ed2637!important;color:#fff!important;font-size:10px!important;
+ font-weight:800!important;border:2px solid #09245a!important;
+}
+.dm-market-header .dm-header-tools .account-action{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ gap:4px!important;width:44px!important;height:44px!important;min-width:44px!important;
+ margin:0!important;padding:2px!important;border:2px solid rgba(255,255,255,.7)!important;
+ border-radius:50%!important;background:rgba(255,255,255,.12)!important;color:#fff!important;
+}
+.dm-market-header .dm-header-tools .account-avatar{
+ display:block!important;width:36px!important;height:36px!important;
+ min-width:36px!important;object-fit:cover!important;border-radius:50%!important;
+}
+.dm-market-header #accountAvatarFallback{font-size:21px!important;line-height:1!important}
+.dm-market-header .dm-account-label{display:none!important}
+.dm-market-header .dm-header-search{
+ grid-column:1/-1!important;grid-row:auto!important;order:initial!important;
+ display:flex!important;width:100%!important;max-width:none!important;min-width:0!important;
+ height:48px!important;margin:0!important;border:1px solid #e4eaf4!important;
+ border-radius:999px!important;background:#fff!important;overflow:hidden!important;
+}
+.dm-market-header .dm-header-search input{min-width:0!important;flex:1!important;padding:0 18px!important;background:#fff!important}
+.dm-market-header .dm-header-search button{width:58px!important;flex:0 0 58px!important;background:#ffc400!important;color:#071f50!important}
+.dm-market-header .dm-desktop-nav,.dm-market-header .dm-desktop-actions{display:none!important}
+@media(min-width:760px){
+ .dm-market-header{display:grid!important;grid-template-columns:minmax(240px,1fr) minmax(300px,560px) auto!important;grid-template-areas:"brand search tools"!important;align-items:center!important;gap:20px!important}
+ .dm-market-header .dm-brand-row{display:contents!important}
+ .dm-market-header .davimart-brand-lockup{grid-area:brand!important}
+ .dm-market-header .dm-header-tools{grid-area:tools!important}
+ .dm-market-header .dm-header-search{grid-area:search!important}
+}
 </style></head>
 <body>
 
