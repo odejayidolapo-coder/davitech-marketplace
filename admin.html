@@ -40,6 +40,9 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 
 #davitechBannerPreview{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-top:14px}
 #davitechBannerPreview img,#davitechBannerPreview video{width:100%;height:100px;object-fit:cover;border-radius:9px;background:#e7edf6}
+.logo-preview-frame{width:100%;max-width:360px;height:132px;margin:14px auto 0;padding:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid #dbe2ed;border-radius:12px;background:#f4f6fb;color:#65728a}
+.logo-preview-frame img{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;object-position:center}
+
 .banner-card video{width:100%;height:105px;object-fit:cover;border-radius:7px;background:#e7edf6}
 </style>
 </head>
@@ -60,6 +63,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <button type="button" id="bannerNav" data-panel="bannerPanel">▧ Homepage banner</button>
 <button type="button" data-panel="flashSalePanel">⚡ Flash sale images</button>
  <button type="button" data-panel="davitechBannerPanel">🟦 DAVITECH banner</button>
+<button type="button" data-panel="logoPanel">🖼️ Store logo</button>
 </aside>
 <div class="content">
 <div class="stats">
@@ -119,6 +123,14 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
  <div class="actions"><button class="btn btn-gold" id="uploadDavitechBanner" type="button">Upload DAVITECH media</button></div>
  <p id="davitechBannerStatus" role="status">Choose images or videos to preview them before uploading.</p>
  <h2 style="margin-top:24px">Published DAVITECH banner media</h2><div id="davitechBannerGallery">Loading media…</div>
+</section>
+<section class="panel admin-feature" id="logoPanel" hidden>
+<h2>DAVIMART store logo</h2>
+<p>Upload the logo used in the DAVIMART homepage header. The full image stays visible: it scales proportionally inside a fixed preview area, without cropping, stretching or overflowing. Supported: JPG, PNG or WEBP, maximum 5 MB.</p>
+<div class="drop"><b>Choose your DAVIMART logo</b><br><input id="storeLogoFile" type="file" accept="image/jpeg,image/png,image/webp"><div id="storeLogoPreview" class="logo-preview-frame"><span>No logo selected</span></div></div>
+<div class="actions"><button class="btn btn-gold" id="uploadStoreLogo" type="button">Upload and publish logo</button><button class="btn btn-light" id="refreshStoreLogo" type="button">Refresh current logo</button></div>
+<p id="storeLogoStatus" role="status">Choose a logo to preview it before publishing.</p>
+<h2 style="margin-top:24px">Current published logo</h2><div id="currentStoreLogo" class="logo-preview-frame"><span>Loading current logo…</span></div>
 </section>
 <section class="panel admin-feature" id="flashSalePanel" hidden>
 <h2>Flash sale images</h2>
@@ -206,6 +218,16 @@ const davitechBannerTypes=["image/jpeg","image/png","image/webp","image/gif","vi
 davitechBannerFiles.onchange=()=>{davitechBannerPreview.innerHTML="";const files=Array.from(davitechBannerFiles.files||[]);for(const file of files){if(!davitechBannerTypes.includes(file.type)||file.size>10*1024*1024){davitechBannerStatus.textContent="Use JPG, PNG, WEBP, GIF, MP4 or WEBM files under 10 MB each.";davitechBannerFiles.value="";davitechBannerPreview.innerHTML="";return;}const url=URL.createObjectURL(file);if(file.type.startsWith("video/")){const v=document.createElement("video");v.src=url;v.muted=true;v.controls=true;v.playsInline=true;davitechBannerPreview.appendChild(v);}else{const img=document.createElement("img");img.src=url;img.alt=file.name;davitechBannerPreview.appendChild(img);}}davitechBannerStatus.textContent=files.length?files.length+" DAVITECH media file(s) selected.":"Choose images or videos.";};
 async function loadDavitechBannerGallery(){davitechBannerGallery.textContent="Loading DAVITECH media…";const {data:files,error}=await db.storage.from(BUCKET).list("",{limit:100});if(error){davitechBannerGallery.textContent="Could not load media: "+error.message;return;}const media=(files||[]).filter(f=>f.name.startsWith("davitech-banner-")&&/\.(jpg|jpeg|png|webp|gif|mp4|webm)$/i.test(f.name)).sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));davitechBannerGallery.innerHTML="";if(!media.length){davitechBannerGallery.textContent="No DAVITECH banner media uploaded yet.";return;}for(const file of media){const url=db.storage.from(BUCKET).getPublicUrl(file.name).data.publicUrl+"?v="+encodeURIComponent(file.updated_at||file.created_at||Date.now());const card=document.createElement("div");card.className="banner-card";const video=/\.(mp4|webm)$/i.test(file.name);const preview=document.createElement(video?"video":"img");preview.src=url;if(video){preview.muted=true;preview.controls=true;preview.playsInline=true;}else preview.alt="DAVITECH banner image";const label=document.createElement("small");label.textContent=file.name;const remove=document.createElement("button");remove.type="button";remove.textContent="Remove media";remove.onclick=async()=>{const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_ID){davitechBannerStatus.textContent="Access denied.";return;}if(!confirm("Remove this DAVITECH banner media?"))return;const {error}=await db.storage.from(BUCKET).remove([file.name]);davitechBannerStatus.textContent=error?"Could not remove media: "+error.message:"DAVITECH banner media removed.";await loadDavitechBannerGallery();};card.append(preview,label,remove);davitechBannerGallery.appendChild(card);}}
 document.getElementById("uploadDavitechBanner").onclick=async()=>{const files=Array.from(davitechBannerFiles.files||[]);if(!files.length){davitechBannerStatus.textContent="Choose at least one image or video first.";return;}const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_ID){davitechBannerStatus.textContent="Access denied.";return;}davitechBannerStatus.textContent="Uploading DAVITECH banner media…";let uploaded=0;for(const file of files){const ext=file.name.split(".").pop().toLowerCase(),path="davitech-banner-"+Date.now()+"-"+Math.random().toString(36).slice(2,9)+"."+ext;const {error}=await db.storage.from(BUCKET).upload(path,file,{upsert:false,contentType:file.type,cacheControl:"0"});if(error){davitechBannerStatus.textContent="Uploaded "+uploaded+" of "+files.length+". Upload failed: "+error.message;await loadDavitechBannerGallery();return;}uploaded++;}davitechBannerStatus.textContent=uploaded+" DAVITECH media file(s) uploaded successfully.";davitechBannerFiles.value="";davitechBannerPreview.innerHTML="";await loadDavitechBannerGallery();};
+
+
+const STORE_LOGO_FILE="davimart-logo";
+const storeLogoFile=document.getElementById("storeLogoFile"),storeLogoPreview=document.getElementById("storeLogoPreview"),storeLogoStatus=document.getElementById("storeLogoStatus"),currentStoreLogo=document.getElementById("currentStoreLogo");
+const storeLogoTypes=["image/jpeg","image/png","image/webp"];
+function renderLogoPreview(host,src,alt){host.replaceChildren();const img=document.createElement("img");img.src=src;img.alt=alt;img.decoding="async";img.onerror=()=>{host.textContent="No logo is currently published.";};host.appendChild(img);}
+storeLogoFile.onchange=()=>{storeLogoPreview.replaceChildren();const file=storeLogoFile.files&&storeLogoFile.files[0];if(!file){storeLogoPreview.textContent="No logo selected";return;}if(!storeLogoTypes.includes(file.type)||file.size>5*1024*1024){storeLogoStatus.textContent="Choose a JPG, PNG or WEBP image under 5 MB.";storeLogoFile.value="";storeLogoPreview.textContent="No logo selected";return;}renderLogoPreview(storeLogoPreview,URL.createObjectURL(file),"Selected DAVIMART logo preview");storeLogoStatus.textContent="Logo selected. Check that the full image is visible, then upload it.";};
+async function loadStoreLogo(){currentStoreLogo.textContent="Loading current logo…";const {data:files,error}=await db.storage.from(BUCKET).list("",{limit:100,search:STORE_LOGO_FILE});if(error){currentStoreLogo.textContent="Could not check current logo: "+error.message;return;}if(!(files||[]).some(file=>file.name===STORE_LOGO_FILE)){currentStoreLogo.textContent="No custom logo published. The DAVIMART text logo is showing.";return;}const url=db.storage.from(BUCKET).getPublicUrl(STORE_LOGO_FILE).data.publicUrl+"?v="+Date.now();renderLogoPreview(currentStoreLogo,url,"Current DAVIMART store logo");}
+document.getElementById("refreshStoreLogo").onclick=loadStoreLogo;
+document.getElementById("uploadStoreLogo").onclick=async()=>{const file=storeLogoFile.files&&storeLogoFile.files[0];if(!file){storeLogoStatus.textContent="Choose a logo image first.";return;}if(!storeLogoTypes.includes(file.type)||file.size>5*1024*1024){storeLogoStatus.textContent="Choose a JPG, PNG or WEBP image under 5 MB.";return;}const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_ID){storeLogoStatus.textContent="Access denied.";return;}storeLogoStatus.textContent="Uploading DAVIMART logo…";const {error}=await db.storage.from(BUCKET).upload(STORE_LOGO_FILE,file,{upsert:true,contentType:file.type,cacheControl:"0"});if(error){storeLogoStatus.textContent="Logo upload failed: "+error.message;return;}storeLogoStatus.textContent="DAVIMART logo uploaded successfully. Refresh the homepage to see it.";storeLogoFile.value="";storeLogoPreview.textContent="No logo selected";await loadStoreLogo();};
 
 const flashSaleFiles=document.getElementById("flashSaleFiles");
 const flashSalePreview=document.getElementById("flashSalePreview");
@@ -325,6 +347,7 @@ function showAdminPanel(id){
  if(id==="notifyPanel") loadNotificationRecipients();
  if(id==="flashSalePanel") loadFlashSaleGallery();
  if(id==="davitechBannerPanel") loadDavitechBannerGallery();
+ if(id==="logoPanel") loadStoreLogo();
 }
 document.querySelectorAll("aside button[data-panel]").forEach(b=>b.addEventListener("click",()=>showAdminPanel(b.dataset.panel)));
 document.getElementById("openBanner").onclick=()=>showAdminPanel("bannerPanel");
