@@ -1517,6 +1517,22 @@ body{padding-bottom:78px!important}
 }
 
 
+/* Banner pagination dots: show slide position and remaining banners */
+.dm-market-hero .dm-banner-dots{
+  position:absolute;left:50%;bottom:12px;transform:translateX(-50%);
+  z-index:6;display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:7px 11px;border-radius:999px;background:rgba(3,15,42,.48);
+  backdrop-filter:blur(6px);pointer-events:auto;
+}
+.dm-market-hero .dm-banner-dot{
+  width:8px;height:8px;min-width:8px;padding:0;border:0;border-radius:50%;
+  background:rgba(255,255,255,.62);cursor:pointer;transition:width .2s,background .2s;
+}
+.dm-market-hero .dm-banner-dot.is-active{
+  width:22px;border-radius:8px;background:#ffc400;
+}
+.dm-market-hero .dm-banner-dot:focus-visible{outline:2px solid white;outline-offset:3px}
+
 /* Comfortable swipe interaction on touch screens */
 .dm-market-hero .dm-device-stage{touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .dm-market-hero .dm-custom-banner-link{touch-action:pan-y}
@@ -2081,10 +2097,17 @@ async function loadHomepageBanner() {
   let startX = 0;
   let startY = 0;
   let swiping = false;
+  let dots = null;
 
   function renderSlide(index) {
     if (timer) window.clearTimeout(timer);
     current = (index + slides.length) % slides.length;
+    if (dots) {
+      [...dots.children].forEach((dot, i) => {
+        dot.classList.toggle("is-active", i === current);
+        dot.setAttribute("aria-current", i === current ? "true" : "false");
+      });
+    }
     const file = slides[current];
     const { data } = db.storage.from(DAVIMART_BANNER_BUCKET).getPublicUrl(file.name);
     const url = data.publicUrl + "?v=" + encodeURIComponent(file.updated_at || file.created_at || Date.now());
@@ -2114,6 +2137,27 @@ async function loadHomepageBanner() {
     });
     bannerTrigger.appendChild(media);
     stage.appendChild(bannerTrigger);
+    if (slides.length > 1 && !dots) {
+      dots = document.createElement("div");
+      dots.className = "dm-banner-dots";
+      dots.setAttribute("role", "group");
+      dots.setAttribute("aria-label", "Choose promotional banner");
+      slides.forEach((slide, i) => {
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.className = "dm-banner-dot";
+        dot.setAttribute("aria-label", "Show banner " + (i + 1) + " of " + slides.length);
+        dot.title = "Banner " + (i + 1) + " of " + slides.length;
+        dot.addEventListener("click", event => {
+          event.stopPropagation();
+          swiping = true;
+          renderSlide(i);
+          window.setTimeout(() => { swiping = false; }, 250);
+        });
+        dots.appendChild(dot);
+      });
+      stage.appendChild(dots);
+    }
     media.src = url;
     requestAnimationFrame(() => { media.style.opacity = "1"; });
     if (slides.length > 1) {
