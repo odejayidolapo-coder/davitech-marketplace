@@ -962,6 +962,12 @@ header {
 .logo span {
   color: #ffbd00;
 }
+.logo{display:inline-flex;align-items:center;justify-content:flex-start;min-width:0;max-width:190px;min-height:42px;text-decoration:none;overflow:hidden}
+.logo-image{display:none;max-width:min(180px,28vw);max-height:42px;width:auto;height:auto;object-fit:contain;object-position:left center;flex:0 1 auto}
+.logo.has-custom-image .logo-image{display:block}
+.logo.has-custom-image .logo-text{display:none}
+.logo .logo-text{white-space:nowrap}
+
 
 header nav {
   display: none;
@@ -1257,7 +1263,7 @@ body.dm-modal-open{overflow:hidden}
 </div>
 
 <header>
-  <a class="logo" href="#home">DAVI<span>MART</span></a>
+  <a class="logo" id="davimartHeaderLogo" href="#home" aria-label="DAVIMART home"><span class="logo-text">DAVI<span>MART</span></span><img id="davimartHeaderLogoImage" class="logo-image" alt="DAVIMART logo"></a>
   
 <div class="dm-header-search">
   <input id="headerSearchInput" type="search"
@@ -1616,6 +1622,15 @@ const db = window.supabase.createClient(
 );
 const DAVIMART_ADMIN_ID = "4aa054c0-97c2-45c3-8c3a-9bf87f2c365c";
 const DAVIMART_BANNER_BUCKET = "homepage-banners";
+const DAVIMART_STORE_LOGO_FILE = "davimart-logo";
+async function loadDavimartStoreLogo(){
+ const link=document.getElementById("davimartHeaderLogo"),img=document.getElementById("davimartHeaderLogoImage");if(!link||!img)return;
+ const {data:files,error}=await db.storage.from(DAVIMART_BANNER_BUCKET).list("",{limit:100,search:DAVIMART_STORE_LOGO_FILE});
+ if(error||!(files||[]).some(file=>file.name===DAVIMART_STORE_LOGO_FILE))return;
+ const file=files.find(item=>item.name===DAVIMART_STORE_LOGO_FILE),url=db.storage.from(DAVIMART_BANNER_BUCKET).getPublicUrl(DAVIMART_STORE_LOGO_FILE).data.publicUrl+"?v="+encodeURIComponent(file.updated_at||Date.now());
+ img.onload=()=>link.classList.add("has-custom-image");img.onerror=()=>link.classList.remove("has-custom-image");img.src=url;
+}
+
 
 const DAVIMART_PRODUCT_CACHE = new Map();
 
@@ -1839,6 +1854,7 @@ async function loadDavitechBanner(){
  showNext();
 }
 
+loadDavimartStoreLogo();
 loadHomepageProducts();
 loadHomepageBanner();
 loadDavitechBanner();
