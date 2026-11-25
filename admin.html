@@ -128,7 +128,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <h2>DAVIMART store logo</h2>
 <p>Upload the logo used in the DAVIMART homepage header. The full image stays visible: it scales proportionally inside a fixed preview area, without cropping, stretching or overflowing. Supported: JPG, PNG or WEBP, maximum 5 MB.</p>
 <div class="drop"><b>Choose your DAVIMART logo</b><br><input id="storeLogoFile" type="file" accept="image/jpeg,image/png,image/webp"><div id="storeLogoPreview" class="logo-preview-frame"><span>No logo selected</span></div></div>
-<div class="actions"><button class="btn btn-gold" id="uploadStoreLogo" type="button">Upload and publish logo</button><button class="btn btn-light" id="refreshStoreLogo" type="button">Refresh current logo</button></div>
+<div class="actions"><button class="btn btn-gold" id="uploadStoreLogo" type="button">Upload and publish logo</button><button class="btn btn-light" id="refreshStoreLogo" type="button">Refresh current logo</button><button class="btn btn-light" id="removeStoreLogo" type="button">Remove current logo</button></div>
 <p id="storeLogoStatus" role="status">Choose a logo to preview it before publishing.</p>
 <h2 style="margin-top:24px">Current published logo</h2><div id="currentStoreLogo" class="logo-preview-frame"><span>Loading current logo…</span></div>
 </section>
@@ -227,6 +227,18 @@ function renderLogoPreview(host,src,alt){host.replaceChildren();const img=docume
 storeLogoFile.onchange=()=>{storeLogoPreview.replaceChildren();const file=storeLogoFile.files&&storeLogoFile.files[0];if(!file){storeLogoPreview.textContent="No logo selected";return;}if(!storeLogoTypes.includes(file.type)||file.size>5*1024*1024){storeLogoStatus.textContent="Choose a JPG, PNG or WEBP image under 5 MB.";storeLogoFile.value="";storeLogoPreview.textContent="No logo selected";return;}renderLogoPreview(storeLogoPreview,URL.createObjectURL(file),"Selected DAVIMART logo preview");storeLogoStatus.textContent="Logo selected. Check that the full image is visible, then upload it.";};
 async function loadStoreLogo(){currentStoreLogo.textContent="Loading current logo…";const {data:files,error}=await db.storage.from(BUCKET).list("",{limit:100,search:STORE_LOGO_FILE});if(error){currentStoreLogo.textContent="Could not check current logo: "+error.message;return;}if(!(files||[]).some(file=>file.name===STORE_LOGO_FILE)){currentStoreLogo.textContent="No custom logo published. The DAVIMART text logo is showing.";return;}const url=db.storage.from(BUCKET).getPublicUrl(STORE_LOGO_FILE).data.publicUrl+"?v="+Date.now();renderLogoPreview(currentStoreLogo,url,"Current DAVIMART store logo");}
 document.getElementById("refreshStoreLogo").onclick=loadStoreLogo;
+document.getElementById("removeStoreLogo").onclick=async()=>{
+ const {data:{user}}=await db.auth.getUser();
+ if(!user||user.id!==ADMIN_ID){storeLogoStatus.textContent="Access denied.";return;}
+ if(!confirm("Remove the currently published DAVIMART logo? The default DAVIMART header branding will be used instead."))return;
+ storeLogoStatus.textContent="Removing the published logo…";
+ const {error}=await db.storage.from(BUCKET).remove([STORE_LOGO_FILE]);
+ if(error){storeLogoStatus.textContent="Could not remove logo: "+error.message;return;}
+ storeLogoFile.value="";
+ storeLogoPreview.textContent="No logo selected";
+ storeLogoStatus.textContent="Custom logo removed. The default DAVIMART branding will be used.";
+ await loadStoreLogo();
+};
 document.getElementById("uploadStoreLogo").onclick=async()=>{const file=storeLogoFile.files&&storeLogoFile.files[0];if(!file){storeLogoStatus.textContent="Choose a logo image first.";return;}if(!storeLogoTypes.includes(file.type)||file.size>5*1024*1024){storeLogoStatus.textContent="Choose a JPG, PNG or WEBP image under 5 MB.";return;}const {data:{user}}=await db.auth.getUser();if(!user||user.id!==ADMIN_ID){storeLogoStatus.textContent="Access denied.";return;}storeLogoStatus.textContent="Uploading DAVIMART logo…";const {error}=await db.storage.from(BUCKET).upload(STORE_LOGO_FILE,file,{upsert:true,contentType:file.type,cacheControl:"0"});if(error){storeLogoStatus.textContent="Logo upload failed: "+error.message;return;}storeLogoStatus.textContent="DAVIMART logo uploaded successfully. Refresh the homepage to see it.";storeLogoFile.value="";storeLogoPreview.textContent="No logo selected";await loadStoreLogo();};
 
 const flashSaleFiles=document.getElementById("flashSaleFiles");
