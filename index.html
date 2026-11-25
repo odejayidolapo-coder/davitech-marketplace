@@ -1268,106 +1268,155 @@ body.dm-modal-open{overflow:hidden}
 .logo.has-custom-image .logo-text{display:initial}
 @media(max-width:700px){.davimart-brand-lockup{gap:7px;max-width:205px;min-height:44px}.davimart-cart-mark{width:42px;height:42px;flex-basis:42px;border-radius:11px}.davimart-cart-mark svg{width:35px;height:35px}.davimart-wordmark{font-size:23px;letter-spacing:-1.1px}.davimart-wordmark small{font-size:6.5px;letter-spacing:1.15px;margin-top:5px}}
 </style>
-</head>
+<style>
+/* DAVIMART reference-led marketplace homepage: scoped visual layer */
+body{background:#fff!important;color:#15213a;padding-bottom:0}
+.dm-market-header{position:sticky;top:0;z-index:1000;display:flex;flex-direction:column;gap:12px;padding:12px clamp(14px,3vw,34px);background:#071f50;border:0;box-shadow:0 4px 18px #071f5026}
+.dm-brand-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.davimart-brand-lockup{display:flex;align-items:center;gap:10px;min-width:0;text-decoration:none;color:#fff}
+.davimart-cart-mark{width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;color:#fff}
+.davimart-cart-mark svg{width:48px;height:48px}
+.davimart-wordmark{display:flex;align-items:baseline;flex-wrap:wrap;font-size:29px;font-weight:950;letter-spacing:-1.3px;line-height:.9}
+.davimart-wordmark .davi{color:#fff}.davimart-wordmark .mart{color:#ffc400}
+.davimart-wordmark small{display:block;flex-basis:100%;margin-top:6px;font-size:10px;letter-spacing:.35px;color:#e8efff;font-weight:600}
+.davimart-brand-lockup .logo-image{display:none;width:auto;height:auto;max-width:190px;max-height:54px;object-fit:contain}
+.davimart-brand-lockup.has-custom-image .logo-image{display:block}
+.davimart-brand-lockup.has-custom-image .davimart-cart-mark,.davimart-brand-lockup.has-custom-image .davimart-wordmark{display:none}
+.dm-header-tools{display:flex;align-items:center;gap:14px;position:relative}
+.dm-header-tools .notification-bell{margin:0;background:transparent;width:40px;height:40px;color:#fff;font-size:25px}
+.dm-header-tools .account-action{display:flex;align-items:center;gap:7px;min-width:0;padding:4px 8px;border:0;background:transparent;color:#fff}
+.dm-header-tools .account-avatar{border-radius:50%;width:36px;height:36px}
+.dm-account-label{font-size:12px;font-weight:700}
+.dm-header-search{width:100%;max-width:none;height:48px;display:flex;overflow:hidden;border-radius:999px;background:#fff;border:1px solid #e4eaf4}
+.dm-header-search input{width:100%;min-width:0;flex:1;border:0!important;outline:0!important;padding:0 18px;background:#fff;font-size:14px}
+.dm-header-search button{width:60px;flex:0 0 60px;border:0;border-radius:0;background:#ffc400;color:#071f50;font-size:25px;font-weight:900}
+.dm-desktop-nav{display:none}
+.dm-desktop-actions{display:none}
+.dm-market-hero{display:grid;grid-template-columns:1fr;gap:12px;margin:0;padding:0 0 12px;background:#071f50;color:#fff}
+.dm-market-hero-copy{padding:22px 22px 10px;position:relative;z-index:1}
+.dm-market-hero-copy>span{display:inline-block;background:#ffc400;color:#071f50;border-radius:30px;padding:7px 13px;font-size:12px;font-weight:900}
+.dm-market-hero-copy h1{margin:13px 0 8px;color:#fff;font-size:clamp(34px,8vw,48px);line-height:.98;letter-spacing:-1.3px}
+.dm-market-hero-copy h1 em{font-style:normal;color:#ffc400}
+.dm-market-hero-copy p{margin:0;color:#eaf0ff;font-size:14px;line-height:1.5}
+.dm-market-hero-copy>a{display:inline-flex;align-items:center;gap:12px;margin-top:16px;padding:11px 17px;border-radius:30px;background:#ffc400;color:#071f50;font-weight:900;font-size:13px}
+.dm-device-stage{position:relative;width:100%;min-height:0;height:auto;aspect-ratio:2.25/1;overflow:hidden;border-radius:0;background:linear-gradient(115deg,#08255f,#1163ca);box-shadow:none}
+.dm-stage-fallback{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:5%;color:#fff;background:radial-gradient(circle at 78% 45%,#2b83e9,transparent 38%),linear-gradient(110deg,#061b48,#0a4da2)}
+.dm-stage-fallback span{font-size:10px;letter-spacing:1.6px;color:#ffd95c;font-weight:900}
+.dm-stage-fallback strong{font-size:clamp(19px,4.2vw,34px);line-height:1.1;margin:8px 0}
+.dm-stage-fallback small{font-size:10px;color:#eaf1ff}
+.dm-device-stage.has-custom-banner .dm-stage-fallback{display:none}
+.dm-device-stage .dm-custom-banner-link{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;background:transparent;display:block}
+.dm-device-stage .dm-custom-banner-image{width:100%;height:100%;display:block;object-fit:cover;object-position:center}
+.dm-shop-strip{margin:0 auto;padding:20px 14px 0;max-width:1400px}
+.dm-section-head{margin-bottom:12px}
+.dm-section-head small{font-size:10px;letter-spacing:1.3px}
+.dm-section-head h2{font-size:21px;margin:5px 0;color:#111d36}
+.dm-category-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.dm-category-grid a{min-height:104px;justify-content:center;padding:12px 7px;border:1px solid #edf0f6;border-radius:17px;background:#f7f9ff;box-shadow:none;gap:8px}
+.dm-category-grid span{font-size:30px}
+.dm-category-grid b{font-size:11px;line-height:1.25;color:#17243a}
+.dm-flash-panel{margin-top:20px;padding:16px 12px;border-radius:16px;background:#fff;box-shadow:0 3px 15px #142b5010}
+.dm-flash-head{align-items:center}
+.dm-flash-head h2{font-size:22px}
+.dm-countdown-wrap>span{font-size:9px}
+.dm-deal-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.dm-deal-card{padding:9px;border-radius:12px;text-align:left;box-shadow:0 2px 10px #142b5010}
+.dm-deal-art{height:105px}
+.dm-deal-card b{display:block;font-size:12px}
+.dm-sale-note{font-size:11px;color:#718096}
+#products{padding:24px 14px}
+#products .container{max-width:1400px}
+#products h2{font-size:22px}
+#homepageProducts.product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#homepageProducts .product-card{min-width:0;border:1px solid #e9edf4;border-radius:13px;padding:10px;background:#fff;box-shadow:0 2px 10px #142b500d}
+#homepageProducts .product-card img{width:100%;height:125px;object-fit:contain;background:#f7f9fc;border-radius:9px}
+#homepageProducts .product-card h3{font-size:13px;line-height:1.3}
+#homepageProducts .product-card p,#homepageProducts .product-card small{font-size:11px}
+#homepageProducts .product-card strong{color:#102b55;font-size:14px}
+.property{margin:12px 14px;padding:18px 14px;border-radius:16px;background:#fff;max-width:none}
+.property-inner{display:block}
+.property-inner>div:first-child{margin-bottom:14px}
+.property-inner h2{font-size:21px;margin:5px 0}
+.dm-home-property-block{margin-top:22px}
+.dm-property-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.dm-property-card{display:block;min-width:0;overflow:hidden;border:1px solid #e9edf4;border-radius:12px;background:#fff;box-shadow:0 2px 10px #142b500d;text-decoration:none;color:#15213a}
+.dm-property-card img{display:block;width:100%;height:118px;object-fit:cover;background:#f1f4f8}
+.dm-property-card-body{display:flex;flex-direction:column;gap:5px;padding:9px}
+.dm-property-card-body strong{font-size:13px;color:#071f50}
+.dm-property-card-body b{font-size:12px;line-height:1.25}
+.dm-property-card-body small{font-size:10px;color:#65728a}
+.dm-feed-loading,.dm-feed-empty{grid-column:1/-1;padding:15px;border-radius:10px;background:#f6f8fc;color:#65728a;font-size:12px}
+#davitech-services{margin:22px 14px;padding:20px 14px;border-radius:16px;background:#e8f0ff}
+#davitech-services h2{font-size:21px}
+#davitech-services .davitech-banner-media{margin-top:12px}
+#davitech-services .davitech-banner-media img{width:100%;height:auto;max-height:230px;object-fit:contain}
+.dm-bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:2000;justify-content:space-around;align-items:center;gap:0;padding:7px 2px calc(7px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #e4eaf2;box-shadow:0 -3px 14px #071f5018}
+.dm-bottom-nav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#23365b;font-size:10px;font-weight:800;text-decoration:none;white-space:nowrap}
+.dm-bottom-nav a span{font-size:22px;line-height:1.1}
+.dm-bottom-nav a.active{color:#123e9b}
+.dm-bottom-nav a.active:after{content:"";width:32px;height:3px;border-radius:4px;background:#ffc400;margin-top:2px}
+body{padding-bottom:78px!important}
+@media(min-width:760px){
+ .dm-market-header{display:grid;grid-template-columns:1fr minmax(260px,520px) auto;align-items:center;gap:18px}
+ .dm-brand-row{display:contents}
+ .dm-header-tools{grid-column:3;grid-row:1}
+ .dm-header-search{grid-column:2;grid-row:1}
+ .dm-desktop-nav{display:flex;grid-column:1/-1;gap:24px;color:#fff}
+ .dm-desktop-nav a{font-size:13px;font-weight:700}
+ .dm-desktop-actions{display:flex;grid-column:1/-1;justify-content:flex-end}
+ .dm-market-hero{grid-template-columns:.8fr 1.2fr;align-items:center;padding:18px 20px;gap:20px}
+ .dm-market-hero-copy{padding:24px}
+ .dm-device-stage{border-radius:14px;aspect-ratio:2.2/1}
+ .dm-category-grid{grid-template-columns:repeat(6,minmax(0,1fr))}
+ .dm-deal-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+ #homepageProducts.product-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .dm-property-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .dm-property-card img{height:170px}
+ .dm-bottom-nav{display:none}
+ body{padding-bottom:0!important}
+}
+</style></head>
 <body>
 
-<div class="top">
-  <strong>DAVIMART</strong> by DAVITECH — Fast Reliable Affordable
-</div>
-
-<header>
-  <a class="logo davimart-brand-lockup" id="davimartHeaderLogo" href="#home" aria-label="DAVIMART home"><span class="davimart-cart-mark" aria-hidden="true"><svg viewBox="0 0 48 48" role="img"><path d="M5 9h5l4.2 21.1a4 4 0 0 0 3.9 3.2h18.5a4 4 0 0 0 3.8-2.8L44 17H13" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 22h20M21 27h15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="20" cy="40" r="3.2" fill="currentColor"/><circle cx="36" cy="40" r="3.2" fill="currentColor"/><path d="m25 5 3 4 4-3 2 5" fill="none" stroke="#ffc400" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="davimart-wordmark"><span class="davi">DAVI</span><span class="mart">MART</span><small>SHOP SMART • SAVE MORE</small></span></a>
-  
-<div class="dm-header-search">
-  <input id="headerSearchInput" type="search"
-    placeholder="Search products, brands and categories...">
-  <button type="button" onclick="
-    document.getElementById('searchInput').value =
-    document.getElementById('headerSearchInput').value;
-    searchProducts();
-  ">SEARCH</button>
-</div>
-  <nav>
-    <a href="#home">Home</a>
-    <a href="#products">Products</a>
-    <a href="#properties">Real Estate</a>
-    <a href="#how">How it works</a>
-  </nav>
-  <div class="market-actions">
-    
-   <a class="market-action buy-action" href="#products">
-  <span>🛍️</span>
-  <span>BUY</span>
-  <small>Shop products</small>
-   </a>
-    <button class="market-action sell-action" onclick="handleSellClick()">
-  <span>🏪</span>
-  <span>SELL</span>
-  <small>Start selling</small>
-    </button>
-    <button class="market-action account-action" id="accountBtn" aria-label="Open account menu">
-    <img id="accountAvatar" class="account-avatar" alt="Profile picture" hidden>
-    <span id="accountAvatarFallback">👤</span>
-    <span>ACCOUNT</span>
-  </button>
-    
+<header class="dm-market-header">
+  <div class="dm-brand-row">
+    <a class="logo davimart-brand-lockup" id="davimartHeaderLogo" href="#home" aria-label="DAVIMART home">
+      <span class="davimart-cart-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M5 9h5l4.2 21.1a4 4 0 0 0 3.9 3.2h18.5a4 4 0 0 0 3.8-2.8L44 17H13" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 22h20M21 27h15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="20" cy="40" r="3.2" fill="currentColor"/><circle cx="36" cy="40" r="3.2" fill="currentColor"/><path d="m25 5 3 4 4-3 2 5" fill="none" stroke="#ffc400" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="davimart-wordmark"><span class="davi">DAVI</span><span class="mart">MART</span><small>Fast. Reliable. Affordable.</small></span>
+      <img id="davimartHeaderLogoImage" class="logo-image" alt="DAVIMART store logo">
+    </a>
+    <div class="dm-header-tools">
+      <button id="headerNotificationBell" class="notification-bell" aria-label="Notifications">♧<span id="notificationCount">0</span></button>
+      <button class="market-action account-action" id="accountBtn" aria-label="Open account menu">
+        <img id="accountAvatar" class="account-avatar" alt="Profile picture" hidden>
+        <span id="accountAvatarFallback">👤</span><span class="dm-account-label">Account</span>
+      </button>
+      <div id="headerNotificationPanel" hidden><p>No notifications yet.</p></div>
+      <div id="accountMenu" class="account-menu" hidden>
+        <button id="menuSignInBtn" onclick="showMessage('signin')">Sign In</button>
+        <button onclick="window.location.href='settings.html'">⚙️ Settings</button>
+        <button>My Profile</button><button>My Orders</button><button>My Wishlist</button><button>My Inbox</button><button>My Notifications</button>
+        <button id="sellerDashboardBtn" hidden>🏪 Seller Dashboard</button><button id="menuAdminBtn" hidden>🔐 Admin Dashboard</button><button id="signoutBtn">Sign Out</button>
+      </div>
+    </div>
   </div>
-  <button id="headerNotificationBell" class="notification-bell">🔔 <span id="notificationCount">0</span></button>
-  
-  <div id="headerNotificationPanel" hidden>
-    <p>No notifications yet.</p>
+  <div class="dm-header-search">
+    <input id="headerSearchInput" type="search" placeholder="Search for products, services or properties..." aria-label="Search marketplace">
+    <button type="button" onclick="document.getElementById('searchInput').value=document.getElementById('headerSearchInput').value;searchProducts()">⌕</button>
   </div>
-<div id="accountMenu" class="account-menu" hidden>
-  <button id="menuSignInBtn" onclick="showMessage('signin')">Sign In</button>
-  <button onclick="window.location.href='settings.html'">⚙️ Settings</button>
-  <button>My Profile</button>
-  <button>My Orders</button>
-  <button>My Wishlist</button>
-  <button>My Inbox</button>
-  <button>My Notifications</button>
-  <button id="sellerDashboardBtn" hidden>🏪 Seller Dashboard</button>
-  <button id="menuAdminBtn" hidden>🔐 Admin Dashboard</button>
-  <button id="signoutBtn">Sign Out</button>
-</div>
+  <nav class="dm-desktop-nav"><a href="#home">Home</a><a href="#products">Shop</a><a href="#davitech-services">Services</a><a href="#properties">Properties</a></nav>
+  <div class="market-actions dm-desktop-actions">
+    <a class="market-action buy-action" href="#products"><span>🛍️</span><span>BUY</span><small>Shop products</small></a>
+    <button class="market-action sell-action" onclick="handleSellClick()"><span>🏪</span><span>SELL</span><small>Start selling</small></button>
+  </div>
 </header>
 
 <main id="home">
 
-<section class="dm-home-hero dm-device-hero" aria-label="DAVIMART featured shopping promotion">
-  <div class="dm-hero-copy">
-    <span class="dm-kicker">WELCOME TO DAVIMART</span>
-    <h1>Shop more.<br><em>Live better.</em></h1>
-    <p>Find the things you love, discover trusted services and explore property opportunities — all in one marketplace.</p>
-    <a class="dm-primary-cta" href="#products">Explore the marketplace <span>→</span></a>
-    <a class="dm-primary-cta dm-whatsapp-cta" href="https://wa.me/2349068847614" target="_blank" rel="noopener noreferrer">Chat with us on WhatsApp <span>↗</span></a>
-    <div class="dm-hero-highlights"><span>✦ Electronics</span><span>✦ Fashion</span><span>✦ Home &amp; Living</span></div>
-  </div>
-  <div class="dm-device-stage" aria-label="Laptop and smartphone displaying the DAVIMART marketplace">
-    <div class="dm-device-glow"></div>
-    <div class="dm-device-orbit dm-orbit-one"></div><div class="dm-device-orbit dm-orbit-two"></div>
-    <div class="dm-laptop">
-      <div class="dm-laptop-screen">
-        <div class="dm-screen-top"><b><i>DAVI</i>MART</b><span>SHOP&nbsp;&nbsp; SERVICES&nbsp;&nbsp; PROPERTY</span><small>⌕</small></div>
-        <div class="dm-screen-banner"><small>THE EVERYDAY MARKETPLACE</small><strong>Everything<br>you need.</strong><span>Discover great finds and more.</span><i>SHOP NOW&nbsp; →</i></div>
-        <div class="dm-screen-label">EXPLORE CATEGORIES</div>
-        <div class="dm-screen-cats"><span>📱<b>Electronics</b></span><span>👟<b>Fashion</b></span><span>🏡<b>Home</b></span></div>
-      </div>
-      <div class="dm-laptop-base"><span></span></div>
-    </div>
-    <div class="dm-smartphone">
-      <div class="dm-phone-side"></div><div class="dm-phone-screen">
-        <div class="dm-phone-notch"></div>
-        <div class="dm-phone-status"><span>9:41</span><span>●●● ▰</span></div>
-        <div class="dm-phone-brand"><b>DAVI<span>MART</span></b><small>🔔</small></div>
-        <div class="dm-phone-search">⌕&nbsp; Search products...</div>
-        <div class="dm-phone-promo"><small>DAVIMART PICKS</small><b>Good finds.<br>Great value.</b><span>Explore now&nbsp; →</span></div>
-        <div class="dm-phone-section">Popular today <small>See all</small></div>
-        <div class="dm-phone-products"><span>🎧<b>Audio</b></span><span>⌚<b>Gadgets</b></span><span>👟<b>Style</b></span></div>
-        <div class="dm-phone-nav"><span>⌂</span><span>♡</span><span>▤</span><span>●</span></div>
-      </div>
-    </div>
-    <div class="dm-float-tag dm-tag-one">✦&nbsp; SHOP SMARTER</div>
-    <div class="dm-float-tag dm-tag-two">✧&nbsp; ALL IN ONE PLACE</div>
+<section class="dm-home-hero dm-device-hero dm-market-hero" aria-label="DAVIMART promotions">
+  <div class="dm-market-hero-copy"><span>BEST DEALS. BIGGER SAVINGS.</span><h1>Shop smart<br><em>with DAVIMART</em></h1><p>Electronics · Fashion · Home &amp; Living and more...</p><a href="#products">Shop now <b>→</b></a></div>
+  <div class="dm-device-stage" aria-label="Promotional banner uploaded by DAVIMART admin">
+    <div class="dm-stage-fallback"><span>DAVIMART PICKS</span><strong>Discover great finds<br>for everyday living.</strong><small>Shop products, explore services and find properties.</small></div>
   </div>
 </section>
   
@@ -1379,12 +1428,12 @@ body.dm-modal-open{overflow:hidden}
     <a href="#products">Browse all <span>→</span></a>
   </div>
   <div class="dm-category-grid">
-    <a href="#products"><span>🛍️</span><b>Shop</b></a>
-    <a href="#davitech-services"><span>⚙️</span><b>Services</b></a>
-    <a href="#properties"><span>⌂</span><b>Properties</b></a>
-    <a href="#products"><span>💻</span><b>Electronics</b></a>
-    <a href="#products"><span>◈</span><b>Fashion</b></a>
-    <a href="#products"><span>•••</span><b>More</b></a>
+    <a href="shop.html"><span>📱</span><b>Phones &amp; Tablets</b></a>
+    <a href="shop.html"><span>💻</span><b>Computers &amp; Accessories</b></a>
+    <a href="shop.html"><span>👕</span><b>Fashion &amp; Beauty</b></a>
+    <a href="shop.html"><span>🏠</span><b>Home &amp; Kitchen</b></a>
+    <a href="shop.html"><span>🖥️</span><b>Electronics</b></a>
+    <a href="categories.html"><span>▦</span><b>All Categories</b></a>
   </div>
 
   <div class="dm-flash-panel">
@@ -1404,7 +1453,7 @@ body.dm-modal-open{overflow:hidden}
   
 <section id="products">
 <div class="container">
-  <h2>Explore the marketplace</h2>
+  <h2>Latest products</h2>
   <p>Search for products and browse by category.</p>
 
   <div class="search">
@@ -1462,6 +1511,8 @@ body.dm-modal-open{overflow:hidden}
   <div class="property-inner">
     <div>
       <div class="eyebrow">DAVIMART REAL ESTATE</div>
+  <div class="dm-home-property-block"><div class="dm-section-head"><div><small>EXPLORE REAL ESTATE</small><h2>Properties</h2></div><a href="real-estate.html">View all →</a></div><div id="homepageProperties" class="dm-property-grid"><p class="dm-feed-loading">Loading approved properties…</p></div></div>
+
       <h2>Looking for a property?</h2>
       <p>Explore houses, apartments, land, shops, offices and short lets.</p>
     </div>
@@ -1503,12 +1554,13 @@ body.dm-modal-open{overflow:hidden}
 
 </main>
 
-<nav class="dm-bottom-nav">
-  <a href="index.html"><span>🏠</span>Home</a>
-  <a href="categories.html"><span>☰</span>Categories</a>
-  <a href="shop.html"><span>🛍️</span>Shop</a>
-  <a href="real-estate.html"><span>🏡</span>Real Estate</a>
-  <a href="account.html"><span>👤</span>Account</a>
+<nav class="dm-bottom-nav" aria-label="Main navigation">
+  <a href="index.html" class="active"><span>⌂</span>Home</a>
+  <a href="categories.html"><span>▦</span>Shop</a>
+  <a href="#davitech-services"><span>▣</span>Services</a>
+  <a href="real-estate.html"><span>⌂</span>Properties</a>
+  <a href="shop.html"><span>🛒</span>Cart</a>
+  <a href="account.html"><span>♙</span>Account</a>
 </nav>
 
 
@@ -1684,6 +1736,22 @@ function openProductDetails(productId) {
   window.location.href = "product.html?id=" + encodeURIComponent(productId);
 }
 
+async function loadHomepageProperties(){
+ const host=document.getElementById("homepageProperties");if(!host)return;
+ const {data,error}=await db.from("listings").select("id,title,description,price,category,location,image_url").eq("status","approved").eq("listing_type","property").order("created_at",{ascending:false}).limit(6);
+ if(error){host.textContent="Properties could not be loaded right now.";return;}
+ if(!data||!data.length){host.innerHTML='<p class="dm-feed-empty">No approved properties are available yet. New approved seller listings will appear here automatically.</p>';return;}
+ host.innerHTML="";
+ data.forEach(item=>{
+  const card=document.createElement("a");card.className="dm-property-card";card.href="real-estate.html";
+  if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt=item.title||"Property";img.loading="lazy";card.appendChild(img);}
+  const body=document.createElement("div");body.className="dm-property-card-body";
+  const price=document.createElement("strong");price.textContent="₦"+Number(item.price||0).toLocaleString("en-NG");
+  const title=document.createElement("b");title.textContent=item.title||"Property listing";
+  const place=document.createElement("small");place.textContent=item.location||"Nigeria";
+  body.append(price,title,place);card.appendChild(body);host.appendChild(card);
+ });
+}
 async function loadHomepageProducts(){
  const host=document.getElementById("homepageProducts");if(!host)return;
  const {data,error}=await db.from("listings").select("id,title,description,price,category,location,image_url").eq("status","approved").eq("listing_type","product").order("created_at",{ascending:false}).limit(12);
@@ -1869,6 +1937,7 @@ async function loadDavitechBanner(){
 
 loadDavimartStoreLogo();
 loadHomepageProducts();
+loadHomepageProperties();
 loadHomepageBanner();
 loadDavitechBanner();
 loadFlashSaleImages();
