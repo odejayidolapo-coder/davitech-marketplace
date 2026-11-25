@@ -92,7 +92,7 @@ async function loadRelatedProducts(item) {
 }
 async function loadProduct(){
  if(!id){root.textContent="No product was selected. Please return to shopping.";return;}
- const {data:item,error}=await db.from("listings").select("id,title,description,price,category,location,image_url").eq("id",id).eq("status","approved").eq("listing_type","product").maybeSingle();
+ const {data:item,error}=await db.from("listings").select("id,title,description,price,category,location,image_url,seller_id").eq("id",id).eq("status","approved").eq("listing_type","product").maybeSingle();
  if(error||!item){root.textContent="This product is unavailable or could not be loaded. Please return to shopping.";return;}
  document.title=(item.title||"Product")+" | DAVIMART";
  root.className="product-layout";
@@ -108,11 +108,11 @@ async function loadProduct(){
  const descTitle=document.createElement("h2");descTitle.textContent="Product description";
  const desc=document.createElement("div");desc.className="description";desc.textContent=item.description||"The seller has not provided a description yet.";
  const delivery=document.createElement("div");delivery.className="info";delivery.textContent="Delivery: Contact the seller for delivery options and charges. Delivery details will be shown here when DAVIMART checkout is introduced.";
- const actions=document.createElement("div");actions.className="actions";
+ const contact=document.createElement("button");contact.type="button";contact.textContent="Message Seller";contact.style.cssText="width:100%;padding:13px;margin-top:14px;border:1px solid #d9a72e;border-radius:8px;background:#fff8e8;color:#071f50;font-weight:800;cursor:pointer";contact.onclick=async()=>{const {data:{user}}=await db.auth.getUser();if(!user){alert("Please sign in to message the seller.");return;}if(user.id===item.seller_id){alert("You cannot message yourself.");return;}location.href="messages.html?seller_id="+encodeURIComponent(item.seller_id)+"&listing_id="+encodeURIComponent(item.id)+"&title="+encodeURIComponent(item.title||"Marketplace item");};const actions=document.createElement("div");actions.className="actions";
  const cart=document.createElement("button");cart.className="cart";cart.textContent="Add to Cart";cart.disabled=true;cart.title="Shopping cart is being built next.";
  const buy=document.createElement("button");buy.className="buy";buy.textContent="Buy Now";buy.disabled=true;buy.title="Checkout is being built after the product page.";
  actions.append(cart,buy);
- panel.append(title,price,meta,rule,descTitle,desc,delivery,actions);
+ panel.append(title,price,meta,rule,descTitle,desc,delivery,contact,actions);
  root.append(gallery,panel);
 
  const below=document.createElement("div");below.className="below-product";
