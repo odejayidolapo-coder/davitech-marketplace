@@ -1516,7 +1516,12 @@ body{padding-bottom:78px!important}
  #davitech-services .dv-banner-copy li{font-size:8px}
 }
 
-/* DAVIMART full-width homepage banner */
+
+/* Comfortable swipe interaction on touch screens */
+.dm-market-hero .dm-device-stage{touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.dm-market-hero .dm-custom-banner-link{touch-action:pan-y}
+.dm-market-hero .dm-custom-banner-image{-webkit-user-drag:none}
+\n/* DAVIMART full-width homepage banner */
 .dm-market-hero{
   display:block!important;
   width:100%!important;
@@ -2068,15 +2073,22 @@ async function loadHomepageBanner() {
     .filter(item => item.name === "homepage-banner" || item.name.startsWith("slide-"))
     .sort((a,b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
   if (!slides.length) return;
+
   stage.classList.add("has-custom-banner");
+  stage.style.touchAction = "pan-y";
   let current = 0;
   let timer = null;
-  function showNext() {
+  let startX = 0;
+  let startY = 0;
+  let swiping = false;
+
+  function renderSlide(index) {
     if (timer) window.clearTimeout(timer);
+    current = (index + slides.length) % slides.length;
     const file = slides[current];
     const { data } = db.storage.from(DAVIMART_BANNER_BUCKET).getPublicUrl(file.name);
     const url = data.publicUrl + "?v=" + encodeURIComponent(file.updated_at || file.created_at || Date.now());
-    const isVideo = /\.(mp4|webm)$/i.test(file.name);
+    const isVideo = /\\.(mp4|webm)$/i.test(file.name);
     const media = document.createElement(isVideo ? "video" : "img");
     media.className = "dm-custom-banner-image";
     media.style.opacity = "0";
@@ -2086,34 +2098,58 @@ async function loadHomepageBanner() {
       media.playsInline = true;
       media.controls = false;
       media.preload = "metadata";
-      media.addEventListener("ended", advance, { once: true });
+      media.addEventListener("ended", nextSlide, { once: true });
     } else {
       media.alt = "DAVIMART homepage promotional banner";
     }
-    const previous = stage.querySelector(".dm-custom-banner-link, .dm-custom-banner-image");
+    const previous = stage.querySelector(".dm-custom-banner-link");
     if (previous) previous.remove();
     const bannerTrigger = document.createElement("button");
     bannerTrigger.type = "button";
     bannerTrigger.className = "dm-custom-banner-link";
     bannerTrigger.setAttribute("aria-label", "View promotional banner full screen");
     bannerTrigger.title = "Tap to view full image";
-    bannerTrigger.addEventListener("click", () => openDavimartBannerViewer(url, isVideo));
+    bannerTrigger.addEventListener("click", () => {
+      if (!swiping) openDavimartBannerViewer(url, isVideo);
+    });
     bannerTrigger.appendChild(media);
     stage.appendChild(bannerTrigger);
     media.src = url;
     requestAnimationFrame(() => { media.style.opacity = "1"; });
-    current = (current + 1) % slides.length;
     if (slides.length > 1) {
-      timer = window.setTimeout(advance, isVideo ? 20000 : 5000);
+      timer = window.setTimeout(nextSlide, isVideo ? 20000 : 5000);
     }
-    if (isVideo) media.play().catch(() => { /* muted autoplay may be restricted */ });
+    if (isVideo) media.play().catch(() => {});
   }
-  function advance() {
-    if (slides.length > 1) showNext();
-  }
-  showNext();
-}
 
+  function nextSlide() {
+    if (slides.length > 1) renderSlide(current + 1);
+  }
+  function previousSlide() {
+    if (slides.length > 1) renderSlide(current - 1);
+  }
+
+  // Horizontal touch/pointer swipes; vertical page scrolling remains natural.
+  stage.addEventListener("pointerdown", event => {
+    if (slides.length < 2 || event.pointerType === "mouse") return;
+    startX = event.clientX;
+    startY = event.clientY;
+    swiping = false;
+  }, { passive: true });
+  stage.addEventListener("pointerup", event => {
+    if (slides.length < 2 || event.pointerType === "mouse") return;
+    const dx = event.clientX - startX;
+    const dy = event.clientY - startY;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.25) {
+      swiping = true;
+      if (dx < 0) nextSlide();
+      else previousSlide();
+      window.setTimeout(() => { swiping = false; }, 350);
+    }
+  }, { passive: true });
+
+  renderSlide(0);
+}
 async function loadDavitechBanner(){
  const stage=document.getElementById("davitechBannerMedia");if(!stage)return;
  const {data:files,error}=await db.storage.from(DAVIMART_BANNER_BUCKET).list("",{limit:100});if(error||!files)return;
