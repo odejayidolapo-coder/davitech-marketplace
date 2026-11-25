@@ -1255,6 +1255,19 @@ body.dm-modal-open{overflow:hidden}
 #davitech-services .davitech-contact{background:#25d366;color:#062b19;margin-top:0}
 @media(max-width:700px){#davitech-services .davitech-banner-media,#davitech-services .davitech-banner-empty{min-height:175px}#davitech-services .davitech-banner-media img,#davitech-services .davitech-banner-media video{min-height:175px}}
 </style>
+<style>
+/* DAVIMART header brand identity: cart symbol + designed wordmark */
+.davimart-brand-lockup{display:inline-flex;align-items:center;justify-content:flex-start;gap:9px;width:max-content;max-width:220px;min-width:0;min-height:48px;overflow:visible;text-decoration:none;color:#fff}
+.davimart-cart-mark{width:46px;height:46px;flex:0 0 46px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(145deg,#fff7d7,#ffc52e);color:#092657;box-shadow:0 4px 12px #0003}
+.davimart-cart-mark svg{display:block;width:38px;height:38px}
+.davimart-wordmark{display:flex;flex-wrap:wrap;align-items:baseline;line-height:.9;font-family:Arial,Helvetica,sans-serif;font-size:25px;font-weight:950;letter-spacing:-1.25px;text-shadow:0 2px 5px #0003}
+.davimart-wordmark .davi{color:#fff}
+.davimart-wordmark .mart{color:#ffc52e}
+.davimart-wordmark small{display:block;flex-basis:100%;margin-top:6px;color:#e8efff;font-size:7px;font-weight:800;letter-spacing:1.35px;line-height:1}
+.logo-image{display:none!important}
+.logo.has-custom-image .logo-text{display:initial}
+@media(max-width:700px){.davimart-brand-lockup{gap:7px;max-width:205px;min-height:44px}.davimart-cart-mark{width:42px;height:42px;flex-basis:42px;border-radius:11px}.davimart-cart-mark svg{width:35px;height:35px}.davimart-wordmark{font-size:23px;letter-spacing:-1.1px}.davimart-wordmark small{font-size:6.5px;letter-spacing:1.15px;margin-top:5px}}
+</style>
 </head>
 <body>
 
@@ -1263,7 +1276,7 @@ body.dm-modal-open{overflow:hidden}
 </div>
 
 <header>
-  <a class="logo" id="davimartHeaderLogo" href="#home" aria-label="DAVIMART home"><span class="logo-text">DAVI<span>MART</span></span><img id="davimartHeaderLogoImage" class="logo-image" alt="DAVIMART logo"></a>
+  <a class="logo davimart-brand-lockup" id="davimartHeaderLogo" href="#home" aria-label="DAVIMART home"><span class="davimart-cart-mark" aria-hidden="true"><svg viewBox="0 0 48 48" role="img"><path d="M5 9h5l4.2 21.1a4 4 0 0 0 3.9 3.2h18.5a4 4 0 0 0 3.8-2.8L44 17H13" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 22h20M21 27h15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="20" cy="40" r="3.2" fill="currentColor"/><circle cx="36" cy="40" r="3.2" fill="currentColor"/><path d="m25 5 3 4 4-3 2 5" fill="none" stroke="#ffc400" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="davimart-wordmark"><span class="davi">DAVI</span><span class="mart">MART</span><small>SHOP SMART • SAVE MORE</small></span></a>
   
 <div class="dm-header-search">
   <input id="headerSearchInput" type="search"
