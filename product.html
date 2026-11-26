@@ -112,6 +112,20 @@ async function loadProduct(){
  const cart=document.createElement("button");cart.className="cart";cart.textContent="Add to Cart";cart.disabled=true;cart.title="Shopping cart is being built next.";
  const buy=document.createElement("button");buy.className="buy";buy.textContent="Buy Now";buy.disabled=true;buy.title="Checkout is being built after the product page.";
  actions.append(cart,buy);
+ const saveButton=document.createElement("button");
+ saveButton.type="button";saveButton.textContent="♡ Save to Wishlist";
+ saveButton.style.cssText="width:100%;padding:13px;margin-top:10px;border:1px solid #d9a72e;border-radius:8px;background:#fff;color:#071f50;font-weight:800;cursor:pointer";
+ saveButton.onclick=async()=>{
+  saveButton.disabled=true;saveButton.textContent="Saving…";
+  const {data:{user},error:authError}=await db.auth.getUser();
+  if(authError||!user){alert("Please sign in to save items to your wishlist.");saveButton.disabled=false;saveButton.textContent="♡ Save to Wishlist";return;}
+  const {data:existing,error:lookupError}=await db.from("wishlist").select("id").eq("user_id",user.id).eq("item_type","product").eq("item_id",item.id).maybeSingle();
+  if(lookupError){alert("We couldn't check your wishlist. Please try again.");saveButton.disabled=false;saveButton.textContent="♡ Save to Wishlist";return;}
+  if(existing){saveButton.textContent="✓ Saved to Wishlist";saveButton.disabled=false;return;}
+  const {error:saveError}=await db.from("wishlist").insert({user_id:user.id,item_type:"product",item_id:item.id});
+  if(saveError){alert("We couldn't save this item. Please try again.");saveButton.disabled=false;saveButton.textContent="♡ Save to Wishlist";return;}
+  saveButton.textContent="✓ Saved to Wishlist";saveButton.disabled=false;
+ };
  panel.append(title,price,meta,rule,descTitle,desc,delivery,contact,actions);
  root.append(gallery,panel);
 
