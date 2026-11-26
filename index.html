@@ -2281,7 +2281,11 @@ function googleOtpRequired(session) {
   );
   if (!isGoogle) return false;
   if (sessionStorage.getItem("davimart_google_otp_verified") === user.id) return false;
-  window.location.replace("/google-otp.html?next=" + encodeURIComponent(window.location.pathname + window.location.search));
+  const requestedNext = new URLSearchParams(window.location.search).get("googleOtpNext");
+  const safeNext = requestedNext && requestedNext.startsWith("/") && !requestedNext.startsWith("//")
+    ? requestedNext
+    : window.location.pathname + window.location.search;
+  window.location.replace("/google-otp.html?next=" + encodeURIComponent(safeNext));
   return true;
 }
 function updateHeaderAvatar(user) {
@@ -2432,7 +2436,7 @@ window.showMessage = function(type) {
     const status = document.getElementById(statusId);
     status.textContent = intent === "signup" ? "Creating your account with Google..." : "Redirecting to Google...";
     const nextPath = intent === "signup" ? "/set-password.html" : "/index.html?refresh=googleotp";
-    const redirectPath = "/google-otp.html?next=" + encodeURIComponent(nextPath);
+    const redirectPath = "/index.html?googleOtpNext=" + encodeURIComponent(nextPath);
     const { error } = await db.auth.signInWithOAuth({
       provider: "google",
       options: {
