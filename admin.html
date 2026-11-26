@@ -84,7 +84,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <button class="stat stat-action" id="homepageBannerCard" type="button" aria-label="Open homepage banner manager"><b>Homepage banner</b><span>Manage live promotion · Open manager</span></button>
 <button class="stat stat-action" id="marketplaceCard" type="button" aria-label="Open DAVIMART marketplace"><b>Marketplace</b><span>DAVIMART · Visit marketplace</span></button>
 </div>
-<p id="adminAccessDetails" class="notice" hidden role="status"></p>
+
 <section class="panel" id="overview"><h2>Welcome to your control centre</h2><p>Use the Homepage banner section to choose an image, preview it, and publish it to the DAVIMART homepage. Other management tools will be added one feature at a time after testing.</p><button class="btn btn-gold" id="openBanner">Manage homepage banner</button></section>
 
 <section class="panel admin-feature" id="usersPanel" hidden>
@@ -376,11 +376,11 @@ function showAdminPanel(id){
  if(id==="logoPanel") loadStoreLogo();
 }
 document.querySelectorAll("aside button[data-panel]").forEach(b=>b.addEventListener("click",()=>showAdminPanel(b.dataset.panel)));
-document.getElementById("adminAccessCard").addEventListener("click",async()=>{const info=document.getElementById("adminAccessDetails");const {data:{user},error}=await db.auth.getUser();info.hidden=false;info.textContent=error||!user?"Could not confirm the signed-in administrator. Please sign in again.":"Administrator access is active for "+(user.email||"the authorized account")+". This account is authorized to manage DAVIMART.";info.scrollIntoView({behavior:"smooth",block:"nearest"});});
-document.getElementById("homepageBannerCard").addEventListener("click",()=>showAdminPanel("bannerPanel"));
+document.getElementById("adminAccessCard").addEventListener("click",()=>{window.location.href="admin-access.html";});
+document.getElementById("homepageBannerCard").addEventListener("click",()=>{window.location.href="homepage-banner.html";});
 document.getElementById("marketplaceCard").addEventListener("click",()=>{window.location.href="index.html";});
-document.getElementById("openBanner").onclick=()=>showAdminPanel("bannerPanel");
-document.getElementById("bannerNav").onclick=()=>showAdminPanel("bannerPanel");
+document.getElementById("openBanner").onclick=()=>{window.location.href="homepage-banner.html";};
+document.getElementById("bannerNav").onclick=()=>{window.location.href="homepage-banner.html";};
 document.getElementById("refreshUsers").onclick=loadUsers;
 document.getElementById("refreshListings").onclick=loadListings;
 
