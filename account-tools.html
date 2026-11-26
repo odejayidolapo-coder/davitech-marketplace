@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071f50"><title>Account Centre | DAVIMART</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;padding-bottom:84px;background:#f4f6fa;color:#17243a;font-family:Arial,sans-serif}header{background:#071f50;color:#fff;padding:18px;font-size:21px;font-weight:800}header span{color:#ffc400}main{max-width:850px;margin:22px auto;padding:0 15px}.panel{background:#fff;border-radius:12px;padding:20px;margin-bottom:14px;box-shadow:0 2px 10px #071f5010}.panel h1,.panel h2{color:#102b55;margin-top:0}.muted{color:#667085;font-size:14px;line-height:1.55}.item{padding:13px;border:1px solid #e1e5eb;border-radius:9px;margin:9px 0;background:#fff}.item strong{display:block;color:#102b55;margin-bottom:5px}button{border:0;border-radius:7px;background:#102b55;color:#fff;padding:11px 15px;font-weight:700;cursor:pointer}button.secondary{background:#e8edf5;color:#102b55}button:disabled{opacity:.55}label{display:flex;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #edf0f4;font-size:14px}label input{width:18px;height:18px}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}a{color:#102b55}.status{font-size:13px;line-height:1.5;color:#667085}.nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#071f50;border-top:2px solid #ffc400;padding:7px 3px calc(7px + env(safe-area-inset-bottom))}.nav a{flex:1;color:white;text-decoration:none;text-align:center;font-size:10px;font-weight:800;padding:5px}.nav span{display:block;font-size:20px;margin-bottom:4px}@media(min-width:701px){.nav{display:none}body{padding-bottom:0}}
+</style>
+</head>
+<body>
+<header>DAVIMART <span>Account Centre</span></header>
+<main>
+<section class="panel"><a href="account.html">← Back to My Account</a><h1 id="pageTitle">Account Centre</h1><p class="muted" id="pageIntro">Manage your DAVIMART account.</p><p id="status" class="status" aria-live="polite">Checking your sign-in…</p></section>
+<section class="panel" id="pageContent" hidden></section>
+</main>
+<nav class="nav"><a href="index.html"><span>⌂</span>Home</a><a href="shop.html"><span>▣</span>Shop</a><a href="services-marketplace.html"><span>🛠</span>Services</a><a href="real-estate.html"><span>⌂</span>Properties</a><a href="account.html"><span>👤</span>Account</a></nav>
+<script>
+const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
+const $=id=>document.getElementById(id),content=$("pageContent"),status=$("status");
+const pages={
+ orders:["Orders","Your marketplace purchases and order tracking."],
+ reviews:["Ratings & Reviews","Your submitted product and seller reviews."],
+ vouchers:["Vouchers","Your available DAVIMART vouchers."],
+ "followed-sellers":["Followed Sellers","Sellers you choose to follow."],
+ "recently-viewed":["Recently Viewed","Products and listings you have recently opened."],
+ addresses:["Address Book","Manage delivery addresses for future orders."],
+ "notification-preferences":["Notification Preferences","Choose which optional product updates you want to receive."],
+ "close-account":["Close Account","Request help with closing your DAVIMART account."],
+ "privacy-policy":["Privacy Policy","Information about how DAVIMART handles account information."]
+};
+function showMessage(title,message){content.replaceChildren();const h=document.createElement("h2");h.textContent=title;const p=document.createElement("p");p.className="muted";p.textContent=message;content.append(h,p);content.hidden=false;}
+function makeButton(label,fn,secondary=true){const b=document.createElement("button");b.type="button";b.textContent=label;if(secondary)b.className="secondary";b.onclick=fn;return b;}
+async function init(){
+ const key=new URLSearchParams(location.search).get("section")||"";
+ const [title,intro]=pages[key]||["Account Centre","Choose a section from your Account page."];
+ $("pageTitle").textContent=title;$("pageIntro").textContent=intro;
+ const {data:{user},error}=await db.auth.getUser();
+ if(error||!user){status.textContent="Please sign in to access this account section.";showMessage("Sign-in required","Return to My Account and sign in first.");return;}
+ status.textContent="Signed in as "+(user.email||"your DAVIMART account")+".";
+ if(key==="followed-sellers"){await loadFollows(user);return;}
+ if(key==="notification-preferences"){await loadPreferences(user);return;}
+ if(key==="close-account"){showMessage("Request account closure","If you want to close your account, contact DAVIMART support on WhatsApp. A support agent can guide you through the request and any necessary checks.");const a=document.createElement("a");a.href="https://wa.me/2349068847614";a.target="_blank";a.rel="noopener noreferrer";a.textContent="Contact DAVIMART Support";content.append(a);return;}
+ if(key==="privacy-policy"){showMessage("DAVIMART Privacy Information","A complete formal privacy policy page has not yet been published. Until it is ready, do not submit sensitive personal information except where required for account or seller verification. Contact DAVIMART support if you have questions about your account information.");const a=document.createElement("a");a.href="https://wa.me/2349068847614";a.target="_blank";a.rel="noopener noreferrer";a.textContent="Contact DAVIMART Support";content.append(a);return;}
+ const messages={
+ orders:"Order history is not connected yet because the marketplace does not currently have an orders table and completed checkout records. No sample or invented orders are shown.",
+ reviews:"Ratings and reviews are not available yet. The review feature and its records have not been created.",
+ vouchers:"There is no active voucher wallet or voucher record system connected yet.",
+ "recently-viewed":"Recently viewed history is not being stored yet. This page will show items after browsing-history tracking is implemented.",
+ addresses:"The delivery address book has not been connected to a saved-address database yet. No address changes will be made until that feature is ready."
+ };
+ showMessage(title,messages[key]||"This account section is being prepared.");
+}
+async function loadFollows(user){
+ const {data:follows,error}=await db.from("seller_follows").select("id,seller_id,created_at").eq("follower_id",user.id).order("created_at",{ascending:false});
+ if(error){showMessage("Could not load followed sellers",error.message);return;}
+ if(!follows?.length){showMessage("No followed sellers yet","When you follow an approved seller, that seller will appear here.");return;}
+ const ids=[...new Set(follows.map(x=>x.seller_id))];
+ const {data:sellers,error:sellerError}=await db.from("profiles").select("id,full_name,role,seller_status").in("id",ids);
+ if(sellerError){showMessage("Could not load seller details",sellerError.message);return;}
+ content.replaceChildren();const h=document.createElement("h2");h.textContent="Your Followed Sellers";content.append(h);
+ for(const follow of follows){
+  const seller=(sellers||[]).find(x=>x.id===follow.seller_id);const card=document.createElement("div");card.className="item";
+  const name=document.createElement("strong");name.textContent=seller?.full_name||"DAVIMART Seller";card.append(name);
+  const p=document.createElement("p");p.className="muted";p.textContent=seller?"Approved seller · Followed "+new Date(follow.created_at).toLocaleDateString():"Seller profile is unavailable";card.append(p);
+  const b=makeButton("Unfollow",async()=>{b.disabled=true;const {error}=await db.from("seller_follows").delete().eq("id",follow.id).eq("follower_id",user.id);if(error){p.textContent="Could not unfollow: "+error.message;b.disabled=false;return;}card.remove();if(!content.querySelector(".item"))showMessage("No followed sellers","You have no followed sellers now.");});
+  card.append(b);content.append(card);
+ }
+ content.hidden=false;
+}
+async function loadPreferences(user){
+ let {data:prefs,error}=await db.from("notification_preferences").select("email_new_products,whatsapp_new_products").eq("user_id",user.id).maybeSingle();
+ if(error){showMessage("Could not load preferences",error.message);return;}
+ prefs=prefs||{email_new_products:false,whatsapp_new_products:false};
+ content.replaceChildren();const h=document.createElement("h2");h.textContent="Product Update Preferences";content.append(h);
+ const info=document.createElement("p");info.className="muted";info.textContent="These optional preferences only record your choices. Email and WhatsApp delivery will work when those notification channels are implemented.";content.append(info);
+ const form=document.createElement("form");
+ const fields=[["email_new_products","Email me about new products"],["whatsapp_new_products","Send me WhatsApp updates about new products"]];
+ const inputs={};
+ fields.forEach(([key,labelText])=>{const label=document.createElement("label"),input=document.createElement("input");input.type="checkbox";input.checked=!!prefs[key];inputs[key]=input;label.append(input,document.createTextNode(labelText));form.append(label);});
+ const save=document.createElement("button");save.type="submit";save.textContent="Save Preferences";form.append(save);
+ form.onsubmit=async e=>{e.preventDefault();save.disabled=true;status.textContent="Saving your preferences…";const payload={user_id:user.id,email_new_products:inputs.email_new_products.checked,whatsapp_new_products:inputs.whatsapp_new_products.checked,updated_at:new Date().toISOString()};const {error}=await db.from("notification_preferences").upsert(payload,{onConflict:"user_id"});save.disabled=false;status.textContent=error?"Could not save preferences: "+error.message:"Your notification preferences have been saved.";};
+ content.append(form);content.hidden=false;
+}
+init();
+</script>
+</body></html>

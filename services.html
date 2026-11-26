@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#071f50">
+<title>Services | DAVIMART</title>
+<style>
+:root{--navy:#071f50;--blue:#174b91;--gold:#e4b449;--light:#f4f6fa;--text:#17243a}
+*{box-sizing:border-box}body{margin:0;background:var(--light);color:var(--text);font-family:Arial,sans-serif}
+a{text-decoration:none;color:inherit}.top{background:var(--navy);color:#fff;padding:12px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-size:23px;font-weight:900;color:#fff}.logo span{color:var(--gold)}
+.top a:last-child{color:var(--gold);font-weight:700}
+main{max-width:1120px;margin:0 auto;padding:35px 20px 80px}
+.hero{background:linear-gradient(125deg,var(--navy),var(--blue));color:white;border-radius:18px;padding:42px 35px;margin-bottom:28px}
+.eyebrow{color:var(--gold);font-size:12px;letter-spacing:2px;font-weight:800}
+h1{font-size:clamp(30px,5vw,46px);margin:12px 0;line-height:1.1}
+.hero p{max-width:650px;line-height:1.7;color:#e5edf8}
+h2{color:var(--navy);margin:0 0 16px}
+.providers{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.card{background:white;border:1px solid #e1e7f0;border-radius:16px;overflow:hidden;box-shadow:0 5px 18px #102b550b}
+.card-head{background:linear-gradient(135deg,#102b55,#174b91);color:white;padding:24px}
+.mark{width:54px;height:54px;border-radius:14px;background:var(--gold);color:var(--navy);display:grid;place-items:center;font-weight:900;font-size:24px;margin-bottom:16px}
+.card-head h3{margin:0 0 8px;font-size:22px}.card-head p{margin:0;color:#e5edf8;line-height:1.5;font-size:14px}
+.card-body{padding:22px}.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
+.chip{background:#f1f5fb;color:#24456f;border-radius:30px;padding:7px 10px;font-size:12px;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;background:var(--gold);color:var(--navy);font-weight:800;padding:13px 17px;border-radius:9px;width:100%}
+.note{margin-top:25px;background:#fff;border:1px dashed #cbd5e1;padding:18px;border-radius:12px;color:#66758a;font-size:14px;line-height:1.6}
+footer{text-align:center;padding:25px;color:#66758a;font-size:13px}footer a{color:var(--blue);font-weight:700}
+@media(max-width:600px){main{padding:22px 12px 75px}.hero{padding:28px 20px}.top{padding:12px 16px}}
+</style>
+<style>
+/* Consistent, mobile-safe DAVIMART marketplace navigation */
+.dm-bottom-nav,.bottom-nav{display:none}
+@media(max-width:700px){
+ .dm-bottom-nav,.bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:3000;justify-content:space-around;align-items:stretch;gap:0;padding:7px 3px calc(7px + env(safe-area-inset-bottom));background:#071f50;border-top:2px solid #ffc400;box-shadow:0 -3px 14px #071f5022}
+ .dm-bottom-nav a,.bottom-nav a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:5px 1px;color:#fff;font-size:10px;font-weight:800;text-decoration:none;text-align:center;white-space:nowrap}
+ .dm-bottom-nav a span,.bottom-nav a span{font-size:20px;line-height:1.1}
+ .dm-bottom-nav a[aria-current="page"],.bottom-nav a[aria-current="page"]{color:#ffc400}
+ .dm-bottom-nav a:focus-visible,.bottom-nav a:focus-visible{outline:2px solid #ffc400;outline-offset:-2px;border-radius:7px}
+ body{padding-bottom:calc(82px + env(safe-area-inset-bottom))!important}
+}
+@media(min-width:701px){.dm-bottom-nav,.bottom-nav{display:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><a class="logo" href="index.html">DAVI<span>MART</span></a><a href="index.html">← Back to marketplace</a></header>
+<main>
+<section class="hero"><div class="eyebrow">DAVIMART SERVICES</div><h1>Find trusted digital<br>and local services.</h1><p>Discover service providers on DAVIMART. Open a provider's page to learn what they offer and how to request a service.</p></section>
+<section aria-labelledby="provider-title"><h2 id="provider-title">Service providers</h2>
+<div class="providers">
+<article class="card"><div class="card-head"><div class="mark">DV</div><h3>DAVITECH</h3><p>Digital &amp; Business Services</p></div><div class="card-body"><div class="chips"><span class="chip">Business registration</span><span class="chip">NIN / BVN support</span><span class="chip">CV &amp; graphic design</span><span class="chip">Online applications</span></div><a class="btn" href="service-provider.html?provider=davitech">View service profile →</a></div></article>
+</div>
+<div class="note"><strong>More providers:</strong> Service-provider registration and self-managed profile creation are not enabled yet. This directory currently features DAVITECH as the first service profile; we’ll add provider onboarding after the profile flow is tested.</div>
+</section>
+</main>
+<footer>DAVIMART by DAVITECH · <a href="index.html">Return to home</a></footer>
+<nav class="bottom-nav" aria-label="Main navigation">
+<a href="index.html"><span>⌂</span>Home</a>
+<a href="shop.html"><span>▦</span>Shop</a>
+<a href="services-marketplace.html" aria-current="page"><span>▣</span>Services</a>
+<a href="real-estate.html"><span>⌂</span>Properties</a>
+<a href="account.html"><span>♙</span>Account</a>
+</nav>
+</body>
+</html>
