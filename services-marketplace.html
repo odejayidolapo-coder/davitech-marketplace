@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071f50"><title>Services Marketplace | DAVIMART</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--navy:#071f50;--gold:#ffc400;--ink:#17233b;--muted:#68758b;--line:#e5eaf2;--bg:#f5f7fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:17px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header a{color:#fff;text-decoration:none;font-weight:bold}.brand{font-size:22px;font-weight:900}.brand span{color:var(--gold)}
+main{max-width:1120px;margin:28px auto;padding:0 16px}.intro{background:linear-gradient(120deg,#071f50,#174b91);color:#fff;border-radius:17px;padding:28px;margin-bottom:20px}.intro h1{margin:0 0 10px}.intro p{color:#e3eafa;line-height:1.6}
+.filters{display:grid;grid-template-columns:1fr 220px auto;gap:10px;background:#fff;padding:16px;border:1px solid var(--line);border-radius:13px;margin-bottom:18px}
+input,select{width:100%;padding:12px;border:1px solid #d7dfeb;border-radius:8px;font:inherit}
+button,.btn{border:0;border-radius:8px;padding:12px 16px;font-weight:bold;cursor:pointer;text-decoration:none;display:inline-block}.primary{background:var(--navy);color:#fff}.gold{background:var(--gold);color:var(--navy)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px;box-shadow:0 4px 16px #071f500a;display:flex;flex-direction:column;gap:9px;min-width:0}.card img{width:100%;height:170px;object-fit:contain;background:#f5f7fb;border-radius:9px}.card h2{font-size:18px;margin:2px 0;color:var(--navy)}.card p{color:#59667b;line-height:1.55;margin:0;white-space:pre-wrap}.price{font-size:19px;font-weight:900;color:var(--navy)}.meta{font-size:12px;color:var(--muted)}.empty{background:#fff;border:1px dashed #cbd5e1;border-radius:12px;padding:28px;text-align:center;color:var(--muted);grid-column:1/-1}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){main{margin:16px auto}.filters{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.card img{height:190px}}
+</style></head>
+<body>
+<header><a class="brand" href="index.html">DAVI<span>MART</span></a><a href="seller-dashboard.html">Seller Centre →</a></header>
+<main>
+<section class="intro"><h1>Find trusted services</h1><p>Discover professionals and businesses offering services online and in your area. Contact providers directly to ask questions and arrange the work.</p></section>
+<form class="filters" id="filterForm"><input id="query" type="search" placeholder="Search services, providers or categories"><select id="mode"><option value="">All service formats</option><option value="in_person">In person</option><option value="online">Online / remote</option><option value="both">Online and in person</option></select><button class="primary" type="submit">Search</button></form>
+<p id="status" class="meta" role="status">Loading approved services…</p><section id="serviceGrid" class="grid" aria-live="polite"></section>
+</main>
+<script>
+const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
+const host=document.getElementById("serviceGrid"),status=document.getElementById("status");
+let services=[];
+function addText(parent,tag,cls,value){const node=document.createElement(tag);if(cls)node.className=cls;node.textContent=value||"";parent.appendChild(node);return node;}
+function render(rows){
+ host.innerHTML="";
+ if(!rows.length){const empty=document.createElement("div");empty.className="empty";empty.textContent="No approved services match this search yet. Please check back later.";host.appendChild(empty);return;}
+ rows.forEach(item=>{
+  const card=document.createElement("article");card.className="card";
+  if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt=item.title||"Service";img.loading="lazy";card.appendChild(img);}
+  addText(card,"h2","",item.title||"Service");
+  addText(card,"p","",item.description||"No description provided.");
+  const details=item.listing_details||{};
+  addText(card,"div","price",details.pricing_method==="negotiable"?"Request a quote":"₦"+Number(item.price||0).toLocaleString("en-NG"));
+  addText(card,"div","meta",(item.category||"General")+" · "+(item.location||"Nigeria"));
+  addText(card,"div","meta",(details.service_mode||"").replace("_"," ")+" · "+(details.areas_covered||"Area not specified"));
+  if(details.estimated_duration)addText(card,"div","meta","Duration: "+details.estimated_duration);
+  if(details.working_hours)addText(card,"div","meta","Availability: "+details.working_hours);
+  const contact=document.createElement("button");contact.className="gold";contact.textContent="Contact provider";
+  contact.onclick=async()=>{
+   const {data:{user}}=await db.auth.getUser();
+   if(!user){alert("Please sign in to contact this service provider.");return;}
+   if(user.id===item.seller_id){alert("This is your own listing.");return;}
+   location.href="messages.html?seller_id="+encodeURIComponent(item.seller_id)+"&listing_id="+encodeURIComponent(item.id)+"&title="+encodeURIComponent(item.title||"Service enquiry");
+  };
+  card.appendChild(contact);host.appendChild(card);
+ });
+}
+function applyFilters(){
+ const q=document.getElementById("query").value.trim().toLowerCase(),mode=document.getElementById("mode").value;
+ const rows=services.filter(item=>{
+  const d=item.listing_details||{},hay=[item.title,item.description,item.category,item.location,d.areas_covered,d.experience_qualifications].join(" ").toLowerCase();
+  return (!q||hay.includes(q))&&(!mode||d.service_mode===mode);
+ });
+ status.textContent=rows.length+" approved service"+(rows.length===1?"":"s")+" found.";
+ render(rows);
+}
+document.getElementById("filterForm").addEventListener("submit",event=>{event.preventDefault();applyFilters();});
+(async()=>{
+ const {data,error}=await db.from("listings").select("id,seller_id,title,description,price,category,location,image_url,listing_details").eq("status","approved").eq("listing_type","service").order("created_at",{ascending:false}).limit(100);
+ if(error){status.textContent="Services could not be loaded: "+error.message;return;}
+ services=data||[];applyFilters();
+})();
+</script></body></html>
