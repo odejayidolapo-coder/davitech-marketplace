@@ -68,13 +68,25 @@ body.camera-open{overflow:hidden}
  body{padding-bottom:calc(82px + env(safe-area-inset-bottom))!important}
 }
 @media(min-width:701px){.dm-bottom-nav,.bottom-nav{display:none!important}}
+
+
+/* DAVIMART official navy-and-gold cart identity */
+.dm-brand{display:flex;align-items:center;gap:11px;min-width:max-content;text-decoration:none}
+.dm-brand-mark{width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;border-radius:14px;background:#ffc400;color:#071f50;border:1px solid #ffd75c;box-shadow:0 4px 12px #0002}
+.dm-brand-mark svg{width:35px;height:35px;display:block}
+.dm-brand-word{display:flex;flex-direction:column;gap:0;line-height:1}
+.dm-brand-name{display:block;color:#fff;font-size:clamp(27px,2.5vw,34px);font-weight:1000;line-height:.95;letter-spacing:-1.2px;white-space:nowrap}
+.dm-brand-name>span{color:#ffc400}
+.dm-brand-word small{display:block;color:#d6e2f5;font-size:8px;font-weight:900;letter-spacing:1.7px;margin-top:6px;white-space:nowrap}
+@media(max-width:700px){.dm-brand-mark{width:43px;height:43px;flex-basis:43px}.dm-brand-mark svg{width:32px;height:32px}.dm-brand-name{font-size:29px}.dm-brand-word small{font-size:7px;letter-spacing:1.2px}}
+
 </style>
 </head>
 <body>
 
 <div id="loader">Loading DAVIMART Account...</div>
 
-<header>DAVIMART <span>by DAVITECH</span></header>
+<header><a class="dm-brand" href="index.html" aria-label="DAVIMART home"><span class="dm-brand-mark" aria-hidden="true"><svg viewBox="0 0 64 64" role="img" aria-label="DAVIMART shopping cart"><path d="M7 10h7l6.5 31.5a4 4 0 0 0 3.9 3.2h25.8a4 4 0 0 0 3.8-2.8L60 23H18" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 28h32M24 36h27" fill="none" stroke="#9a6b00" stroke-width="3.2" stroke-linecap="round"/><path d="M25 49h24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle cx="27" cy="55" r="4.2" fill="#071f50" stroke="#071f50" stroke-width="1.5"/><circle cx="48" cy="55" r="4.2" fill="#071f50" stroke="#071f50" stroke-width="1.5"/></svg></span><span class="dm-brand-word"><span class="dm-brand-name">DAVI<span>MART</span></span><small>FAST • RELIABLE • AFFORDABLE</small></span></a></header>
 
 <section class="hero">
 <h1>My DAVIMART Account</h1>
@@ -101,18 +113,28 @@ body.camera-open{overflow:hidden}
 </a>
 </section>
 <section class="panel" id="authPanel">
-<h2>Sign in or Create an Account</h2>
-<p>Register as a buyer or sign in to your existing DAVIMART account.</p>
-<input id="fullName" type="text" placeholder="Full name">
-<input id="email" type="email" placeholder="Email address">
-<input id="password" type="password" placeholder="Password (minimum 8 characters)">
-<div class="actions">
-<button id="registerBtn">Create Account</button>
-<button class="secondary" id="loginBtn">Sign In</button>
+<h2>DAVIMART Account</h2>
+<div id="loginForm">
+ <h3>Sign In</h3>
+ <p>Welcome back. Sign in with your registered email address.</p>
+ <input id="email" type="email" autocomplete="email" inputmode="email" placeholder="Email address">
+ <input id="password" type="password" autocomplete="current-password" placeholder="Password">
+ <div class="actions"><button id="loginBtn">Sign In</button></div>
+ <p id="authStatus" aria-live="polite"></p>
+ <button type="button" class="secondary" id="forgotPasswordBtn">Forgot password?</button>
+ <p id="forgotPasswordStatus" aria-live="polite"></p>
+ <p>New to DAVIMART? <button type="button" class="secondary" id="showRegisterBtn">Create an account</button></p>
 </div>
-<p id="authStatus" aria-live="polite"></p>
-<button type="button" class="secondary" id="forgotPasswordBtn">Forgot password?</button>
-<p id="forgotPasswordStatus" aria-live="polite"></p>
+<div id="registerForm" hidden>
+ <h3>Create Account</h3>
+ <p>Join DAVIMART to shop and manage your account.</p>
+ <input id="fullName" type="text" autocomplete="name" placeholder="Full name">
+ <input id="registerEmail" type="email" autocomplete="email" inputmode="email" placeholder="Email address" required>
+ <input id="registerPassword" type="password" autocomplete="new-password" placeholder="Create password (minimum 8 characters)">
+ <div class="actions"><button id="registerBtn">Create Account</button></div>
+ <p id="registerStatus" aria-live="polite"></p>
+ <p>Already have an account? <button type="button" class="secondary" id="showLoginBtn">Sign in</button></p>
+</div>
 <section id="passwordRecoveryPanel" class="feature" hidden style="margin-top:14px">
  <strong>Choose a new password</strong>
  <p class="form-help">Use at least 8 characters. You will need to enter it twice.</p>
@@ -121,7 +143,7 @@ body.camera-open{overflow:hidden}
  <button type="button" id="saveAccountPasswordBtn">Update password</button>
  <p id="passwordRecoveryStatus" aria-live="polite"></p>
 </section>
-</section>
+</section>>
 
 <section class="panel" id="profilePanel" hidden>
 <h2>Welcome to DAVIMART!</h2>
@@ -518,35 +540,34 @@ document.getElementById("saveAccountPasswordBtn").onclick = async function(){
  document.getElementById("accountStatus").textContent="Your password has been updated successfully.";
 };
 
+document.getElementById("showRegisterBtn").onclick = () => {
+ document.getElementById("loginForm").hidden = true;
+ document.getElementById("registerForm").hidden = false;
+ document.getElementById("authStatus").textContent = "";
+};
+document.getElementById("showLoginBtn").onclick = () => {
+ document.getElementById("registerForm").hidden = true;
+ document.getElementById("loginForm").hidden = false;
+ document.getElementById("registerStatus").textContent = "";
+};
 document.getElementById("registerBtn").onclick = async function(){
- const name = document.getElementById("fullName").value.trim();
- const email = document.getElementById("email").value.trim();
- const password = document.getElementById("password").value;
-
- if(!name || !email || password.length < 8){
-  authStatus.textContent =
-  "Enter your full name, email and a password of at least 8 characters.";
+ const name=document.getElementById("fullName").value.trim();
+ const email=document.getElementById("registerEmail").value.trim();
+ const password=document.getElementById("registerPassword").value;
+ const status=document.getElementById("registerStatus");
+ if(!name || !email || password.length<8){
+  status.textContent="Enter your full name, email address, and a password of at least 8 characters.";
   return;
  }
-
- authStatus.textContent = "Creating your account...";
-
- const {data,error} = await db.auth.signUp({
+ status.textContent="Creating your account...";
+ const {data,error}=await db.auth.signUp({
   email,
   password,
-  options:{
-   data:{full_name:name,role:"buyer"},
-   emailRedirectTo:window.location.origin + "/account.html"
-  }
+  options:{data:{full_name:name,role:"buyer"},emailRedirectTo:window.location.origin+"/account.html"}
  });
-
- authStatus.textContent = error
- ? error.message
- : data.session
- ? "Account created successfully!"
- : "Registration submitted. Check your email for confirmation.";
-
- if(!error && data.session) await loadAccount();
+ if(error){status.textContent=error.message;return;}
+ status.textContent=data.session?"Account created successfully!":"Registration submitted. Check your email for confirmation.";
+ if(data.session) await loadAccount();
 };
 
 document.getElementById("loginBtn").onclick = async function(){
