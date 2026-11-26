@@ -199,13 +199,13 @@ async function loadProduct(){
   const closeImageViewer=()=>{viewer.classList.remove("is-open");document.body.classList.remove("product-viewer-open");};
   closeViewer.addEventListener("click",closeImageViewer);
   viewer.addEventListener("click",event=>{if(event.target===viewer)closeImageViewer();});
-  mainImage.addEventListener("click",()=>{fullImage.src=mainImage.src;viewer.classList.add("is-open");document.body.classList.add("product-viewer-open");});
+  const openFullImage=()=>{fullImage.src=mainImage.src;fullImage.alt=mainImage.alt;viewer.classList.add("is-open");document.body.classList.add("product-viewer-open");};mainImage.openFullScreen=openFullImage;mainImage.addEventListener("click",openFullImage);
   document.addEventListener("keydown",event=>{if(event.key==="Escape"&&viewer.classList.contains("is-open"))closeImageViewer();});
   viewer.append(fullImage,closeViewer);document.body.appendChild(viewer);
  }
  gallery.appendChild(galleryMain);
  if(imageUrls.length>1){const thumbs=document.createElement("div");thumbs.className="gallery-thumbs";
- imageUrls.forEach((url,index)=>{const b=document.createElement("button");b.type="button";b.setAttribute("aria-label","View image "+(index+1));b.setAttribute("aria-current",String(index===0));const im=document.createElement("img");im.src=url;im.alt="";b.appendChild(im);b.addEventListener("click",()=>{activeImage=index;mainImage.src=url;thumbs.querySelectorAll("button").forEach((x,i)=>x.setAttribute("aria-current",String(i===index)));});thumbs.appendChild(b);});gallery.appendChild(thumbs);
+ imageUrls.forEach((url,index)=>{const b=document.createElement("button");b.type="button";b.setAttribute("aria-label","View image "+(index+1));b.setAttribute("aria-current",String(index===0));const im=document.createElement("img");im.src=url;im.alt="";b.appendChild(im);b.addEventListener("click",()=>{activeImage=index;mainImage.src=url;mainImage.alt=(item.title||"Product image")+" - image "+(index+1);thumbs.querySelectorAll("button").forEach((x,i)=>x.setAttribute("aria-current",String(i===index)));mainImage.openFullScreen?.();});thumbs.appendChild(b);});gallery.appendChild(thumbs);
  let touchStart=0;galleryMain.addEventListener("touchstart",e=>touchStart=e.changedTouches[0].clientX,{passive:true});galleryMain.addEventListener("touchend",e=>{const dx=e.changedTouches[0].clientX-touchStart;if(Math.abs(dx)>45){activeImage=(activeImage+(dx<0?1:imageUrls.length-1))%imageUrls.length;mainImage.src=imageUrls[activeImage];thumbs.querySelectorAll("button").forEach((x,i)=>x.setAttribute("aria-current",String(i===activeImage)));}},{passive:true});}
  const panel=document.createElement("section");panel.className="panel";
  const title=document.createElement("h1");title.textContent=item.title||"Product";
