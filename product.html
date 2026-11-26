@@ -53,6 +53,9 @@ body{padding-bottom:100px}
 .product-buybar .qty-control button{background:#f28c18;color:#fff;border:0;width:48px;min-width:48px;height:52px;font-size:25px;padding:0;border-radius:5px}
 .product-buybar .qty-control span{min-width:42px;text-align:center;font-size:18px}
 .product-buybar .cart-link{background:#f28c18;color:#fff;border:0;flex:1;max-width:220px;font-size:14px}
+.product-buybar .cart-link{background:#0b56c5;transition:background .25s ease,opacity .25s ease,filter .25s ease}
+.product-buybar .cart-link:disabled{background:#8b98aa!important;color:#fff!important;opacity:.48;filter:grayscale(.35);cursor:not-allowed}
+.product-buybar .cart-link.is-out-of-stock{background:#aeb7c4!important;opacity:.48;filter:grayscale(.5)}
 @media(max-width:520px){body{padding-bottom:94px}.product-buybar{gap:6px;padding-left:8px;padding-right:8px}.product-buybar a,.product-buybar button{height:50px;min-width:42px;padding:0 8px;font-size:12px}.product-buybar .home-link,.product-buybar .contact-link{min-width:42px;font-size:19px}.product-buybar .qty-control{flex:0 0 auto;gap:0}.product-buybar .qty-control button{width:38px;min-width:38px;height:50px}.product-buybar .qty-control span{min-width:30px;font-size:16px}.product-buybar .cart-link{flex:1;max-width:none;font-size:12px}}
 @media(min-width:761px){.product-buybar{padding-left:max(24px,calc((100vw - 1180px)/2));padding-right:max(24px,calc((100vw - 1180px)/2))}}
 </style>
@@ -214,12 +217,25 @@ async function loadProduct(){
  const buybar=document.createElement("nav");buybar.className="product-buybar";buybar.setAttribute("aria-label","Product actions");
  const homeLink=document.createElement("a");homeLink.className="home-link";homeLink.href="index.html";homeLink.textContent="⌂";homeLink.setAttribute("aria-label","Home");
  const contactLink=document.createElement("a");contactLink.className="contact-link";contactLink.href="messages.html?seller_id="+encodeURIComponent(item.seller_id)+"&listing_id="+encodeURIComponent(item.id)+"&title="+encodeURIComponent(item.title||"Product");contactLink.textContent="☎";contactLink.setAttribute("aria-label","Contact seller");contactLink.title="Contact seller";
- const stock=Math.max(0,Math.floor(Number(details.stock_quantity??1)||0));
+ let stock=Math.max(0,Math.floor(Number(details.stock_quantity??1)||0));
  const qty=document.createElement("div");qty.className="qty-control";const minus=document.createElement("button");minus.type="button";minus.textContent="−";minus.setAttribute("aria-label","Decrease quantity");const qtyText=document.createElement("span");qtyText.textContent="1";const plus=document.createElement("button");plus.type="button";plus.textContent="+";plus.setAttribute("aria-label","Increase quantity");let selectedQty=stock>0?1:0;
  qtyText.textContent=String(selectedQty);minus.disabled=selectedQty<=0;plus.disabled=selectedQty>=stock;
  const updateQty=()=>{qtyText.textContent=String(selectedQty);minus.disabled=selectedQty<=0;plus.disabled=selectedQty>=stock;};
  minus.addEventListener("click",()=>{selectedQty=Math.max(0,selectedQty-1);updateQty();});plus.addEventListener("click",()=>{selectedQty=Math.min(stock,selectedQty+1);updateQty();});
- const addCart=document.createElement("button");addCart.type="button";addCart.className="cart-link";addCart.textContent=stock>0?"🛒 Add to Cart":"Out of Stock";addCart.disabled=stock<1;
+ const addCart=document.createElement("button");addCart.type="button";addCart.className="cart-link";addCart.textContent=stock>0?"🛒 Add to Cart":"Out of Stock";addCart.disabled=stock<1;if(stock<1)addCart.classList.add("is-out-of-stock");
+ const refreshAvailableStock=async()=>{
+  const {data:latest,error:stockError}=await db.from("listings").select("status,listing_type,listing_details").eq("id",item.id).maybeSingle();
+  if(stockError)return;
+  const nextStock=latest&&latest.status==="approved"&&latest.listing_type==="product"?Math.max(0,Math.floor(Number(latest.listing_details?.stock_quantity??1)||0)):0;
+  stock=nextStock;selectedQty=Math.min(selectedQty,stock);updateQty();
+  addCart.disabled=stock<1;
+  addCart.classList.toggle("is-out-of-stock",stock<1);
+  addCart.textContent=stock<1?"Out of Stock":"🛒 Add to Cart";
+  let saved=[];try{saved=JSON.parse(localStorage.getItem("davimart_cart")||"[]");if(!Array.isArray(saved))saved=[];}catch(e){saved=[];}
+  const savedItem=saved.find(x=>x&&x.id===item.id);if(savedItem){savedItem.stock_quantity=stock;savedItem.quantity=Math.min(Math.max(0,Number(savedItem.quantity)||0),stock);localStorage.setItem("davimart_cart",JSON.stringify(saved));window.dispatchEvent(new Event("davimart-cart-updated"));}
+ };
+ window.addEventListener("focus",refreshAvailableStock);
+ document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshAvailableStock();});
  addCart.addEventListener("click",()=>{if(selectedQty<1){alert("Choose at least 1 item before adding to cart.");return;}let items=[];try{items=JSON.parse(localStorage.getItem("davimart_cart")||"[]");if(!Array.isArray(items))items=[]}catch(e){items=[]}const existing=items.find(x=>x&&x.id===item.id);const alreadyInCart=existing?Math.max(0,Number(existing.quantity)||0):0;if(alreadyInCart+selectedQty>stock){alert("Only "+stock+" item(s) are available from this seller. You already have "+alreadyInCart+" in your cart.");return;}if(existing){existing.quantity=alreadyInCart+selectedQty;existing.stock_quantity=stock;}else items.push({id:item.id,title:item.title||"Product",price:Number(item.price)||0,image_url:item.image_url||"",quantity:selectedQty,stock_quantity:stock});localStorage.setItem("davimart_cart",JSON.stringify(items));window.dispatchEvent(new Event("davimart-cart-updated"));addCart.textContent="✓ Added · View Cart";addCart.onclick=()=>location.href="cart.html";});
  qty.append(minus,qtyText,plus);buybar.append(homeLink,contactLink,qty,addCart);document.body.appendChild(buybar);
 
