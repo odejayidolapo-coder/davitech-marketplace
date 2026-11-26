@@ -1721,6 +1721,10 @@ body{padding-bottom:78px!important}
     </button>
   </div>
 </div>
+<section id="marketplaceServices" class="dm-shop-strip">
+  <div class="dm-section-head"><div><small>DISCOVER WHAT PEOPLE OFFER</small><h2>Services</h2></div><a href="services-marketplace.html">View all services →</a></div>
+  <div id="homepageServices" class="product-grid"><p class="dm-feed-loading">Loading approved services…</p></div>
+</section>
 <section id="how">
 <div class="container">
   <h2>How DAVIMART works</h2>
@@ -1960,6 +1964,23 @@ async function loadHomepageProperties(){
   const title=document.createElement("b");title.textContent=item.title||"Property listing";
   const place=document.createElement("small");place.textContent=item.location||"Nigeria";
   body.append(price,title,place);card.appendChild(body);host.appendChild(card);
+ });
+}
+async function loadHomepageServices(){
+ const host=document.getElementById("homepageServices");if(!host)return;
+ const {data,error}=await db.from("listings").select("id,title,description,price,category,listing_details,location,image_url").eq("status","approved").eq("listing_type","service").order("created_at",{ascending:false}).limit(6);
+ if(error){host.textContent="Services could not be loaded right now.";return;}
+ if(!data?.length){host.innerHTML='<p class="dm-feed-empty">No approved service listings are available yet. Services submitted by sellers will appear here after review.</p>';return;}
+ host.innerHTML="";
+ data.forEach(item=>{
+  const card=document.createElement("article");card.className="product-card";
+  if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt=item.title||"Service";img.loading="lazy";card.appendChild(img);}
+  const title=document.createElement("h3");title.textContent=item.title||"Service";
+  const desc=document.createElement("p");desc.textContent=item.description||item.category||"Service details";
+  const price=document.createElement("strong");price.textContent=item.listing_details?.pricing_method==="negotiable"?"Request a quote":"₦"+Number(item.price||0).toLocaleString("en-NG");
+  const place=document.createElement("small");place.textContent=(item.location||"Nigeria")+" · "+(item.listing_details?.service_mode||"service");
+  const link=document.createElement("a");link.className="dm-view-details";link.href="services-marketplace.html";link.textContent="Explore services";
+  card.append(title,desc,price,place,link);host.appendChild(card);
  });
 }
 async function loadHomepageProducts(){
@@ -2207,6 +2228,7 @@ async function loadDavitechBanner(){
 loadDavimartStoreLogo();
 loadHomepageProducts();
 loadHomepageProperties();
+loadHomepageServices();
 loadHomepageBanner();
 loadDavitechBanner();
 loadFlashSaleImages();
