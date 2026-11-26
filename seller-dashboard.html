@@ -7,7 +7,20 @@
 <style>
 :root{--navy:#071f50;--blue:#0b56c5;--gold:#ffc400;--ink:#102044;--muted:#65728a;--bg:#f4f6fb}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px Arial,sans-serif;color:var(--ink)}header{background:var(--navy);color:white;padding:17px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}header a{color:white;text-decoration:none}main{max-width:1100px;margin:28px auto;padding:0 16px}.panel{background:white;border-radius:16px;padding:22px;margin:16px 0;box-shadow:0 5px 22px rgba(7,31,80,.07)}h1,h2{margin-top:0}label{display:block;font-weight:700;margin:13px 0 6px}.detail-fields{border:1px solid #e5eaf2;border-radius:12px;padding:15px;margin:18px 0;background:#fbfcff}.detail-fields h3{margin:0 0 8px;color:var(--navy)}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}@media(max-width:520px){.form-grid{grid-template-columns:1fr}}input,textarea,select{display:block;width:100%;padding:12px;border:1px solid #d8e0ed;border-radius:9px;font:inherit;background:white}textarea{min-height:100px;resize:vertical}.btn{border:0;border-radius:9px;padding:12px 17px;font-weight:700;cursor:pointer}.primary{background:var(--navy);color:white}.gold{background:var(--gold);color:var(--navy)}.muted{color:var(--muted)}.status{padding:10px 0;color:var(--blue)}.listing{border:1px solid #e5eaf2;border-radius:12px;padding:14px;margin:12px 0;display:flex;gap:14px;align-items:center;flex-wrap:wrap}.listing img{width:100px;height:90px;object-fit:cover;border-radius:8px}.listing .info{flex:1;min-width:180px}.pill{display:inline-block;padding:5px 9px;border-radius:20px;background:#edf2fa;font-size:12px;font-weight:700}.pill.approved{background:#e3f7eb;color:#126b39}.pill.pending{background:#fff5d6;color:#805900}.pill.rejected{background:#fde8e8;color:#9a2020}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}.stat{background:#f5f7fb;padding:14px;border-radius:12px}.stat b{display:block;font-size:22px;color:var(--navy)}.category-shortcut{width:100%;border:2px solid transparent;text-align:left;color:var(--ink);font:inherit;cursor:pointer;transition:border-color .15s,background .15s,transform .15s}.category-shortcut:hover,.category-shortcut:focus-visible{border-color:var(--gold);background:#fff9e8;outline:none;transform:translateY(-1px)}.category-shortcut b{margin-bottom:5px}.category-shortcut span,.category-shortcut small{display:block}.category-shortcut small{margin-top:10px;color:var(--navy);font-weight:800}@media(max-width:600px){.panel{padding:17px}.listing img{width:76px;height:76px}}
-</style></head>
+</style><style>
+/* Consistent, mobile-safe DAVIMART marketplace navigation */
+.dm-bottom-nav,.bottom-nav{display:none}
+@media(max-width:700px){
+ .dm-bottom-nav,.bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:3000;justify-content:space-around;align-items:stretch;gap:0;padding:7px 3px calc(7px + env(safe-area-inset-bottom));background:#071f50;border-top:2px solid #ffc400;box-shadow:0 -3px 14px #071f5022}
+ .dm-bottom-nav a,.bottom-nav a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:5px 1px;color:#fff;font-size:10px;font-weight:800;text-decoration:none;text-align:center;white-space:nowrap}
+ .dm-bottom-nav a span,.bottom-nav a span{font-size:20px;line-height:1.1}
+ .dm-bottom-nav a[aria-current="page"],.bottom-nav a[aria-current="page"]{color:#ffc400}
+ .dm-bottom-nav a:focus-visible,.bottom-nav a:focus-visible{outline:2px solid #ffc400;outline-offset:-2px;border-radius:7px}
+ body{padding-bottom:calc(82px + env(safe-area-inset-bottom))!important}
+}
+@media(min-width:701px){.dm-bottom-nav,.bottom-nav{display:none!important}}
+</style>
+</head>
 <body>
 <header><strong>DAVIMART SELLER CENTRE</strong><a href="index.html">← Back to marketplace</a></header>
 <main>
@@ -196,4 +209,11 @@ $("listingForm").onsubmit=async e=>{
  $("sellerApp").hidden=false;$("sellerWelcome").textContent="Welcome, "+(profile.full_name||user.email)+". Manage your DAVIMART listings here.";
  await loadMyListings();
 })();
-</script></body></html>
+</script><nav class="bottom-nav" aria-label="Main navigation">
+<a href="index.html"><span>⌂</span>Home</a>
+<a href="index.html#products"><span>▦</span>Shop</a>
+<a href="services-marketplace.html"><span>▣</span>Services</a>
+<a href="real-estate.html"><span>⌂</span>Properties</a>
+<a href="account.html"><span>♙</span>Account</a>
+</nav>
+</body></html>
