@@ -2297,6 +2297,15 @@ db.auth.onAuthStateChange((event, session) => {
     setTimeout(showHomepagePasswordRecovery, 0);
     return;
   }
+  const user = session?.user;
+  const isGoogleUser = !!user && (
+    user.app_metadata?.provider === "google" ||
+    (Array.isArray(user.app_metadata?.providers) && user.app_metadata.providers.includes("google"))
+  );
+  if (isGoogleUser && sessionStorage.getItem("davimart_google_otp_verified") !== user.id) {
+    window.location.replace("/google-otp.html?next=" + encodeURIComponent(window.location.pathname + window.location.search));
+    return;
+  }
   updateHeaderAvatar(session?.user);
   document.getElementById("menuSignInBtn").hidden = !!session;
   document.getElementById("menuSetPasswordBtn").hidden = !session;
@@ -2318,6 +2327,7 @@ updateAccountButtons();
     return;
   }
 
+  sessionStorage.removeItem("davimart_google_otp_verified");
   document.getElementById("accountMenu").hidden = true;
   await updateAccountButtons();
   location.reload();
@@ -2416,7 +2426,8 @@ window.showMessage = function(type) {
   async function startGoogleSignIn(statusId, intent) {
     const status = document.getElementById(statusId);
     status.textContent = intent === "signup" ? "Creating your account with Google..." : "Redirecting to Google...";
-    const redirectPath = intent === "signup" ? "/set-password.html" : "/index.html?refresh=a5366c90";
+    const nextPath = intent === "signup" ? "/set-password.html" : "/index.html?refresh=googleotp";
+    const redirectPath = "/google-otp.html?next=" + encodeURIComponent(nextPath);
     const { error } = await db.auth.signInWithOAuth({
       provider: "google",
       options: {
