@@ -1634,6 +1634,7 @@ body{padding-bottom:78px!important}
         <button id="menuSignInBtn" onclick="showMessage('signin')">Sign In</button>
         <button onclick="window.location.href='settings.html'">⚙️ Settings</button>
         <button type="button" onclick="window.location.href='profile.html'">My Profile</button>
+        <button type="button" id="menuSetPasswordBtn" hidden>🔑 Set email password</button>
         <button type="button" onclick="window.location.href='orders.html'">My Orders</button>
         <button type="button" onclick="window.location.href='wishlist.html'">My Wishlist</button>
         <button type="button" onclick="window.location.href='messages.html'">My Inbox</button>
@@ -2284,6 +2285,7 @@ async function updateAccountButtons() {
   updateHeaderAvatar(session?.user);
 
   document.getElementById("menuSignInBtn").hidden = !!session;
+  document.getElementById("menuSetPasswordBtn").hidden = !session;
   document.getElementById("signoutBtn").hidden = !session;
   document.getElementById("menuAdminBtn").hidden = !(session && session.user.id === DAVIMART_ADMIN_ID);
   await updateSellerDashboardVisibility(session);
@@ -2297,6 +2299,7 @@ db.auth.onAuthStateChange((event, session) => {
   }
   updateHeaderAvatar(session?.user);
   document.getElementById("menuSignInBtn").hidden = !!session;
+  document.getElementById("menuSetPasswordBtn").hidden = !session;
   document.getElementById("signoutBtn").hidden = !session;
   document.getElementById("menuAdminBtn").hidden = !(session && session.user.id === DAVIMART_ADMIN_ID);
   document.getElementById("sellerDashboardBtn").hidden = true;
@@ -2306,6 +2309,7 @@ db.auth.onAuthStateChange((event, session) => {
 updateAccountButtons();
   document.getElementById("menuAdminBtn").onclick = () => { window.location.href = "admin.html"; };
   document.getElementById("sellerDashboardBtn").onclick = () => { window.location.href = "seller-dashboard.html"; };
+  document.getElementById("menuSetPasswordBtn").onclick = () => { document.getElementById("accountMenu").hidden = true; showHomepagePasswordRecovery(); };
   document.getElementById("signoutBtn").onclick = async () => {
   const { error } = await db.auth.signOut();
 
@@ -2327,12 +2331,16 @@ updateAccountButtons();
     showMessage("seller");
   }
   }
-function showHomepagePasswordRecovery() {
+async function showHomepagePasswordRecovery() {
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) { alert("Please sign in with Google first, then set your email password."); return; }
   const box = document.querySelector(".modal-box");
   if (!box) return;
   box.innerHTML = `
-    <h3>Reset your DAVIMART password</h3>
-    <p>Choose a new password of at least 8 characters.</p>
+    <h3>Set your DAVIMART email password</h3>
+    <p>This adds a password to your existing account. Your Google sign-in will continue working.</p>
+    <p style="color:#64748b;font-size:13px">Account: ${user.email || "Your signed-in account"}</p>
+    <p>Choose a password of at least 8 characters.</p>
     <input id="homepageNewPassword" type="password" autocomplete="new-password" placeholder="New password" style="width:100%;padding:12px;margin:8px 0">
     <input id="homepageConfirmPassword" type="password" autocomplete="new-password" placeholder="Confirm new password" style="width:100%;padding:12px;margin:8px 0">
     <p id="homepagePasswordRecoveryStatus" aria-live="polite"></p>
