@@ -52,9 +52,11 @@ function render(){
   const details=document.createElement("div");const title=document.createElement("h2");title.textContent=item.title||"Product";
   const price=document.createElement("p");price.className="price";price.textContent=money(item.price);
   const qty=document.createElement("div");qty.className="qty";
+  const stock=Math.max(0,Math.floor(Number(item.stock_quantity??1)||0));
+  item.quantity=Math.min(stock,Math.max(1,Number(item.quantity)||1));
   const minus=document.createElement("button");minus.type="button";minus.textContent="−";minus.setAttribute("aria-label","Decrease quantity");
-  const number=document.createElement("span");number.textContent=Math.max(1,Number(item.quantity)||1);
-  const plus=document.createElement("button");plus.type="button";plus.textContent="+";plus.setAttribute("aria-label","Increase quantity");
+  const number=document.createElement("span");number.textContent=item.quantity;
+  const plus=document.createElement("button");plus.type="button";plus.textContent="+";plus.setAttribute("aria-label","Increase quantity");plus.disabled=item.quantity>=stock;
   minus.onclick=()=>change(item.id,-1);plus.onclick=()=>change(item.id,1);
   qty.append(minus,number,plus);
   const remove=document.createElement("button");remove.type="button";remove.className="remove";remove.textContent="Remove";remove.onclick=()=>removeItem(item.id);
@@ -67,7 +69,7 @@ function render(){
  root.replaceChildren(list,summary);
  document.getElementById("checkoutButton").addEventListener("click",()=>location.href="checkout.html");
 }
-function change(id,delta){const items=readCart();const item=items.find(x=>x.id===id);if(!item)return;item.quantity=Math.max(1,Math.min(99,(Number(item.quantity)||1)+delta));saveCart(items);render()}
+function change(id,delta){const items=readCart();const item=items.find(x=>x.id===id);if(!item)return;const stock=Math.max(0,Math.floor(Number(item.stock_quantity??1)||0));item.quantity=Math.max(1,Math.min(stock,(Number(item.quantity)||1)+delta));saveCart(items);render()}
 function removeItem(id){saveCart(readCart().filter(x=>x.id!==id));render()}
 window.addEventListener("storage",render);window.addEventListener("davimart-cart-updated",render);render();
 </script>
