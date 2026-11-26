@@ -1575,7 +1575,20 @@ body{padding-bottom:78px!important}
   .dm-market-hero .dm-device-stage{aspect-ratio:16/9!important}
 }
 
-</style></head>
+</style><style>
+/* Consistent, mobile-safe DAVIMART marketplace navigation */
+.dm-bottom-nav,.bottom-nav{display:none}
+@media(max-width:700px){
+ .dm-bottom-nav,.bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:3000;justify-content:space-around;align-items:stretch;gap:0;padding:7px 3px calc(7px + env(safe-area-inset-bottom));background:#071f50;border-top:2px solid #ffc400;box-shadow:0 -3px 14px #071f5022}
+ .dm-bottom-nav a,.bottom-nav a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:5px 1px;color:#fff;font-size:10px;font-weight:800;text-decoration:none;text-align:center;white-space:nowrap}
+ .dm-bottom-nav a span,.bottom-nav a span{font-size:20px;line-height:1.1}
+ .dm-bottom-nav a[aria-current="page"],.bottom-nav a[aria-current="page"]{color:#ffc400}
+ .dm-bottom-nav a:focus-visible,.bottom-nav a:focus-visible{outline:2px solid #ffc400;outline-offset:-2px;border-radius:7px}
+ body{padding-bottom:calc(82px + env(safe-area-inset-bottom))!important}
+}
+@media(min-width:701px){.dm-bottom-nav,.bottom-nav{display:none!important}}
+</style>
+</head>
 <body>
 
 <header class="dm-market-header">
@@ -1729,12 +1742,11 @@ body{padding-bottom:78px!important}
 </main>
 
 <nav class="dm-bottom-nav" aria-label="Main navigation">
-  <a href="index.html" class="active"><span>⌂</span>Home</a>
-  <a href="categories.html"><span>▦</span>Shop</a>
-  <a href="#davitech-services"><span>▣</span>Services</a>
-  <a href="real-estate.html"><span>⌂</span>Properties</a>
-  <a href="shop.html"><span>🛒</span>Cart</a>
-  <a href="account.html"><span>♙</span>Account</a>
+<a href="index.html" aria-current="page"><span>⌂</span>Home</a>
+<a href="index.html#products"><span>▦</span>Shop</a>
+<a href="services-marketplace.html"><span>▣</span>Services</a>
+<a href="real-estate.html"><span>⌂</span>Properties</a>
+<a href="account.html"><span>♙</span>Account</a>
 </nav>
 
 
