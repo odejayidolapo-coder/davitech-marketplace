@@ -90,6 +90,73 @@ async function loadRelatedProducts(item) {
  }
  renderRelatedProducts(matches.slice(0,8),section);
 }
+async function loadReviews(item){
+ const summary=document.getElementById("reviewSummary");
+ const form=document.getElementById("reviewForm");
+ const list=document.getElementById("reviewList");
+ const status=form.querySelector('[role="status"]');
+ const {data:{user}}=await db.auth.getUser();
+ let ownReview=null;
+ if(user){
+  if(user.id===item.seller_id){
+   form.hidden=true;
+   const note=document.createElement("p");note.textContent="Sellers cannot review their own listings.";note.style.cssText="color:#667085;font-size:13px";form.after(note);
+  }else{
+   const mine=await db.from("listing_reviews").select("id,rating,review_text").eq("listing_id",item.id).eq("reviewer_id",user.id).maybeSingle();
+   if(!mine.error) ownReview=mine.data;
+   if(ownReview){form.querySelector("h3").textContent="Edit your review";form.querySelector("button[type=submit]").textContent="Update review";form.querySelector("textarea").value=ownReview.review_text;}
+   if(ownReview){const buttons=form.querySelectorAll('[aria-label$="star"],[aria-label$="stars"]');buttons.forEach((b,i)=>{b.style.color=i<ownReview.rating?"#e3a008":"#cbd5e1";b.setAttribute("aria-pressed",String(i<ownReview.rating));});form.dataset.reviewId=ownReview.id;form._selectedRating=ownReview.rating;}
+  }
+ }else{
+  form.querySelector("p").textContent="Sign in to leave a rating and review.";
+  const signIn=document.createElement("a");signIn.href="account.html";signIn.textContent="Sign in to review";signIn.style.cssText="display:inline-block;margin:0 0 12px;color:#174b91;font-weight:700";
+  form.insertBefore(signIn,form.querySelector("div"));
+ }
+ let chosen=ownReview?.rating||5;
+ const stars=form.querySelectorAll('[aria-label$="star"],[aria-label$="stars"]');
+ stars.forEach((b,i)=>b.addEventListener("click",()=>{chosen=i+1;form._selectedRating=chosen;}));
+ form.addEventListener("submit",async event=>{
+  event.preventDefault();
+  const {data:{user:activeUser}}=await db.auth.getUser();
+  if(!activeUser){status.textContent="Please sign in before submitting a review.";return;}
+  if(activeUser.id===item.seller_id){status.textContent="You cannot review your own listing.";return;}
+  const textValue=form.querySelector("textarea").value.trim();
+  if(textValue.length<5){status.textContent="Please write at least 5 characters.";return;}
+  const rating=form._selectedRating||chosen||5;
+  submitReview.disabled=true;submitReview.textContent="Saving…";status.textContent="";
+  const {data:profile}=await db.from("profiles").select("full_name").eq("id",activeUser.id).maybeSingle();
+  const reviewerName=(profile?.full_name||activeUser.user_metadata?.full_name||activeUser.email?.split("@")[0]||"DAVIMART customer").trim().slice(0,80);
+  let result;
+  if(form.dataset.reviewId){
+   result=await db.from("listing_reviews").update({rating,review_text:textValue,reviewer_name:reviewerName,updated_at:new Date().toISOString()}).eq("id",form.dataset.reviewId).eq("reviewer_id",activeUser.id);
+  }else{
+   result=await db.from("listing_reviews").insert({listing_id:item.id,reviewer_id:activeUser.id,reviewer_name:reviewerName,rating,review_text:textValue});
+  }
+  submitReview.disabled=false;submitReview.textContent=form.dataset.reviewId?"Update review":"Submit review";
+  if(result.error){status.textContent="We couldn't save your review. Please try again.";return;}
+  status.textContent="Your review has been saved. Thank you!";
+  await loadReviewsList(item.id,summary,list);
+ });
+ await loadReviewsList(item.id,summary,list);
+}
+async function loadReviewsList(listingId,summary,list){
+ summary.textContent="Loading customer ratings…";list.innerHTML="";
+ const {data:reviews,error}=await db.from("listing_reviews").select("id,reviewer_name,rating,review_text,created_at").eq("listing_id",listingId).order("created_at",{ascending:false}).limit(100);
+ if(error){summary.textContent="Customer ratings are temporarily unavailable.";return;}
+ if(!reviews?.length){summary.textContent="No reviews yet. Be the first to share your experience.";const empty=document.createElement("p");empty.textContent="This product has not received a review yet.";empty.style.cssText="color:#667085;font-size:14px";list.appendChild(empty);return;}
+ const average=reviews.reduce((sum,r)=>sum+Number(r.rating),0)/reviews.length;
+ summary.textContent="★ "+average.toFixed(1)+" out of 5 · "+reviews.length+" review"+(reviews.length===1?"":"s");
+ reviews.forEach(review=>{
+  const card=document.createElement("article");card.style.cssText="padding:15px 0;border-bottom:1px solid #e7ebf2";
+  const top=document.createElement("div");top.style.cssText="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap";
+  const name=document.createElement("strong");name.textContent=review.reviewer_name||"DAVIMART customer";name.style.color="#102b55";
+  const stars=document.createElement("span");stars.textContent="★".repeat(review.rating)+"☆".repeat(5-review.rating);stars.style.cssText="color:#e3a008;letter-spacing:1px";
+  top.append(name,stars);
+  const date=document.createElement("small");date.textContent=new Date(review.created_at).toLocaleDateString("en-NG",{year:"numeric",month:"short",day:"numeric"});date.style.cssText="display:block;color:#8993a4;margin:5px 0 8px";
+  const body=document.createElement("p");body.textContent=review.review_text;body.style.cssText="margin:0;color:#475467;line-height:1.6;white-space:pre-wrap";
+  card.append(top,date,body);list.appendChild(card);
+ });
+}
 async function loadProduct(){
  if(!id){root.textContent="No product was selected. Please return to shopping.";return;}
  const {data:item,error}=await db.from("listings").select("id,title,description,price,category,location,image_url,seller_id").eq("id",id).eq("status","approved").eq("listing_type","product").maybeSingle();
@@ -134,9 +201,27 @@ async function loadProduct(){
  const ratingHeading=document.createElement("div");ratingHeading.className="section-heading";
  const ratingTitle=document.createElement("h2");ratingTitle.textContent="Ratings & Reviews";
  ratingHeading.appendChild(ratingTitle);
- const ratingEmpty=document.createElement("div");ratingEmpty.className="rating-empty";
- ratingEmpty.textContent="No customer ratings yet. Be the first to share your experience when DAVIMART reviews are available.";
- ratings.append(ratingHeading,ratingEmpty);
+ const reviewSummary=document.createElement("div");
+ reviewSummary.id="reviewSummary";
+ reviewSummary.style.cssText="color:#53627a;font-size:14px;margin:8px 0 18px";
+ reviewSummary.textContent="Loading customer ratings…";
+ const reviewForm=document.createElement("form");
+ reviewForm.id="reviewForm";
+ reviewForm.style.cssText="padding:16px;background:#f7f9fc;border:1px solid #e3e9f2;border-radius:12px;margin:14px 0 20px";
+ const formTitle=document.createElement("h3");formTitle.textContent="Write a review";formTitle.style.cssText="margin:0 0 10px;color:#102b55";
+ const formHint=document.createElement("p");formHint.textContent="Share your experience to help other customers.";formHint.style.cssText="margin:0 0 12px;color:#667085;font-size:13px";
+ const starPicker=document.createElement("div");starPicker.setAttribute("role","group");starPicker.setAttribute("aria-label","Choose a star rating");starPicker.style.cssText="display:flex;gap:5px;margin:0 0 12px";
+ let selectedRating=5;
+ const starButtons=[];
+ for(let n=1;n<=5;n++){
+  const star=document.createElement("button");star.type="button";star.textContent="★";star.setAttribute("aria-label",n+" star"+(n===1?"":"s"));star.style.cssText="border:0;background:transparent;font-size:30px;line-height:1;cursor:pointer;color:"+(n<=selectedRating?"#e3a008":"#cbd5e1");star.addEventListener("click",()=>{selectedRating=n;starButtons.forEach((b,i)=>{b.style.color=i<n?"#e3a008":"#cbd5e1";b.setAttribute("aria-pressed",String(i<n));});});star.setAttribute("aria-pressed",String(n<=selectedRating));starButtons.push(star);starPicker.appendChild(star);
+ }
+ const reviewInput=document.createElement("textarea");reviewInput.rows=4;reviewInput.maxLength=2000;reviewInput.required=true;reviewInput.minLength=5;reviewInput.placeholder="What did you think about this product?";reviewInput.style.cssText="display:block;width:100%;resize:vertical;padding:12px;border:1px solid #d7deea;border-radius:8px;font:inherit;box-sizing:border-box;margin-bottom:10px";
+ const reviewStatus=document.createElement("p");reviewStatus.setAttribute("role","status");reviewStatus.style.cssText="font-size:13px;color:#53627a;margin:0 0 10px";
+ const submitReview=document.createElement("button");submitReview.type="submit";submitReview.textContent="Submit review";submitReview.style.cssText="border:0;border-radius:8px;padding:12px 18px;background:#102b55;color:#fff;font-weight:800;cursor:pointer";
+ reviewForm.append(formTitle,formHint,starPicker,reviewInput,reviewStatus,submitReview);
+ const reviewList=document.createElement("div");reviewList.id="reviewList";
+ ratings.append(ratingHeading,reviewSummary,reviewForm,reviewList);
  const related=document.createElement("section");related.className="section-panel";
  related.id="moreProductsSection";
  const relatedHeading=document.createElement("div");relatedHeading.className="section-heading";
@@ -147,6 +232,7 @@ async function loadProduct(){
  below.append(ratings,related);
  document.querySelector("main").appendChild(below);
  loadRelatedProducts(item);
+ loadReviews(item);
 }
 loadProduct();
 </script>
