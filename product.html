@@ -176,7 +176,16 @@ async function loadProduct(){
  const desc=document.createElement("div");desc.className="description";desc.textContent=item.description||"The seller has not provided a description yet.";
  const delivery=document.createElement("div");delivery.className="info";delivery.textContent="Delivery: Contact the seller for delivery options and charges. Delivery details will be shown here when DAVIMART checkout is introduced.";
  const contact=document.createElement("button");contact.type="button";contact.textContent="Message Seller";contact.style.cssText="width:100%;padding:13px;margin-top:14px;border:1px solid #d9a72e;border-radius:8px;background:#fff8e8;color:#071f50;font-weight:800;cursor:pointer";contact.onclick=async()=>{const {data:{user}}=await db.auth.getUser();if(!user){alert("Please sign in to message the seller.");return;}if(user.id===item.seller_id){alert("You cannot message yourself.");return;}location.href="messages.html?seller_id="+encodeURIComponent(item.seller_id)+"&listing_id="+encodeURIComponent(item.id)+"&title="+encodeURIComponent(item.title||"Marketplace item");};const actions=document.createElement("div");actions.className="actions";
- const cart=document.createElement("button");cart.className="cart";cart.textContent="Add to Cart";cart.disabled=true;cart.title="Shopping cart is being built next.";
+ const cart=document.createElement("button");cart.className="cart";cart.type="button";cart.textContent="Add to Cart";cart.disabled=false;cart.title="Add this product to your shopping cart.";
+ cart.onclick=()=>{
+  let items=[];try{items=JSON.parse(localStorage.getItem("davimart_cart")||"[]");if(!Array.isArray(items))items=[];}catch(e){items=[];}
+  const existing=items.find(row=>row.id===item.id);
+  if(existing)existing.quantity=Math.max(1,Number(existing.quantity)||1)+1;
+  else items.push({id:item.id,title:item.title||"Product",price:Number(item.price)||0,image_url:item.image_url||"",quantity:1});
+  localStorage.setItem("davimart_cart",JSON.stringify(items));
+  cart.textContent="✓ Added to Cart";cart.disabled=true;
+  setTimeout(()=>{cart.textContent="Add to Cart";cart.disabled=false;},1200);
+ };
  const buy=document.createElement("button");buy.className="buy";buy.textContent="Buy Now";buy.disabled=true;buy.title="Checkout is being built after the product page.";
  actions.append(cart,buy);
  const saveButton=document.createElement("button");
