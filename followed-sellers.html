@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071f50">
+<title>Followed Sellers | DAVIMART</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;padding-bottom:84px;background:#f4f6fa;color:#17243a;font-family:Arial,sans-serif}header{background:#071f50;color:#fff;padding:18px;font-size:21px;font-weight:800}header span{color:#ffc400}main{max-width:850px;margin:22px auto;padding:0 15px}.panel{background:#fff;border-radius:12px;padding:20px;margin-bottom:14px;box-shadow:0 2px 10px #071f5010}h1,h2{color:#102b55;margin-top:0}.muted{color:#667085;font-size:14px;line-height:1.55}.item{padding:15px;border:1px solid #e1e5eb;border-radius:10px;margin:10px 0;background:#fff}.item strong{display:block;color:#102b55;margin-bottom:6px}button{border:0;border-radius:7px;background:#102b55;color:#fff;padding:11px 16px;font-weight:700;cursor:pointer}button.secondary{background:#e8edf5;color:#102b55}button:disabled{opacity:.55}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}a{color:#102b55}.status{font-size:13px;line-height:1.5;color:#667085}.nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#071f50;border-top:2px solid #ffc400;padding:7px 3px calc(7px + env(safe-area-inset-bottom));z-index:5}.nav a{flex:1;color:white;text-decoration:none;text-align:center;font-size:10px;font-weight:800;padding:5px}.nav span{display:block;font-size:20px;margin-bottom:4px}@media(min-width:701px){.nav{display:none}body{padding-bottom:0}}
+</style>
+</head>
+<body>
+<header>DAVIMART <span>Followed Sellers</span></header>
+<main>
+<section class="panel">
+<a href="account.html">← Back to My Account</a>
+<h1>My Followed Sellers</h1>
+<p class="muted">See the sellers you follow and manage your follows.</p>
+<p id="status" class="status" aria-live="polite">Loading your followed sellers…</p>
+</section>
+<section class="panel" id="sellerList" aria-live="polite"></section>
+</main>
+<nav class="nav"><a href="index.html"><span>⌂</span>Home</a><a href="shop.html"><span>▣</span>Shop</a><a href="services-marketplace.html"><span>🛠</span>Services</a><a href="real-estate.html"><span>⌂</span>Properties</a><a href="account.html"><span>👤</span>Account</a></nav>
+<script>
+const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
+const status=document.getElementById("status"),list=document.getElementById("sellerList");
+function showEmpty(title,message){list.replaceChildren();const h=document.createElement("h2");h.textContent=title;const p=document.createElement("p");p.className="muted";p.textContent=message;list.append(h,p);}
+async function loadFollowedSellers(){
+ status.textContent="Checking your sign-in…";
+ const {data:{user},error:authError}=await db.auth.getUser();
+ if(authError||!user){status.textContent="Please sign in to view your followed sellers.";showEmpty("Sign-in required","Return to My Account and sign in first.");return;}
+ status.textContent="Loading your followed sellers…";
+ const {data:follows,error}=await db.from("seller_follows").select("id,seller_id,created_at").eq("follower_id",user.id).order("created_at",{ascending:false});
+ if(error){status.textContent="Could not load followed sellers.";showEmpty("Unable to load sellers",error.message);return;}
+ if(!follows||!follows.length){status.textContent="Your followed sellers";showEmpty("No followed sellers yet","When you follow an approved seller, that seller will appear here.");return;}
+ const ids=[...new Set(follows.map(x=>x.seller_id))];
+ const {data:sellers,error:sellerError}=await db.from("profiles").select("id,full_name,role,seller_status").in("id",ids);
+ if(sellerError){status.textContent="Could not load seller details.";showEmpty("Unable to load seller details",sellerError.message);return;}
+ list.replaceChildren();const heading=document.createElement("h2");heading.textContent="Sellers you follow";list.append(heading);
+ for(const follow of follows){
+  const seller=(sellers||[]).find(x=>x.id===follow.seller_id),card=document.createElement("article");card.className="item";
+  const name=document.createElement("strong");name.textContent=seller?.full_name||"DAVIMART Seller";card.append(name);
+  const detail=document.createElement("p");detail.className="muted";detail.textContent=seller?"Followed on "+new Date(follow.created_at).toLocaleDateString():"Seller profile is currently unavailable";card.append(detail);
+  const unfollow=document.createElement("button");unfollow.type="button";unfollow.className="secondary";unfollow.textContent="Unfollow";
+  unfollow.addEventListener("click",async()=>{unfollow.disabled=true;status.textContent="Updating your followed sellers…";const {error:deleteError}=await db.from("seller_follows").delete().eq("id",follow.id).eq("follower_id",user.id);if(deleteError){status.textContent="Could not unfollow this seller: "+deleteError.message;unfollow.disabled=false;return;}card.remove();status.textContent="Seller unfollowed.";if(!list.querySelector(".item"))showEmpty("No followed sellers yet","You are no longer following any sellers.");});
+  card.append(unfollow);list.append(card);
+ }
+ status.textContent=follows.length+" followed seller"+(follows.length===1?"":"s")+" found.";
+}
+loadFollowedSellers();
+</script>
+</body>
+</html>
