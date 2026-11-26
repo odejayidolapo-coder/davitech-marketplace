@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile | DAVIMART by DAVITECH</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:0 0 88px;font-family:Arial,sans-serif;background:#f5f7fa;color:#17243a}header{background:#071f50;color:#fff;padding:17px 18px;font-size:21px;font-weight:800}header span{color:#ffc400}.hero{background:linear-gradient(120deg,#102b55,#2874bd);color:#fff;padding:28px 18px;text-align:center}.hero h1{margin:0 0 8px}.container{max-width:760px;margin:20px auto;padding:0 14px}.panel{background:#fff;padding:20px 17px;border-radius:12px;margin-bottom:15px;box-shadow:0 2px 9px #0000000b}.panel h2{margin-top:0;color:#102b55}.avatar-wrap{text-align:center;margin:8px 0 18px}.avatar{width:116px;height:116px;border-radius:50%;object-fit:cover;border:4px solid #e4b449;background:#eef2f7}.placeholder{width:116px;height:116px;border-radius:50%;display:grid;place-items:center;margin:auto;background:#eef2f7;border:4px solid #e4b449;color:#102b55;font-size:48px}.field{margin:13px 0}.field label{display:block;font-weight:700;font-size:13px;color:#102b55;margin-bottom:6px}.field input{width:100%;padding:13px;border:1px solid #ccd3dd;border-radius:7px;font-size:15px}button{background:#102b55;color:#fff;border:0;border-radius:7px;padding:12px 16px;font-weight:700;cursor:pointer;margin:4px 5px 4px 0}button.secondary{background:#e8edf5;color:#102b55}button:disabled{opacity:.55;cursor:wait}.help,.status{font-size:13px;color:#667085;line-height:1.5}#status{overflow-wrap:anywhere;min-height:20px}.nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-around;padding:7px 3px calc(7px + env(safe-area-inset-bottom));background:#071f50;border-top:2px solid #ffc400;z-index:10}.nav a{flex:1;text-align:center;color:#fff;text-decoration:none;font-size:10px;font-weight:800;padding:5px}.nav a span{display:block;font-size:20px;margin-bottom:4px}.nav a[aria-current=page]{color:#ffc400}[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header>DAVIMART <span>by DAVITECH</span></header>
+<section class="hero"><h1>My Profile</h1><p>Manage your personal details and profile photo.</p></section>
+<main class="container">
+<section class="panel" id="signedOut" hidden><h2>Sign in required</h2><p>Please sign in to your DAVIMART account to view and edit your profile.</p><a href="account.html"><button type="button">Go to Sign In</button></a></section>
+<section class="panel" id="profilePanel" hidden>
+<div class="avatar-wrap">
+<img id="avatar" class="avatar" alt="Your profile picture" hidden>
+<div id="avatarPlaceholder" class="placeholder">👤</div>
+<div style="margin-top:10px"><button type="button" class="secondary" id="choosePhoto">Choose Photo</button><button type="button" class="secondary" id="removePhoto" hidden>Remove Photo</button></div>
+<input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+<p class="help">JPEG, PNG or WebP, maximum 2 MB.</p>
+</div>
+<h2>Personal Information</h2>
+<div class="field"><label for="fullName">Full Name</label><input id="fullName" maxlength="100" autocomplete="name" placeholder="Enter your full name"></div>
+<div class="field"><label for="email">Email Address</label><input id="email" type="email" readonly></div>
+<div class="field"><label for="accountType">Account Type</label><input id="accountType" readonly></div>
+<div class="field"><label for="sellerStatus">Seller Status</label><input id="sellerStatus" readonly></div>
+<button type="button" id="saveProfile">Save Changes</button>
+<p id="status" aria-live="polite" class="status"></p>
+</section>
+<section class="panel" id="securityPanel" hidden><h2>Account Security</h2><p>Need to change your password?</p><a href="account.html"><button type="button" class="secondary">Password & Sign-in</button></a><button type="button" id="signOut">Sign Out</button></section>
+</main>
+<nav class="nav" aria-label="Main navigation">
+<a href="index.html"><span>⌂</span>Home</a><a href="shop.html"><span>▣</span>Shop</a><a href="services-marketplace.html"><span>🛠</span>Services</a><a href="real-estate.html"><span>⌂</span>Properties</a><a href="account.html"><span>👤</span>Account</a>
+</nav>
+<script>
+const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
+const el=id=>document.getElementById(id);
+let currentUser=null;
+function showAvatar(url){if(url){el("avatar").src=url;el("avatar").hidden=false;el("avatarPlaceholder").hidden=true;el("removePhoto").hidden=false;}else{el("avatar").hidden=true;el("avatarPlaceholder").hidden=false;el("removePhoto").hidden=true;}}
+async function loadProfile(){
+ const {data:{user},error}=await db.auth.getUser();
+ if(error||!user){el("signedOut").hidden=false;return;}
+ currentUser=user;el("profilePanel").hidden=false;el("securityPanel").hidden=false;
+ el("fullName").value=user.user_metadata?.full_name||"";
+ el("email").value=user.email||"";
+ const {data:profile}=await db.from("profiles").select("role,seller_status").eq("id",user.id).maybeSingle();
+ el("accountType").value=profile?.role||"Buyer";
+ el("sellerStatus").value=profile?.seller_status||"Not applied";
+ showAvatar(user.user_metadata?.avatar_url||"");
+}
+el("saveProfile").onclick=async()=>{
+ const name=el("fullName").value.trim(),button=el("saveProfile");
+ if(!name){el("status").textContent="Please enter your full name.";return;}
+ button.disabled=true;el("status").textContent="Saving your profile…";
+ const {data,error}=await db.auth.updateUser({data:{full_name:name}});
+ button.disabled=false;
+ if(error){el("status").textContent="Could not save your name: "+error.message;return;}
+ currentUser=data.user||currentUser;el("status").textContent="Your profile name has been updated.";
+};
+el("choosePhoto").onclick=()=>el("photoFile").click();
+el("photoFile").onchange=async()=>{
+ const file=el("photoFile").files?.[0];if(!file)return;
+ if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>2*1024*1024){el("status").textContent="Choose a JPEG, PNG or WebP image under 2 MB.";el("photoFile").value="";return;}
+ const button=el("choosePhoto");button.disabled=true;el("status").textContent="Uploading your profile photo…";
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();if(userError||!user)throw new Error("Please sign in again.");
+  const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
+  const path=user.id+"/avatar."+ext;
+  const {error:uploadError}=await db.storage.from("profile-photos").upload(path,file,{upsert:true,contentType:file.type,cacheControl:"3600"});if(uploadError)throw uploadError;
+  const url=db.storage.from("profile-photos").getPublicUrl(path).data.publicUrl+"?v="+Date.now();
+  const {data,error:updateError}=await db.auth.updateUser({data:{avatar_url:url}});if(updateError)throw updateError;
+  currentUser=data.user;showAvatar(url);el("status").textContent="Profile photo updated successfully.";
+ }catch(error){el("status").textContent=error.message||"Could not upload your photo.";}
+ finally{button.disabled=false;el("photoFile").value="";}
+};
+el("removePhoto").onclick=async()=>{
+ const button=el("removePhoto");button.disabled=true;el("status").textContent="Removing your profile photo…";
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();if(userError||!user)throw new Error("Please sign in again.");
+  const {data:files,error:listError}=await db.storage.from("profile-photos").list(user.id);if(listError)throw listError;
+  const paths=(files||[]).filter(file=>/^avatar\./.test(file.name)).map(file=>user.id+"/"+file.name);
+  if(paths.length){const {error}=await db.storage.from("profile-photos").remove(paths);if(error)throw error;}
+  const {data,error:updateError}=await db.auth.updateUser({data:{avatar_url:null}});if(updateError)throw updateError;
+  currentUser=data.user;showAvatar("");el("status").textContent="Profile photo removed.";
+ }catch(error){el("status").textContent=error.message||"Could not remove your photo.";}
+ finally{button.disabled=false;}
+};
+el("signOut").onclick=async()=>{const {error}=await db.auth.signOut();if(error)el("status").textContent=error.message;else location.href="account.html";};
+db.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT")location.href="account.html";});
+loadProfile();
+</script>
+</body>
+</html>
