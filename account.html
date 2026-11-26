@@ -208,15 +208,11 @@ body.camera-open{overflow:hidden}
 <p>Manage conversations with sellers and buyers.</p>
 <a href="messages.html"><button type="button">Open Inbox</button></a>
 </div>
-<div class="feature" id="notificationsSection">
+<a class="feature account-menu-link" href="notification-centre.html" id="notificationsSection">
 <strong>🔔 My Notifications <span id="unreadNotificationCount" class="status"></span></strong>
-<p>Stay informed about account and marketplace updates.</p>
-<div class="actions" style="margin:10px 0">
-<button type="button" class="secondary" id="refreshNotifications">Refresh</button>
-<button type="button" class="secondary" id="markAllNotificationsRead">Mark All as Read</button>
-</div>
-<div id="notificationItems" aria-live="polite"><p class="status">Sign in to view your notifications.</p></div>
-</div>
+<p>Open your notification centre to view account and marketplace updates.</p>
+<span class="status">View all notifications →</span>
+</a>
 <div class="feature">
 <strong>🏪 Seller Dashboard</strong>
 <p>Manage your seller application and listings.</p>
@@ -362,58 +358,13 @@ function openAccountDestination(destination){
  panel.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
-async function loadNotifications(){
- const host=document.getElementById("notificationItems");
+async function loadNotificationCount(){
  const count=document.getElementById("unreadNotificationCount");
- const markAll=document.getElementById("markAllNotificationsRead");
  const {data:{user},error:userError}=await db.auth.getUser();
- if(userError||!user){host.textContent="Sign in to view your notifications.";count.textContent="";markAll.disabled=true;return;}
- host.textContent="Loading notifications…";markAll.disabled=true;
- const {data:items,error}=await db.from("notifications").select("id,created_at,title,message,is_read,notification_type,action_url").eq("user_id",user.id).order("created_at",{ascending:false}).limit(50);
- if(error){host.textContent="Could not load notifications: "+error.message;count.textContent="";return;}
- const unread=(items||[]).filter(item=>!item.is_read).length;
- count.textContent=unread?"("+unread+" unread)":"(all caught up)";
- markAll.disabled=unread===0;
- if(!items||!items.length){host.textContent="You have no notifications yet. Marketplace updates will appear here.";return;}
- host.replaceChildren();
- items.forEach(item=>{
-  const card=document.createElement("article");
-  card.style.cssText="border:1px solid "+(item.is_read?"#e1e5eb":"#e4b449")+";border-radius:8px;padding:11px;margin:9px 0;background:"+(item.is_read?"#fff":"#fffaf0");
-  const heading=document.createElement("strong");heading.textContent=item.title||"DAVIMART update";card.appendChild(heading);
-  const message=document.createElement("p");message.style.cssText="font-size:13px;color:#475467;line-height:1.5;margin:7px 0";message.textContent=item.message||"";card.appendChild(message);
-  const meta=document.createElement("p");meta.className="form-help";meta.textContent=(item.created_at?new Date(item.created_at).toLocaleString():"Date unavailable")+" · "+(item.is_read?"Read":"Unread");card.appendChild(meta);
-  if(item.action_url){
-   try{
-    const target=new URL(item.action_url,window.location.origin);
-    if(target.origin===window.location.origin){
-     const link=document.createElement("a");link.href=target.href;link.textContent="View update";link.style.cssText="display:inline-block;margin:3px 8px 3px 0;color:#102b55;font-weight:700";card.appendChild(link);
-    }
-   }catch(_){}
-  }
-  if(!item.is_read){
-   const button=document.createElement("button");button.type="button";button.className="secondary";button.textContent="Mark as Read";
-   button.onclick=async()=>{
-    button.disabled=true;
-    const {error:updateError}=await db.from("notifications").update({is_read:true}).eq("id",item.id).eq("user_id",user.id);
-    if(updateError){meta.textContent="Could not mark as read: "+updateError.message;button.disabled=false;return;}
-    await loadNotifications();
-   };
-   card.appendChild(button);
-  }
-  host.appendChild(card);
- });
+ if(userError||!user){count.textContent="";return;}
+ const {count:unread,error}=await db.from("notifications").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("is_read",false);
+ count.textContent=error?"":"("+(unread||0)+" unread)";
 }
-document.getElementById("refreshNotifications").onclick=loadNotifications;
-document.getElementById("markAllNotificationsRead").onclick=async()=>{
- const button=document.getElementById("markAllNotificationsRead");
- const {data:{user},error:userError}=await db.auth.getUser();
- if(userError||!user){document.getElementById("notificationItems").textContent="Please sign in again.";return;}
- button.disabled=true;button.textContent="Updating…";
- const {error}=await db.from("notifications").update({is_read:true}).eq("user_id",user.id).eq("is_read",false);
- button.textContent="Mark All as Read";
- if(error){document.getElementById("notificationItems").textContent="Could not update notifications: "+error.message;button.disabled=false;return;}
- await loadNotifications();
-};
 
 async function loadWishlist(){
  const host=document.getElementById("wishlistItems");
@@ -465,16 +416,15 @@ async function loadAccount(){
   authPanel.hidden = false;
   profilePanel.hidden = true;
   document.getElementById("wishlistItems").textContent = "Sign in to view your saved items.";
-  document.getElementById("notificationItems").textContent = "Sign in to view your notifications.";
   document.getElementById("unreadNotificationCount").textContent = "";
-  document.getElementById("markAllNotificationsRead").disabled = true;
+  document.getElementById("unreadNotificationCount").textContent = "";
   return;
  }
 
  authPanel.hidden = true;
  profilePanel.hidden = false;
  await loadWishlist();
- await loadNotifications();
+ await loadNotificationCount();
 document.getElementById("welcomeName").textContent =
 "Welcome " + (user.user_metadata?.full_name || "DAVIMART Member") + "!";
 
