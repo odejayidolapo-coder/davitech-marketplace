@@ -185,40 +185,38 @@ body.camera-open{overflow:hidden}
 </form>
 </section>
 
-<section class="panel">
+<section class="panel" id="accountServicesPanel">
 <h2>My Account Services</h2>
 <div class="features">
 <div class="feature">
 <strong>👤 My Profile</strong>
-<p>Your account information and personal details.</p>
-<div class="status">Profile details are being connected.</div>
+<p>View your account details and profile picture.</p>
+<button type="button" onclick="openAccountDestination('profile')">Open Profile</button>
 </div>
 <div class="feature">
 <strong>📦 My Orders</strong>
 <p>View and track your marketplace purchases.</p>
-<div class="status">Order tracking is coming soon.</div>
+<div class="status">Order tracking will be connected when checkout and order records are available.</div>
 </div>
 <div class="feature" id="wishlistSection">
 <strong>❤️ My Wishlist</strong>
-<p>Keep products and properties you like.</p>
-<div id="wishlistItems">
-<p>Loading your saved items...</p>
-</div>
+<p>Keep products, services and properties you like.</p>
+<div id="wishlistItems" aria-live="polite"><p>Sign in to load your saved items.</p></div>
 </div>
 <div class="feature">
 <strong>💬 My Inbox</strong>
 <p>Manage conversations with sellers and buyers.</p>
-<div class="status">Messaging is coming soon.</div>
+<a href="messages.html"><button type="button">Open Inbox</button></a>
 </div>
 <div class="feature">
 <strong>🔔 My Notifications</strong>
 <p>Stay informed about account and marketplace updates.</p>
-<div class="status">Notifications are coming soon.</div>
+<div class="status">Notification centre is the next account feature to connect.</div>
 </div>
 <div class="feature">
 <strong>🏪 Seller Dashboard</strong>
 <p>Manage your seller application and listings.</p>
-<div class="status">Seller dashboard connection is being prepared.</div>
+<a href="seller-dashboard.html"><button type="button">Open Seller Dashboard</button></a>
 </div>
 </div>
 </section>
@@ -396,6 +394,55 @@ function renderSellerVerificationTracker(application,error){
  if(status==="rejected") note.hidden=false;
 }
 
+function openAccountDestination(destination){
+ const target=destination==="profile"?(db.auth.getSession?document.getElementById("profilePanel"):document.getElementById("authPanel")):null;
+ const panel=target||document.getElementById("authPanel");
+ if(destination==="profile" && !profilePanel.hidden){profilePanel.scrollIntoView({behavior:"smooth",block:"start"});return;}
+ panel.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+async function loadWishlist(){
+ const host=document.getElementById("wishlistItems");
+ const {data:{user},error:userError}=await db.auth.getUser();
+ if(userError||!user){host.textContent="Sign in to view your saved items.";return;}
+ host.textContent="Loading your saved items…";
+ const {data:saved,error}=await db.from("wishlist").select("id,item_type,item_id,created_at").eq("user_id",user.id).order("created_at",{ascending:false});
+ if(error){host.textContent="Could not load your wishlist: "+error.message;return;}
+ if(!saved||!saved.length){host.textContent="Your wishlist is empty. Save products, services or properties while browsing DAVIMART.";return;}
+ const ids=[...new Set(saved.map(item=>item.item_id))];
+ const {data:listings,error:listError}=await db.from("listings").select("id,title,price,category,listing_type,status,image_url,location").in("id",ids);
+ if(listError){host.textContent="Your saved items were found, but listing details could not be loaded: "+listError.message;return;}
+ const byId=new Map((listings||[]).map(item=>[item.id,item]));
+ host.replaceChildren();
+ saved.forEach(item=>{
+  const listing=byId.get(item.item_id);
+  const card=document.createElement("div");
+  card.style.cssText="border:1px solid #e1e5eb;border-radius:8px;padding:11px;margin:9px 0;background:#fff";
+  const title=document.createElement("strong");
+  title.textContent=listing?.title||("Saved "+item.item_type+" (listing unavailable)");
+  card.appendChild(title);
+  const details=document.createElement("p");
+  details.className="form-help";
+  details.textContent=listing?[
+   item.item_type.charAt(0).toUpperCase()+item.item_type.slice(1),
+   listing.category||"",
+   listing.price!==null&&listing.price!==undefined?"₦"+Number(listing.price).toLocaleString():"",
+   listing.location||"",
+   listing.status==="approved"?"Available":listing.status==="pending"?"Awaiting approval":listing.status||""
+  ].filter(Boolean).join(" · "):"This listing may have been removed or is no longer available.";
+  card.appendChild(details);
+  const remove=document.createElement("button");remove.type="button";remove.className="secondary";remove.textContent="Remove from Wishlist";
+  remove.onclick=async()=>{
+   remove.disabled=true;
+   const {error:deleteError}=await db.from("wishlist").delete().eq("id",item.id).eq("user_id",user.id);
+   if(deleteError){details.textContent="Could not remove this item: "+deleteError.message;remove.disabled=false;return;}
+   card.remove();
+   if(!host.children.length)host.textContent="Your wishlist is now empty.";
+  };
+  card.appendChild(remove);host.appendChild(card);
+ });
+}
+
 async function loadAccount(){
  if(isPasswordRecovery){showPasswordRecovery();return;}
  const {data:{user},error} = await db.auth.getUser();
@@ -403,11 +450,13 @@ async function loadAccount(){
  if(error || !user){
   authPanel.hidden = false;
   profilePanel.hidden = true;
+  document.getElementById("wishlistItems").textContent = "Sign in to view your saved items.";
   return;
  }
 
  authPanel.hidden = true;
  profilePanel.hidden = false;
+ await loadWishlist();
 document.getElementById("welcomeName").textContent =
 "Welcome " + (user.user_metadata?.full_name || "DAVIMART Member") + "!";
 
