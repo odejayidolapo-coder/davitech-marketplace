@@ -1636,7 +1636,7 @@ body{padding-bottom:78px!important}
     <a href="categories.html"><span>▦</span><b>All Categories</b></a>
   </div>
 
-  <div class="dm-flash-panel">
+  <div class="dm-flash-panel" id="dmFlashSalePanel" hidden>
     <div class="dm-section-head dm-flash-head">
       <div><small>DON'T MISS WHAT'S NEXT</small><h2><span class="dm-lightning">ϟ</span> Flash Sale</h2></div>
       <div class="dm-countdown-wrap"><span>SALE COUNTDOWN</span><div class="dm-countdown" id="dmSaleCountdown"><b>--</b><i>:</i><b>--</b><i>:</i><b>--</b><i>:</i><b>--</b></div></div>
@@ -1669,28 +1669,7 @@ body{padding-bottom:78px!important}
     <button class="btn primary" onclick="searchProducts()">Search</button>
   </div>
 
-  <div class="categories">
-    <div class="category" onclick="chooseCategory('Electronics')">
-      <div class="emoji">📺</div>
-      <h3>Electronics</h3>
-      <p>TVs, gadgets and more</p>
-    </div>
-    <div class="category" onclick="chooseCategory('Phones & Accessories')">
-      <div class="emoji">📱</div>
-      <h3>Phones & Accessories</h3>
-      <p>Phones and accessories</p>
-    </div>
-    <div class="category" onclick="chooseCategory('Home & Living')">
-      <div class="emoji">🏠</div>
-      <h3>Home & Living</h3>
-      <p>Items for your home</p>
-    </div>
-    <div class="category" onclick="chooseCategory('Fashion')">
-      <div class="emoji">👕</div>
-      <h3>Fashion</h3>
-      <p>Clothing and everyday style</p>
-    </div>
-  </div>
+  <!-- Category shortcuts are already displayed above the product feed. -->
 
   <div id="homepageProducts" class="product-grid" aria-live="polite"></div>
   <div class="empty" id="listingMessage">
@@ -1724,25 +1703,6 @@ body{padding-bottom:78px!important}
 <section id="marketplaceServices" class="dm-shop-strip">
   <div class="dm-section-head"><div><small>DISCOVER WHAT PEOPLE OFFER</small><h2>Services</h2></div><a href="services-marketplace.html">View all services →</a></div>
   <div id="homepageServices" class="product-grid"><p class="dm-feed-loading">Loading approved services…</p></div>
-</section>
-<section id="how">
-<div class="container">
-  <h2>How DAVIMART works</h2>
-  <div class="steps">
-    <div class="step">
-      <h3>1. Browse freely</h3>
-      <p>Explore products and properties without creating an account.</p>
-    </div>
-    <div class="step">
-      <h3>2. Contact sellers</h3>
-      <p>Ask questions and discuss listings with their sellers or agents.</p>
-    </div>
-    <div class="step">
-      <h3>3. Create an account</h3>
-      <p>Buyer and seller accounts will support orders, favourites and listing management once connected.</p>
-    </div>
-  </div>
-</div>
 </section>
 <section id="davitech-services">
   <div class="container">
@@ -2014,6 +1974,8 @@ async function loadFlashSaleCountdown() {
     if (note) note.textContent = "The countdown will begin when a sale campaign is scheduled.";
     return;
   }
+  const panel=document.getElementById("dmFlashSalePanel");
+  if(panel && panel.dataset.hasImages==="true")panel.hidden=false;
   if (note) note.textContent = "Hurry! Shop available offers before this sale ends.";
   const tick = () => {
     const remaining = endTime - Date.now();
@@ -2042,6 +2004,8 @@ async function loadFlashSaleImages() {
     .sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0)).slice(0,4);
   if(!images.length)return;
   grid.innerHTML="";
+  const panel=document.getElementById("dmFlashSalePanel");
+  if(panel)panel.dataset.hasImages="true";
   images.forEach((file,index)=>{
     const url=db.storage.from(DAVIMART_BANNER_BUCKET).getPublicUrl(file.name).data.publicUrl;
     const card=document.createElement("article");card.className="dm-deal-card dm-deal-placeholder";
