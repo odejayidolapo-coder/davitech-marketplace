@@ -32,6 +32,10 @@
 </section>
 <section class="panel" id="securityPanel" hidden><h2>Account Security</h2><p>Need to change your password?</p><a href="account.html"><button type="button" class="secondary">Password & Sign-in</button></a><button type="button" id="signOut">Sign Out</button></section>
 </main>
+<div id="photoLightbox" role="dialog" aria-modal="true" aria-label="Full size profile picture" hidden style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;padding:18px">
+ <button type="button" id="closePhotoLightbox" aria-label="Close full size photo" style="position:absolute;top:16px;right:16px;font-size:26px;padding:10px 16px;background:#fff;color:#102b55;border-radius:50%">×</button>
+ <img id="fullProfilePhoto" alt="Full size profile picture" style="display:block;max-width:100%;max-height:calc(100dvh - 40px);width:auto;height:auto;object-fit:contain;border-radius:8px">
+</div>
 <nav class="nav" aria-label="Main navigation">
 <a href="index.html"><span>⌂</span>Home</a><a href="shop.html"><span>▣</span>Shop</a><a href="services-marketplace.html"><span>🛠</span>Services</a><a href="real-estate.html"><span>⌂</span>Properties</a><a href="account.html"><span>👤</span>Account</a>
 </nav>
@@ -39,7 +43,18 @@
 const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
 const el=id=>document.getElementById(id);
 let currentUser=null;
-function showAvatar(url){if(url){el("avatar").src=url;el("avatar").hidden=false;el("avatarPlaceholder").hidden=true;el("removePhoto").hidden=false;}else{el("avatar").hidden=true;el("avatarPlaceholder").hidden=false;el("removePhoto").hidden=true;}}
+function showAvatar(url){
+ const img=el("avatar");
+ if(url){img.onerror=()=>{img.hidden=true;el("avatarPlaceholder").hidden=false;el("status").textContent="Your saved photo could not be loaded. Please upload it again.";};img.onload=()=>{img.hidden=false;el("avatarPlaceholder").hidden=true;};img.src=url;img.hidden=false;el("avatarPlaceholder").hidden=true;el("removePhoto").hidden=false;}
+ else{img.removeAttribute("src");img.hidden=true;el("avatarPlaceholder").hidden=false;el("removePhoto").hidden=true;}
+}
+async function resolveAvatarUrl(user){
+ const saved=user.user_metadata?.avatar_url;
+ if(saved)return saved;
+ const {data:files}=await db.storage.from("profile-photos").list(user.id,{limit:20});
+ const existing=(files||[]).find(file=>file.name==="avatar.jpg");
+ return existing?db.storage.from("profile-photos").getPublicUrl(user.id+"/avatar.jpg").data.publicUrl+"?v="+(existing.updated_at||Date.now()):"";
+}
 async function loadProfile(){
  const {data:{user},error}=await db.auth.getUser();
  if(error||!user){el("signedOut").hidden=false;return;}
@@ -49,8 +64,15 @@ async function loadProfile(){
  const {data:profile}=await db.from("profiles").select("role,seller_status").eq("id",user.id).maybeSingle();
  el("accountType").value=profile?.role||"Buyer";
  el("sellerStatus").value=profile?.seller_status||"Not applied";
- showAvatar(user.user_metadata?.avatar_url||"");
+ showAvatar(await resolveAvatarUrl(user));
 }
+el("avatar").style.cursor="zoom-in";
+el("avatar").addEventListener("click",()=>{const modal=el("photoLightbox");el("fullProfilePhoto").src=el("avatar").src;modal.hidden=false;modal.style.display="flex";document.body.style.overflow="hidden";});
+function closePhotoPreview(){el("photoLightbox").hidden=true;el("photoLightbox").style.display="none";el("fullProfilePhoto").removeAttribute("src");document.body.style.overflow="";}
+el("closePhotoLightbox").onclick=closePhotoPreview;
+el("photoLightbox").addEventListener("click",event=>{if(event.target===el("photoLightbox"))closePhotoPreview();});
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!el("photoLightbox").hidden)closePhotoPreview();});
+
 el("saveProfile").onclick=async()=>{
  const name=el("fullName").value.trim(),button=el("saveProfile");
  if(!name){el("status").textContent="Please enter your full name.";return;}
