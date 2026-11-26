@@ -185,6 +185,10 @@ body.camera-open{overflow:hidden}
 </div>
 </section>
 
+<div id="accountPhotoLightbox" role="dialog" aria-modal="true" aria-label="Full size profile picture" hidden style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;padding:18px">
+ <button type="button" id="closeAccountPhotoLightbox" aria-label="Close full size photo" style="position:absolute;top:16px;right:16px;font-size:26px;padding:10px 16px;background:#fff;color:#102b55;border-radius:50%">×</button>
+ <img id="fullAccountProfilePhoto" alt="Full size profile picture" style="display:block;max-width:100%;max-height:calc(100dvh - 40px);width:auto;height:auto;object-fit:contain;border-radius:8px">
+</div>
 <section class="panel" id="sellerVerificationPanel" hidden>
 <h2>Seller Verification Application</h2>
 <p>Complete the details below. Your documents are stored privately and are visible only to you and authorized DAVIMART verification administrators.</p>
@@ -431,6 +435,14 @@ async function loadWishlist(){
  });
 }
 
+const accountAvatarImage=document.getElementById("profileAvatar");
+accountAvatarImage.style.cursor="zoom-in";
+accountAvatarImage.addEventListener("click",()=>{const modal=document.getElementById("accountPhotoLightbox");document.getElementById("fullAccountProfilePhoto").src=accountAvatarImage.src;modal.hidden=false;modal.style.display="flex";document.body.style.overflow="hidden";});
+function closeAccountPhotoPreview(){const modal=document.getElementById("accountPhotoLightbox");modal.hidden=true;modal.style.display="none";document.getElementById("fullAccountProfilePhoto").removeAttribute("src");document.body.style.overflow="";}
+document.getElementById("closeAccountPhotoLightbox").onclick=closeAccountPhotoPreview;
+document.getElementById("accountPhotoLightbox").addEventListener("click",event=>{if(event.target===document.getElementById("accountPhotoLightbox"))closeAccountPhotoPreview();});
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!document.getElementById("accountPhotoLightbox").hidden)closeAccountPhotoPreview();});
+
 async function loadAccount(){
  if(isPasswordRecovery){showPasswordRecovery();return;}
  const {data:{user},error} = await db.auth.getUser();
@@ -453,9 +465,18 @@ document.getElementById("welcomeName").textContent =
 
 document.getElementById("welcomeEmail").textContent =
 user.email || "";
- const avatarUrl=user.user_metadata?.avatar_url;
  const avatar=document.getElementById("profileAvatar"),placeholder=document.getElementById("profileAvatarPlaceholder");
- if(avatarUrl){avatar.src=avatarUrl;avatar.hidden=false;placeholder.hidden=true;document.getElementById("removeProfilePhoto").hidden=false;}else{avatar.hidden=true;placeholder.hidden=false;document.getElementById("removeProfilePhoto").hidden=true;}
+ let avatarUrl=user.user_metadata?.avatar_url||"";
+ if(!avatarUrl){
+  const {data:photoFiles}=await db.storage.from("profile-photos").list(user.id,{limit:20});
+  const savedPhoto=(photoFiles||[]).find(file=>file.name==="avatar.jpg");
+  if(savedPhoto)avatarUrl=db.storage.from("profile-photos").getPublicUrl(user.id+"/avatar.jpg").data.publicUrl+"?v="+(savedPhoto.updated_at||Date.now());
+ }
+ if(avatarUrl){
+  avatar.onerror=()=>{avatar.hidden=true;placeholder.hidden=false;};
+  avatar.onload=()=>{avatar.hidden=false;placeholder.hidden=true;};
+  avatar.src=avatarUrl;avatar.hidden=false;placeholder.hidden=true;document.getElementById("removeProfilePhoto").hidden=false;
+ }else{avatar.removeAttribute("src");avatar.hidden=true;placeholder.hidden=false;document.getElementById("removeProfilePhoto").hidden=true;}
  document.getElementById("profileEmail").textContent =
  "Email: " + (user.email || "");
 
