@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#071f50">
+<title>Notifications | DAVIMART</title>
+<style>
+:root{--navy:#071f50;--blue:#0b56c5;--gold:#ffc400;--ink:#102044;--muted:#65728a;--bg:#f4f6fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:var(--ink)}
+header{background:linear-gradient(110deg,#061b48,#092b69);color:#fff;padding:17px clamp(16px,4vw,54px);display:flex;align-items:center;justify-content:space-between;gap:15px;box-shadow:0 5px 22px #04163d2e}
+.brand{font-size:25px;font-weight:900;letter-spacing:-.7px}.brand span{color:var(--gold)}header a{color:#fff;text-decoration:none;font-weight:700}
+main{max-width:900px;margin:34px auto;padding:0 16px 50px}
+.heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+h1{margin:0;color:var(--navy);font-size:clamp(26px,5vw,34px)}.subtitle{color:var(--muted);margin:8px 0 0}
+.panel{background:#fff;border:1px solid #e5eaf2;border-radius:17px;overflow:hidden;box-shadow:0 7px 25px #102b5510}
+.notice{padding:20px 22px;border-bottom:1px solid #edf0f5;display:flex;gap:14px;align-items:flex-start}
+.notice:last-child{border-bottom:0}.notice.unread{background:#f5f8ff}
+.dot{width:10px;height:10px;flex:0 0 10px;border-radius:50%;background:var(--blue);margin-top:6px}
+.notice.read .dot{background:#cbd5e1}
+.notice h2{font-size:16px;color:var(--navy);margin:0 0 7px}
+.notice p{font-size:14px;line-height:1.6;color:#53627a;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.notice time{display:block;color:#8792a5;font-size:12px;margin-top:9px}
+.empty{padding:55px 20px;text-align:center;color:var(--muted)}.empty strong{display:block;color:var(--navy);font-size:18px;margin-bottom:8px}
+.status{padding:25px;text-align:center;color:var(--muted)}
+.btn{border:0;border-radius:9px;padding:12px 17px;background:var(--gold);color:var(--navy);font-weight:800;cursor:pointer;text-decoration:none}
+@media(max-width:520px){header{padding:14px 16px}.brand{font-size:22px}.notice{padding:17px 15px}}
+</style>
+</head>
+<body>
+<header><a class="brand" href="index.html">DAVI<span>MART</span></a><a href="index.html">← Back to shop</a></header>
+<main>
+<div class="heading"><div><h1>Notifications</h1><p class="subtitle">Updates and messages about your DAVIMART account.</p></div><button class="btn" id="refreshBtn" type="button">Refresh</button></div>
+<section class="panel" id="notificationsList" aria-live="polite"><div class="status">Loading your notifications…</div></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
+const list=document.getElementById("notificationsList");
+function escapeText(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function formatDate(value){const date=new Date(value);return Number.isNaN(date.getTime())?"":date.toLocaleString(undefined,{dateStyle:"medium",timeStyle:"short"});}
+async function loadNotifications(){
+ list.innerHTML='<div class="status">Loading your notifications…</div>';
+ try{
+  const {data:{user},error:authError}=await db.auth.getUser();
+  if(authError)throw authError;
+  if(!user){list.innerHTML='<div class="empty"><strong>Please sign in to view notifications</strong><p>Your account notifications will appear here after you sign in.</p><a class="btn" href="index.html">Go to sign in</a></div>';return;}
+  const {data,error}=await db.from("notifications").select("id,title,message,is_read,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(100);
+  if(error)throw error;
+  if(!data?.length){list.innerHTML='<div class="empty"><strong>You’re all caught up</strong><p>You don’t have any notifications yet.</p></div>';return;}
+  list.innerHTML=data.map(n=>'<article class="notice '+(n.is_read?"read":"unread")+'"><span class="dot" aria-hidden="true"></span><div><h2>'+escapeText(n.title||"DAVIMART update")+'</h2><p>'+escapeText(n.message||"")+'</p><time>'+escapeText(formatDate(n.created_at))+'</time></div></article>').join("");
+  const unreadIds=data.filter(n=>!n.is_read).map(n=>n.id);
+  if(unreadIds.length){
+   const {error:updateError}=await db.from("notifications").update({is_read:true}).in("id",unreadIds).eq("user_id",user.id);
+   if(updateError)console.warn("Notifications loaded but could not mark them as read:",updateError);
+   else data.filter(n=>!n.is_read).forEach(n=>{const item=list.querySelector('[data-id="'+CSS.escape(String(n.id))+'"]');if(item)item.classList.remove("unread");});
+  }
+ }catch(error){
+  console.error(error);
+  list.innerHTML='<div class="empty"><strong>We couldn’t load your notifications</strong><p>Please check your connection and try again.</p><button class="btn" onclick="loadNotifications()">Try again</button></div>';
+ }
+}
+document.getElementById("refreshBtn").addEventListener("click",loadNotifications);
+loadNotifications();
+</script>
+</body>
+</html>

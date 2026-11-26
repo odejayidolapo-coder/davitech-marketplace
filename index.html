@@ -2423,60 +2423,27 @@ window.showMessage = function(type) {
 </script>
 <script>
 async function loadNotifications() {
-  const { data: { user } } = await db.auth.getUser();
-
   const count = document.getElementById("notificationCount");
-  const panel = document.getElementById("headerNotificationPanel");
-
-  if (!user) {
-    count.textContent = "0";
-    panel.textContent = "Sign in to view notifications.";
-    return;
-  }
-
-  const { data, error } = await db
-    .from("notifications")
-    .select("id, title, message, is_read, created_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(20);
-
-  if (error) {
-    panel.textContent = "Could not load notifications.";
-    return;
-  }
-
-    const unreadIds = data
-    .filter(n => !n.is_read)
-    .map(n => n.id);
-
-  if (unreadIds.length) {
-    const { error: updateError } = await db
+  if (!count) return;
+  try {
+    const { data: { user }, error: authError } = await db.auth.getUser();
+    if (authError || !user) { count.textContent = "0"; return; }
+    const { count: unreadCount, error } = await db
       .from("notifications")
-      .update({ is_read: true })
-      .in("id", unreadIds)
-      .eq("user_id", user.id);
-
-    if (updateError) {
-      panel.textContent = "Could not mark notifications as read.";
-      return;
-    }
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("is_read", false);
+    if (error) throw error;
+    count.textContent = unreadCount > 99 ? "99+" : String(unreadCount || 0);
+    count.hidden = !unreadCount;
+  } catch (error) {
+    console.error("Could not load notification count:", error);
   }
-
-  count.textContent = "0";
-  panel.textContent = data.length
-    ? data.map(n => n.title + ": " + n.message).join("\n")
-    : "No notifications yet.";
-} 
-document.getElementById("headerNotificationBell").onclick = async () => {
-  const panel = document.getElementById("headerNotificationPanel");
-
-  panel.hidden = !panel.hidden;
-
-  if (!panel.hidden) {
-    await loadNotifications();
-  }
-};  
+}
+document.getElementById("headerNotificationBell").onclick = () => {
+  window.location.href = "notifications.html";
+};
+loadNotifications();
 async function showDashboard() {
   const { data: { user } } = await db.auth.getUser();
 
