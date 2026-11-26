@@ -60,6 +60,13 @@ body{padding-bottom:100px}
 .product-buybar .cart-link.is-out-of-stock{background:#aeb7c4!important;opacity:.48;filter:grayscale(.5)}
 @media(max-width:520px){body{padding-bottom:94px}.product-buybar{gap:6px;padding-left:8px;padding-right:8px}.product-buybar a,.product-buybar button{height:50px;min-width:42px;padding:0 8px;font-size:12px}.product-buybar .home-link,.product-buybar .contact-link{min-width:42px;font-size:19px}.product-buybar .qty-control{flex:0 0 auto;gap:0}.product-buybar .qty-control button{width:38px;min-width:38px;height:50px}.product-buybar .qty-control span{min-width:30px;font-size:16px}.product-buybar .cart-link{flex:1;max-width:none;font-size:12px}}
 @media(min-width:761px){.product-buybar{padding-left:max(24px,calc((100vw - 1180px)/2));padding-right:max(24px,calc((100vw - 1180px)/2))}}
+
+.product-image-viewer{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.97);padding:0;touch-action:pinch-zoom}
+.product-image-viewer.is-open{display:flex}
+.product-image-viewer img{display:block;width:100vw;height:100vh;height:100dvh;max-width:100vw;max-height:100vh;max-height:100dvh;object-fit:contain}
+.product-image-viewer button{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;z-index:2;width:44px;height:44px;border:0;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:30px;line-height:1;cursor:pointer}
+.gallery-main img{cursor:zoom-in}
+body.product-viewer-open{overflow:hidden}
 </style>
 </head>
 <body>
@@ -185,6 +192,17 @@ async function loadProduct(){
  const imageUrls=[...new Set([item.image_url,...(Array.isArray(item.listing_details?.gallery_urls)?item.listing_details.gallery_urls:[])].filter(Boolean))];
  let activeImage=0;const mainImage=document.createElement("img");mainImage.alt=item.title||"Product image";mainImage.src=imageUrls[0]||"";
  if(!imageUrls.length){mainImage.style.display="none";galleryMain.textContent="No product image available";}else galleryMain.appendChild(mainImage);
+ if(imageUrls.length){
+  const viewer=document.createElement("div");viewer.className="product-image-viewer";viewer.setAttribute("role","dialog");viewer.setAttribute("aria-modal","true");viewer.setAttribute("aria-label","Full-screen product image");
+  const fullImage=document.createElement("img");fullImage.alt=item.title||"Product image";
+  const closeViewer=document.createElement("button");closeViewer.type="button";closeViewer.textContent="×";closeViewer.setAttribute("aria-label","Close full-screen image");
+  const closeImageViewer=()=>{viewer.classList.remove("is-open");document.body.classList.remove("product-viewer-open");};
+  closeViewer.addEventListener("click",closeImageViewer);
+  viewer.addEventListener("click",event=>{if(event.target===viewer)closeImageViewer();});
+  mainImage.addEventListener("click",()=>{fullImage.src=mainImage.src;viewer.classList.add("is-open");document.body.classList.add("product-viewer-open");});
+  document.addEventListener("keydown",event=>{if(event.key==="Escape"&&viewer.classList.contains("is-open"))closeImageViewer();});
+  viewer.append(fullImage,closeViewer);document.body.appendChild(viewer);
+ }
  gallery.appendChild(galleryMain);
  if(imageUrls.length>1){const thumbs=document.createElement("div");thumbs.className="gallery-thumbs";
  imageUrls.forEach((url,index)=>{const b=document.createElement("button");b.type="button";b.setAttribute("aria-label","View image "+(index+1));b.setAttribute("aria-current",String(index===0));const im=document.createElement("img");im.src=url;im.alt="";b.appendChild(im);b.addEventListener("click",()=>{activeImage=index;mainImage.src=url;thumbs.querySelectorAll("button").forEach((x,i)=>x.setAttribute("aria-current",String(i===index)));});thumbs.appendChild(b);});gallery.appendChild(thumbs);
