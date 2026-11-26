@@ -1633,6 +1633,7 @@ body{padding-bottom:78px!important}
       <div id="accountMenu" class="account-menu" hidden>
         <button id="menuSignInBtn" onclick="showMessage('signin')">Sign In</button>
         <button onclick="window.location.href='settings.html'">⚙️ Settings</button>
+        <button type="button" id="securitySettingsBtn" onclick="window.location.href='security.html'">🔐 Authenticator Security</button>
         <button type="button" onclick="window.location.href='profile.html'">My Profile</button>
         <button type="button" id="menuSetPasswordBtn" hidden>🔑 Set email password</button>
         <button type="button" onclick="window.location.href='orders.html'">My Orders</button>
@@ -2292,10 +2293,29 @@ async function updateAccountButtons() {
   document.getElementById("accountMenu").hidden = true;
 }
 
+let davimartMfaRedirecting = false;
+async function davimartRequireMfa(session) {
+  if (!session || davimartMfaRedirecting || location.pathname.endsWith("/security.html")) return false;
+  try {
+    const { data: factors, error: factorsError } = await db.auth.mfa.listFactors();
+    if (factorsError) return false;
+    const verified = (factors.totp || []).some(f => f.status === "verified");
+    if (!verified) return false;
+    const { data: aal, error: aalError } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aalError || aal.currentLevel !== "aal1" || aal.nextLevel !== "aal2") return false;
+    davimartMfaRedirecting = true;
+    const next = location.pathname + location.search + location.hash;
+    location.replace("security.html?next=" + encodeURIComponent(next));
+    return true;
+  } catch (e) { console.warn("MFA check could not complete", e); return false; }
+}
 db.auth.onAuthStateChange((event, session) => {
   if (event === "PASSWORD_RECOVERY") {
     setTimeout(showHomepagePasswordRecovery, 0);
     return;
+  }
+  if (event === "SIGNED_IN" && session) {
+    setTimeout(() => davimartRequireMfa(session), 0);
   }
   updateHeaderAvatar(session?.user);
   document.getElementById("menuSignInBtn").hidden = !!session;
@@ -2493,9 +2513,10 @@ window.showMessage = function(type) {
     const status = document.getElementById("authStatus");
 
     status.textContent = "Signing in...";
-    const { error } = await db.auth.signInWithPassword({ email, password });
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
     status.textContent = error ? error.message : "Signed in successfully!";
     if (!error) {
+      if (await davimartRequireMfa(data.session)) return;
       await showDashboard();
       startLoginSuccessCountdown();
     }
