@@ -73,7 +73,7 @@
 <h3>Customer contact and photos</h3>
 <label for="contactPhone">Contact phone</label><input id="contactPhone" type="tel" maxlength="30" placeholder="Phone number customers can reach">
 <label for="whatsapp">WhatsApp number (optional)</label><input id="whatsapp" type="tel" maxlength="30" placeholder="WhatsApp number">
-<label for="photo">Main listing photo (JPG, PNG or WEBP; max 5 MB)</label><input id="photo" type="file" accept="image/jpeg,image/png,image/webp">
+<label for="photo">Main listing photo (JPG, PNG or WEBP; max 5 MB)</label><input id="photo" type="file" accept="image/jpeg,image/png,image/webp"><label for="extraPhotos">Additional listing photos (up to 7 more)</label><input id="extraPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple><p class="muted">Add clear photos from different angles. Customers can swipe through them on the listing page.</p>
 <div id="photoPreview"></div><p id="photoCompressionStatus" class="status" role="status">Images are compressed on your device before upload.</p>
 </div>
 <button class="btn primary" type="submit" id="submitListing">Submit for review</button><p id="formStatus" class="status" role="status"></p>
@@ -88,6 +88,7 @@ let currentUser=null;
 const $=id=>document.getElementById(id);
 function statusPill(value){const s=document.createElement("span");s.className="pill "+value;s.textContent=value;return s;}
 let compressedProductImage=null;
+let compressedExtraImages=[];
 let productImageCompressing=false;
 function formatFileSize(bytes){return bytes<1024*1024?Math.round(bytes/1024)+" KB":(bytes/1024/1024).toFixed(2)+" MB";}
 function loadImageForCompression(file){
@@ -125,6 +126,14 @@ async function compressProductImage(file){
  const extension=type==="image/webp"?"webp":"jpg";
  return new File([blob],(file.name.replace(/\.[^.]+$/,"")||"product-image")+"."+extension,{type,lastModified:Date.now()});
 }
+$("extraPhotos").onchange=async()=>{
+ const chosen=Array.from($("extraPhotos").files||[]).slice(0,7);compressedExtraImages=[];
+ if(!chosen.length)return;
+ $("photoCompressionStatus").textContent="Compressing additional photos…";
+ try{for(const file of chosen){if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>5*1024*1024)throw new Error("Each additional photo must be JPG, PNG or WEBP under 5 MB.");compressedExtraImages.push(await compressProductImage(file));}
+ $("photoCompressionStatus").textContent=compressedExtraImages.length+" additional photos ready to upload.";
+ }catch(error){compressedExtraImages=[];$("extraPhotos").value="";$("photoCompressionStatus").textContent=error.message||"Could not prepare additional photos.";}
+};
 $("photo").onchange=async()=>{
  const f=$("photo").files[0];$("photoPreview").innerHTML="";compressedProductImage=null;
  $("photoCompressionStatus").textContent="";$("formStatus").textContent="";
@@ -192,9 +201,17 @@ $("listingForm").onsubmit=async e=>{
   if(upload.error){$("formStatus").textContent="Photo upload failed: "+upload.error.message;$("submitListing").disabled=false;return;}
   imageUrl=db.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
  }
- const {error}=await db.from("listings").insert({seller_id:currentUser.id,title:$("title").value.trim(),description:$("description").value.trim(),price:Number($("price").value),category:$("category").value.trim(),listing_type:$("type").value,listing_details:readDetailFields($("type").value),location:$("location").value.trim(),image_url:imageUrl,status:"pending"});
+ const galleryUrls=[];
+ for(const extraFile of compressedExtraImages){
+  const ext=extraFile.type==="image/webp"?"webp":"jpg",path=currentUser.id+"/"+crypto.randomUUID()+"."+ext;
+  const upload=await db.storage.from(IMAGE_BUCKET).upload(path,extraFile,{contentType:extraFile.type,upsert:false});
+  if(upload.error){$("formStatus").textContent="An additional photo could not be uploaded: "+upload.error.message;$("submitListing").disabled=false;return;}
+  galleryUrls.push(db.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl);
+ }
+ const details=readDetailFields($("type").value);details.gallery_urls=galleryUrls;
+ const {error}=await db.from("listings").insert({seller_id:currentUser.id,title:$("title").value.trim(),description:$("description").value.trim(),price:Number($("price").value),category:$("category").value.trim(),listing_type:$("type").value,listing_details:details,location:$("location").value.trim(),image_url:imageUrl,status:"pending"});
  $("formStatus").textContent=error?"Could not submit listing: "+error.message:"Listing submitted. It will appear in the marketplace after admin approval.";
- if(!error){$("listingForm").reset();$("photoPreview").innerHTML="";$("photoCompressionStatus").textContent="Product images are compressed on your device before upload.";compressedProductImage=null;await loadMyListings();}
+ if(!error){$("listingForm").reset();$("photoPreview").innerHTML="";$("extraPhotos").value="";compressedExtraImages=[];$("photoCompressionStatus").textContent="Product images are compressed on your device before upload.";compressedProductImage=null;await loadMyListings();}
  $("submitListing").disabled=false;
 };
 (async()=>{
