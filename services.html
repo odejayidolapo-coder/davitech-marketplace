@@ -29,6 +29,19 @@ h2{color:var(--navy);margin:0 0 16px}
 footer{text-align:center;padding:25px;color:#66758a;font-size:13px}footer a{color:var(--blue);font-weight:700}
 @media(max-width:600px){main{padding:22px 12px 75px}.hero{padding:28px 20px}.top{padding:12px 16px}}
 </style>
+<style>
+/* Consistent, mobile-safe DAVIMART marketplace navigation */
+.dm-bottom-nav,.bottom-nav{display:none}
+@media(max-width:700px){
+ .dm-bottom-nav,.bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:3000;justify-content:space-around;align-items:stretch;gap:0;padding:7px 3px calc(7px + env(safe-area-inset-bottom));background:#071f50;border-top:2px solid #ffc400;box-shadow:0 -3px 14px #071f5022}
+ .dm-bottom-nav a,.bottom-nav a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:5px 1px;color:#fff;font-size:10px;font-weight:800;text-decoration:none;text-align:center;white-space:nowrap}
+ .dm-bottom-nav a span,.bottom-nav a span{font-size:20px;line-height:1.1}
+ .dm-bottom-nav a[aria-current="page"],.bottom-nav a[aria-current="page"]{color:#ffc400}
+ .dm-bottom-nav a:focus-visible,.bottom-nav a:focus-visible{outline:2px solid #ffc400;outline-offset:-2px;border-radius:7px}
+ body{padding-bottom:calc(82px + env(safe-area-inset-bottom))!important}
+}
+@media(min-width:701px){.dm-bottom-nav,.bottom-nav{display:none!important}}
+</style>
 </head>
 <body>
 <header class="top"><a class="logo" href="index.html">DAVI<span>MART</span></a><a href="index.html">← Back to marketplace</a></header>
@@ -42,5 +55,12 @@ footer{text-align:center;padding:25px;color:#66758a;font-size:13px}footer a{colo
 </section>
 </main>
 <footer>DAVIMART by DAVITECH · <a href="index.html">Return to home</a></footer>
+<nav class="bottom-nav" aria-label="Main navigation">
+<a href="index.html"><span>⌂</span>Home</a>
+<a href="index.html#products"><span>▦</span>Shop</a>
+<a href="services-marketplace.html" aria-current="page"><span>▣</span>Services</a>
+<a href="real-estate.html"><span>⌂</span>Properties</a>
+<a href="account.html"><span>♙</span>Account</a>
+</nav>
 </body>
 </html>
