@@ -26,7 +26,8 @@ const pages={
  "recently-viewed":["Recently Viewed","Products and listings you have recently opened."],
  addresses:["Address Book","Manage delivery addresses for future orders."],
  "notification-preferences":["Notification Preferences","Choose which optional product updates you want to receive."],
- "close-account":["Close Account","Request help with closing your DAVIMART account."]
+ "close-account":["Close Account","Request help with closing your DAVIMART account."],
+ "privacy-policy":["Privacy Policy","Information about how DAVIMART handles account information."]
 };
 function showMessage(title,message){content.replaceChildren();const h=document.createElement("h2");h.textContent=title;const p=document.createElement("p");p.className="muted";p.textContent=message;content.append(h,p);content.hidden=false;}
 function makeButton(label,fn,secondary=true){const b=document.createElement("button");b.type="button";b.textContent=label;if(secondary)b.className="secondary";b.onclick=fn;return b;}
@@ -40,6 +41,7 @@ async function init(){
  if(key==="followed-sellers"){await loadFollows(user);return;}
  if(key==="notification-preferences"){await loadPreferences(user);return;}
  if(key==="close-account"){showMessage("Request account closure","If you want to close your account, contact DAVIMART support on WhatsApp. A support agent can guide you through the request and any necessary checks.");const a=document.createElement("a");a.href="https://wa.me/2349068847614";a.target="_blank";a.rel="noopener noreferrer";a.textContent="Contact DAVIMART Support";content.append(a);return;}
+ if(key==="privacy-policy"){showMessage("DAVIMART Privacy Information","A complete formal privacy policy page has not yet been published. Until it is ready, do not submit sensitive personal information except where required for account or seller verification. Contact DAVIMART support if you have questions about your account information.");const a=document.createElement("a");a.href="https://wa.me/2349068847614";a.target="_blank";a.rel="noopener noreferrer";a.textContent="Contact DAVIMART Support";content.append(a);return;}
  const messages={
  orders:"Order history is not connected yet because the marketplace does not currently have an orders table and completed checkout records. No sample or invented orders are shown.",
  reviews:"Ratings and reviews are not available yet. The review feature and its records have not been created.",
