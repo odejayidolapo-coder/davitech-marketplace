@@ -1555,11 +1555,29 @@ body{padding-bottom:78px!important}
   max-width:none!important;
   height:auto!important;
   min-height:0!important;
-  aspect-ratio:16/5!important;
+  aspect-ratio:16/5;
   margin:0!important;
   border:0!important;
   border-radius:0!important;
   overflow:hidden!important;
+}
+@media(min-width:701px){
+  .dm-market-hero .dm-device-stage.has-custom-banner{
+    height:auto!important;
+    min-height:0!important;
+  }
+  .dm-market-hero .dm-device-stage.has-custom-banner .dm-custom-banner-link{
+    position:absolute!important;
+    inset:0!important;
+  }
+  .dm-market-hero .dm-device-stage.has-custom-banner .dm-custom-banner-image{
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    max-height:none!important;
+    object-fit:contain!important;
+    object-position:center!important;
+  }
 }
 .dm-market-hero .dm-device-stage.has-custom-banner .dm-custom-banner-link{
   background:#061b48!important;
@@ -2177,7 +2195,20 @@ async function loadHomepageBanner() {
       });
       stage.appendChild(dots);
     }
+    // Match the banner frame to the uploaded file's real dimensions.
+    // This prevents wide desktop screens from clipping the top or bottom.
+    const fitBannerToImage = () => {
+      const naturalWidth = isVideo ? media.videoWidth : media.naturalWidth;
+      const naturalHeight = isVideo ? media.videoHeight : media.naturalHeight;
+      if (naturalWidth > 0 && naturalHeight > 0) {
+        stage.style.aspectRatio = naturalWidth + " / " + naturalHeight;
+        stage.style.height = "auto";
+        stage.style.minHeight = "0";
+      }
+    };
+    media.addEventListener(isVideo ? "loadedmetadata" : "load", fitBannerToImage, { once: true });
     media.src = url;
+    if (media.complete && media.naturalWidth) fitBannerToImage();
     requestAnimationFrame(() => { media.style.opacity = "1"; });
     if (slides.length > 1) {
       timer = window.setTimeout(nextSlide, isVideo ? 20000 : 5000);
