@@ -2319,18 +2319,29 @@ window.showMessage = function(type) {
   box.innerHTML = `
     <h3>DAVIMART Account</h3>
     <div id="authForm">
-      <input id="fullName" placeholder="Full name" style="width:100%;padding:12px;margin:8px 0">
-      <input id="email" type="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0">
-      <div style="position:relative;width:100%;margin:8px 0">
-        <input id="password" type="password" placeholder="Password (minimum 8 characters)" style="width:100%;padding:12px;padding-right:44px;box-sizing:border-box">
-        <button type="button" id="togglePasswordBtn" aria-label="Show password" aria-pressed="false" style="position:absolute;right:9px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;color:#64748b;cursor:pointer;z-index:2"><svg id="passwordEyeIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
-      </div>
-      
-      <p id="authStatus"></p>
-      <button class="btn primary" id="registerBtn">Create account</button>
-      <button class="btn outline" id="loginBtn" style="margin-top:8px">Sign in instead</button>
-      <button type="button" class="btn outline" id="forgotPasswordBtn" style="margin-top:8px">Forgot password?</button>
-      <p id="forgotPasswordStatus" aria-live="polite"></p>
+      <section id="loginForm">
+        <h4>Sign In</h4>
+        <p>Use your registered email address.</p>
+        <input id="email" type="email" autocomplete="email" inputmode="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0">
+        <div style="position:relative;width:100%;margin:8px 0">
+          <input id="password" type="password" autocomplete="current-password" placeholder="Password" style="width:100%;padding:12px;padding-right:44px;box-sizing:border-box">
+          <button type="button" id="togglePasswordBtn" aria-label="Show password" aria-pressed="false" style="position:absolute;right:9px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;color:#64748b;cursor:pointer;z-index:2"><svg id="passwordEyeIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+        </div>
+        <p id="authStatus" aria-live="polite"></p>
+        <button class="btn primary" id="loginBtn">Sign in</button>
+        <button type="button" class="btn outline" id="forgotPasswordBtn" style="margin-top:8px">Forgot password?</button>
+        <p id="forgotPasswordStatus" aria-live="polite"></p>
+        <p>New to DAVIMART? <button type="button" class="btn outline" id="showRegisterBtn">Create an account</button></p>
+      </section>
+      <section id="registerForm" hidden>
+        <h4>Create Account</h4>
+        <input id="fullName" placeholder="Full name" autocomplete="name" style="width:100%;padding:12px;margin:8px 0">
+        <input id="registerEmail" type="email" autocomplete="email" inputmode="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0" required>
+        <input id="registerPassword" type="password" autocomplete="new-password" placeholder="Create password (minimum 8 characters)" style="width:100%;padding:12px;margin:8px 0">
+        <p id="registerStatus" aria-live="polite"></p>
+        <button class="btn primary" id="registerBtn">Create account</button>
+        <p>Already registered? <button type="button" class="btn outline" id="showLoginBtn">Sign in</button></p>
+      </section>
       <button class="btn outline" onclick="closeMessage()" style="margin-top:8px">Close</button>
     </div>
   `;
@@ -2363,32 +2374,35 @@ window.showMessage = function(type) {
       : "If an account exists for that email, a password recovery link has been sent. Check your inbox and spam folder.";
   };
 
+  document.getElementById("showRegisterBtn").onclick = () => {
+    document.getElementById("loginForm").hidden = true;
+    document.getElementById("registerForm").hidden = false;
+    document.getElementById("authStatus").textContent = "";
+  };
+  document.getElementById("showLoginBtn").onclick = () => {
+    document.getElementById("registerForm").hidden = true;
+    document.getElementById("loginForm").hidden = false;
+    document.getElementById("registerStatus").textContent = "";
+  };
   document.getElementById("registerBtn").onclick = async () => {
     const name = document.getElementById("fullName").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-    
-    const status = document.getElementById("authStatus");
-
+    const email = document.getElementById("registerEmail").value.trim();
+    const password = document.getElementById("registerPassword").value;
+    const status = document.getElementById("registerStatus");
     if (!name || !email || password.length < 8) {
-      status.textContent = "Enter your name, email and a password of at least 8 characters.";
+      status.textContent = "Enter your name, email address, and a password of at least 8 characters.";
       return;
     }
-
     status.textContent = "Creating account...";
-    const { error } = await db.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: name, role: "buyer" },
-        emailRedirectTo: window.location.origin
-      }
+    const { data, error } = await db.auth.signUp({
+      email, password,
+      options: { data: { full_name: name, role }, emailRedirectTo: window.location.origin }
     });
-
-    status.textContent = error
-      ? error.message
-      : "Registration submitted! Check your email for confirmation.";
+    if (error) { status.textContent = error.message; return; }
+    status.textContent = data.session ? "Account created successfully!" : "Registration submitted! Check your email for confirmation.";
+    if (data.session) await showDashboard();
   };
+
 
   document.getElementById("loginBtn").onclick = async () => {
     const email = document.getElementById("email").value.trim();
