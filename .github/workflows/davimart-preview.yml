@@ -1,39 +1,36 @@
-name: DAVIMART development preview
+name: DAVIMART development preview checks
 
 on:
   push:
     branches:
-      - restore-original-davimart-homepage
+      - fix/davimart-preview-workflow
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: davimart-development-preview
+  group: davimart-development-preview-checks
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  validate:
+    name: Validate preview files
     runs-on: ubuntu-latest
     steps:
-      - name: Check out development branch
+      - name: Check out this development branch
         uses: actions/checkout@v4
-        with:
-          ref: restore-original-davimart-homepage
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - name: Upload website files
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-      - name: Deploy development preview
-        id: deployment
-        uses: actions/deploy-pages@v4
+
+      - name: Check required website files
+        run: |
+          test -f index.html
+          test -f account.html
+          test -f admin.html
+
+      - name: Check patch formatting
+        run: git diff --check
+
+      - name: Confirm preview branch
+        run: |
+          echo "Validated branch: $GITHUB_REF_NAME"
+          echo "The connected Vercel integration is responsible for publishing the live preview."

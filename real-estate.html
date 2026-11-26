@@ -32,6 +32,19 @@ button{background:#102b55;color:white;border:0;border-radius:7px;padding:13px 18
 #loader{position:fixed;inset:0;background:white;display:grid;place-items:center;z-index:100;color:#102b55;font-weight:bold}
 @media(max-width:450px){.search form{flex-wrap:wrap}.search form input,.search form select{width:100%;flex-basis:100%}.search form button{width:100%}}
 </style>
+<style>
+/* Consistent, mobile-safe DAVIMART marketplace navigation */
+.dm-bottom-nav,.bottom-nav{display:none}
+@media(max-width:700px){
+ .dm-bottom-nav,.bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:3000;justify-content:space-around;align-items:stretch;gap:0;padding:7px 3px calc(7px + env(safe-area-inset-bottom));background:#071f50;border-top:2px solid #ffc400;box-shadow:0 -3px 14px #071f5022}
+ .dm-bottom-nav a,.bottom-nav a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:5px 1px;color:#fff;font-size:10px;font-weight:800;text-decoration:none;text-align:center;white-space:nowrap}
+ .dm-bottom-nav a span,.bottom-nav a span{font-size:20px;line-height:1.1}
+ .dm-bottom-nav a[aria-current="page"],.bottom-nav a[aria-current="page"]{color:#ffc400}
+ .dm-bottom-nav a:focus-visible,.bottom-nav a:focus-visible{outline:2px solid #ffc400;outline-offset:-2px;border-radius:7px}
+ body{padding-bottom:calc(82px + env(safe-area-inset-bottom))!important}
+}
+@media(min-width:701px){.dm-bottom-nav,.bottom-nav{display:none!important}}
+</style>
 </head>
 <body>
 <div id="loader">Loading DAVIMART Real Estate...</div>
@@ -78,12 +91,12 @@ button{background:#102b55;color:white;border:0;border-radius:7px;padding:13px 18
 <p class="note">Property listings will appear here after they have been submitted and approved.</p>
 </section>
 
-<nav class="bottom-nav">
-<a href="index.html"><span>🏠</span>Home</a>
-<a href="categories.html"><span>☰</span>Categories</a>
-<a href="shop.html"><span>🛍️</span>Shop</a>
-<a href="real-estate.html"><span>🏡</span>Real Estate</a>
-<a href="account.html"><span>👤</span>Account</a>
+<nav class="bottom-nav" aria-label="Main navigation">
+<a href="index.html"><span>⌂</span>Home</a>
+<a href="shop.html"><span>▦</span>Shop</a>
+<a href="services-marketplace.html"><span>▣</span>Services</a>
+<a href="real-estate.html" aria-current="page"><span>⌂</span>Properties</a>
+<a href="account.html"><span>♙</span>Account</a>
 </nav>
 
 <script>
