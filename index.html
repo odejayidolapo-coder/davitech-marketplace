@@ -2413,20 +2413,21 @@ window.showMessage = function(type) {
     </div>
   `;
 
-  async function startGoogleSignIn(statusId) {
+  async function startGoogleSignIn(statusId, intent) {
     const status = document.getElementById(statusId);
-    status.textContent = "Redirecting to Google...";
+    status.textContent = intent === "signup" ? "Creating your account with Google..." : "Redirecting to Google...";
+    const redirectPath = intent === "signup" ? "/set-password.html" : "/";
     const { error } = await db.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin + "/",
+        redirectTo: window.location.origin + redirectPath,
         queryParams: { prompt: "select_account" }
       }
     });
     if (error) status.textContent = "Google sign-in is not configured yet: " + error.message;
   }
-  document.getElementById("googleLoginBtn").onclick = () => startGoogleSignIn("authStatus");
-  document.getElementById("googleRegisterBtn").onclick = () => startGoogleSignIn("registerStatus");
+  document.getElementById("googleLoginBtn").onclick = () => startGoogleSignIn("authStatus", "login");
+  document.getElementById("googleRegisterBtn").onclick = () => startGoogleSignIn("registerStatus", "signup");
 
   const passwordInput = document.getElementById("password");
   const togglePasswordBtn = document.getElementById("togglePasswordBtn");
