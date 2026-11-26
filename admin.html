@@ -18,7 +18,7 @@ main{max-width:1100px;margin:28px auto;padding:0 16px}
 .grid{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px}
 aside,.panel,.stat{background:#fff;border:1px solid #e7ebf2;border-radius:15px;box-shadow:0 5px 18px #1020440a}
 aside{padding:14px;height:max-content}aside button{width:100%;text-align:left;background:transparent;color:var(--ink);margin:3px 0}aside button.active{background:#edf3ff;color:var(--blue)}
-.content{min-width:0}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}.stat{padding:17px}.stat b{display:block;color:var(--navy);font-size:14px}.stat span{display:block;color:var(--muted);font-size:12px;margin-top:7px}
+.content{min-width:0}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}.stat{padding:17px}.stat b{display:block;color:var(--navy);font-size:14px}.stat span{display:block;color:var(--muted);font-size:12px;margin-top:7px}.stat-action{width:100%;text-align:left;cursor:pointer;color:inherit;font:inherit;transition:transform .15s,box-shadow .15s}.stat-action:hover,.stat-action:focus-visible{transform:translateY(-2px);box-shadow:0 8px 22px #10204418;outline:2px solid #0b56c5;outline-offset:2px}.stat-action:focus-visible{outline-offset:3px}
 .panel{padding:22px;margin-bottom:16px}.panel h2{margin:0 0 8px;color:var(--navy);font-size:20px}.panel p{color:var(--muted);line-height:1.6}
 .drop{border:2px dashed #c7d3e6;border-radius:13px;padding:22px;text-align:center;background:#f9fbff}
 input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-top:14px}#previewGrid img{width:100%;height:100px;object-fit:cover;border-radius:9px;background:#e7edf6}#bannerGallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:16px}.banner-card{border:1px solid #e2e8f1;border-radius:11px;padding:9px;min-width:0}.banner-card img{width:100%;height:105px;object-fit:cover;border-radius:7px}.banner-card small{display:block;overflow-wrap:anywhere;color:var(--muted);margin:7px 0}.banner-card button{padding:8px 10px;background:#fff0f0;color:#a32929}
@@ -80,10 +80,11 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 </aside>
 <div class="content">
 <div class="stats">
-<div class="stat"><b>Admin access</b><span>Authorized account</span></div>
-<div class="stat"><b>Homepage banner</b><span>Manage live promotion</span></div>
-<div class="stat"><b>Marketplace</b><span>DAVIMART</span></div>
+<button class="stat stat-action" id="adminAccessCard" type="button" aria-label="View administrator access details"><b>Admin access</b><span>Authorized account · View details</span></button>
+<button class="stat stat-action" id="homepageBannerCard" type="button" aria-label="Open homepage banner manager"><b>Homepage banner</b><span>Manage live promotion · Open manager</span></button>
+<button class="stat stat-action" id="marketplaceCard" type="button" aria-label="Open DAVIMART marketplace"><b>Marketplace</b><span>DAVIMART · Visit marketplace</span></button>
 </div>
+<p id="adminAccessDetails" class="notice" hidden role="status"></p>
 <section class="panel" id="overview"><h2>Welcome to your control centre</h2><p>Use the Homepage banner section to choose an image, preview it, and publish it to the DAVIMART homepage. Other management tools will be added one feature at a time after testing.</p><button class="btn btn-gold" id="openBanner">Manage homepage banner</button></section>
 
 <section class="panel admin-feature" id="usersPanel" hidden>
@@ -375,6 +376,9 @@ function showAdminPanel(id){
  if(id==="logoPanel") loadStoreLogo();
 }
 document.querySelectorAll("aside button[data-panel]").forEach(b=>b.addEventListener("click",()=>showAdminPanel(b.dataset.panel)));
+document.getElementById("adminAccessCard").addEventListener("click",async()=>{const info=document.getElementById("adminAccessDetails");const {data:{user},error}=await db.auth.getUser();info.hidden=false;info.textContent=error||!user?"Could not confirm the signed-in administrator. Please sign in again.":"Administrator access is active for "+(user.email||"the authorized account")+". This account is authorized to manage DAVIMART.";info.scrollIntoView({behavior:"smooth",block:"nearest"});});
+document.getElementById("homepageBannerCard").addEventListener("click",()=>showAdminPanel("bannerPanel"));
+document.getElementById("marketplaceCard").addEventListener("click",()=>{window.location.href="index.html";});
 document.getElementById("openBanner").onclick=()=>showAdminPanel("bannerPanel");
 document.getElementById("bannerNav").onclick=()=>showAdminPanel("bannerPanel");
 document.getElementById("refreshUsers").onclick=loadUsers;
