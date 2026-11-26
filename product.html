@@ -45,7 +45,16 @@ h2{font-size:17px;color:var(--navy);margin:0 0 10px}
 .related-empty{color:var(--muted);font-size:14px;padding:10px 0}
 @media(max-width:760px){.section-panel{padding:15px}.related-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.related-card img{height:125px}.related-card{padding:8px}}
 
-body{padding-bottom:92px}.product-buybar{position:fixed;left:0;right:0;bottom:0;z-index:999;background:#fff;border-top:2px solid var(--gold);box-shadow:0 -4px 18px #071f5018;display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 14px calc(10px + env(safe-area-inset-bottom))}.product-buybar a,.product-buybar button{min-height:48px;border-radius:8px;font-weight:800;text-decoration:none;display:flex;align-items:center;justify-content:center;padding:0 16px;border:0;font-size:14px}.product-buybar .home-link{background:#fff;border:1px solid var(--gold);color:var(--navy);min-width:48px;font-size:20px}.product-buybar .cart-link{background:var(--navy);color:#fff;flex:1;max-width:280px}.product-buybar .qty-control{display:flex;align-items:center;gap:8px;color:var(--navy);font-weight:900}.product-buybar .qty-control button{background:#f0a02b;color:#fff;width:42px;padding:0;font-size:22px}.product-buybar .qty-control span{min-width:20px;text-align:center}.review-link-panel{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:16px;background:#fff;border:1px solid var(--line);border-radius:12px;margin-top:18px}.review-link-panel a{background:var(--navy);color:#fff;text-decoration:none;border-radius:8px;padding:12px 16px;font-weight:800}@media(max-width:520px){body{padding-bottom:88px}.product-buybar{gap:7px;padding-left:8px;padding-right:8px}.product-buybar a,.product-buybar button{padding:0 10px;font-size:12px}.product-buybar .qty-control{gap:4px}.product-buybar .qty-control button{width:36px}}
+body{padding-bottom:100px}
+.product-buybar{position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#fff;border-top:1px solid #e4e7ec;box-shadow:0 -3px 14px #10182818;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 14px calc(9px + env(safe-area-inset-bottom))}
+.product-buybar a,.product-buybar button{height:52px;min-width:52px;border-radius:7px;font-weight:800;text-decoration:none;display:flex;align-items:center;justify-content:center;padding:0 12px;border:1px solid #e99a2a;font-size:15px;box-sizing:border-box}
+.product-buybar .home-link,.product-buybar .contact-link{background:#fff;color:#e88918;font-size:21px}
+.product-buybar .qty-control{display:flex;align-items:center;justify-content:center;gap:0;color:#111827;font-weight:900;flex:1;max-width:190px}
+.product-buybar .qty-control button{background:#f28c18;color:#fff;border:0;width:48px;min-width:48px;height:52px;font-size:25px;padding:0;border-radius:5px}
+.product-buybar .qty-control span{min-width:42px;text-align:center;font-size:18px}
+.product-buybar .cart-link{background:#f28c18;color:#fff;border:0;flex:1;max-width:220px;font-size:14px}
+@media(max-width:520px){body{padding-bottom:94px}.product-buybar{gap:6px;padding-left:8px;padding-right:8px}.product-buybar a,.product-buybar button{height:50px;min-width:42px;padding:0 8px;font-size:12px}.product-buybar .home-link,.product-buybar .contact-link{min-width:42px;font-size:19px}.product-buybar .qty-control{flex:0 0 auto;gap:0}.product-buybar .qty-control button{width:38px;min-width:38px;height:50px}.product-buybar .qty-control span{min-width:30px;font-size:16px}.product-buybar .cart-link{flex:1;max-width:none;font-size:12px}}
+@media(min-width:761px){.product-buybar{padding-left:max(24px,calc((100vw - 1180px)/2));padding-right:max(24px,calc((100vw - 1180px)/2))}}
 </style>
 </head>
 <body>
@@ -200,6 +209,17 @@ async function loadProduct(){
  };
  panel.append(title,price,meta,rule,descTitle,desc,delivery,contact,saveButton);
  root.append(gallery,panel);
+
+ // Jumia-style fixed purchase toolbar: all primary product actions stay at the bottom.
+ const buybar=document.createElement("nav");buybar.className="product-buybar";buybar.setAttribute("aria-label","Product actions");
+ const homeLink=document.createElement("a");homeLink.className="home-link";homeLink.href="index.html";homeLink.textContent="⌂";homeLink.setAttribute("aria-label","Home");
+ const contactLink=document.createElement("a");contactLink.className="contact-link";contactLink.href="messages.html?seller_id="+encodeURIComponent(item.seller_id)+"&listing_id="+encodeURIComponent(item.id)+"&title="+encodeURIComponent(item.title||"Product");contactLink.textContent="☎";contactLink.setAttribute("aria-label","Contact seller");contactLink.title="Contact seller";
+ const qty=document.createElement("div");qty.className="qty-control";const minus=document.createElement("button");minus.type="button";minus.textContent="−";minus.setAttribute("aria-label","Decrease quantity");const qtyText=document.createElement("span");qtyText.textContent="1";const plus=document.createElement("button");plus.type="button";plus.textContent="+";plus.setAttribute("aria-label","Increase quantity");let selectedQty=1;
+ minus.addEventListener("click",()=>{selectedQty=Math.max(1,selectedQty-1);qtyText.textContent=String(selectedQty)});plus.addEventListener("click",()=>{selectedQty=Math.min(99,selectedQty+1);qtyText.textContent=String(selectedQty)});
+ const addCart=document.createElement("button");addCart.type="button";addCart.className="cart-link";addCart.textContent="🛒 Add to Cart";
+ addCart.addEventListener("click",()=>{let items=[];try{items=JSON.parse(localStorage.getItem("davimart_cart")||"[]");if(!Array.isArray(items))items=[]}catch(e){items=[]}const existing=items.find(x=>x&&x.id===item.id);if(existing)existing.quantity=Math.min(99,Math.max(1,Number(existing.quantity)||1)+selectedQty);else items.push({id:item.id,title:item.title||"Product",price:Number(item.price)||0,image_url:item.image_url||"",quantity:selectedQty});localStorage.setItem("davimart_cart",JSON.stringify(items));window.dispatchEvent(new Event("davimart-cart-updated"));addCart.textContent="✓ Added · View Cart";addCart.onclick=()=>location.href="cart.html";});
+ qty.append(minus,qtyText,plus);buybar.append(homeLink,contactLink,qty,addCart);document.body.appendChild(buybar);
+
 
  const reviewPanel=document.createElement("section");reviewPanel.className="review-link-panel";const reviewCopy=document.createElement("div");const reviewHeading=document.createElement("h2");reviewHeading.textContent="Ratings & Reviews";const reviewText=document.createElement("p");reviewText.className="meta";reviewText.textContent="Read customer feedback and share your experience on this product's review page.";reviewCopy.append(reviewHeading,reviewText);const reviewAnchor=document.createElement("a");reviewAnchor.href="product-reviews.html?id="+encodeURIComponent(item.id);reviewAnchor.textContent="View ratings & reviews";reviewPanel.append(reviewCopy,reviewAnchor);root.after(reviewPanel);
  const related=document.createElement("section");related.className="section-panel";
