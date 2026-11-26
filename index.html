@@ -2381,7 +2381,10 @@ window.showMessage = function(type) {
           <button type="button" id="togglePasswordBtn" aria-label="Show password" aria-pressed="false" style="position:absolute;right:9px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;color:#64748b;cursor:pointer;z-index:2"><svg id="passwordEyeIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
         </div>
         <p id="authStatus" aria-live="polite"></p>
-        <button class="btn primary" id="loginBtn">Sign in</button>
+        <button class="btn primary" id="loginBtn">Sign in with email</button>
+        <button type="button" class="btn outline" id="googleLoginBtn" style="width:100%;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:10px">
+          <span aria-hidden="true" style="font-weight:900;color:#4285F4">G</span> Continue with Google
+        </button>
         <button type="button" class="btn outline" id="forgotPasswordBtn" style="margin-top:8px">Forgot password?</button>
         <p id="forgotPasswordStatus" aria-live="polite"></p>
         <p>New to DAVIMART? <button type="button" class="btn outline" id="showRegisterBtn">Create an account</button></p>
@@ -2392,12 +2395,30 @@ window.showMessage = function(type) {
         <input id="registerEmail" type="email" autocomplete="email" inputmode="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0" required>
         <input id="registerPassword" type="password" autocomplete="new-password" placeholder="Create password (minimum 8 characters)" style="width:100%;padding:12px;margin:8px 0">
         <p id="registerStatus" aria-live="polite"></p>
-        <button class="btn primary" id="registerBtn">Create account</button>
+        <button class="btn primary" id="registerBtn">Create account with email</button>
+        <button type="button" class="btn outline" id="googleRegisterBtn" style="width:100%;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:10px">
+          <span aria-hidden="true" style="font-weight:900;color:#4285F4">G</span> Sign up with Google
+        </button>
         <p>Already registered? <button type="button" class="btn outline" id="showLoginBtn">Sign in</button></p>
       </section>
       <button class="btn outline" onclick="closeMessage()" style="margin-top:8px">Close</button>
     </div>
   `;
+
+  async function startGoogleSignIn(statusId) {
+    const status = document.getElementById(statusId);
+    status.textContent = "Redirecting to Google...";
+    const { error } = await db.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin + "/",
+        queryParams: { prompt: "select_account" }
+      }
+    });
+    if (error) status.textContent = "Google sign-in is not configured yet: " + error.message;
+  }
+  document.getElementById("googleLoginBtn").onclick = () => startGoogleSignIn("authStatus");
+  document.getElementById("googleRegisterBtn").onclick = () => startGoogleSignIn("registerStatus");
 
   const passwordInput = document.getElementById("password");
   const togglePasswordBtn = document.getElementById("togglePasswordBtn");
