@@ -17,7 +17,7 @@ main{max-width:1000px;margin:26px auto;padding:0 16px}h1{color:#102b55;margin:0 
 .placeholder{display:grid;place-items:center;font-size:30px}.cart-item h2{font-size:15px;color:#102b55;margin:0 0 7px}.price{font-weight:800;color:#174b91;margin:0 0 10px}
 .qty{display:flex;align-items:center;gap:9px}.qty button,.remove{border:1px solid #dbe2ec;background:#fff;border-radius:7px;padding:6px 10px;cursor:pointer}.qty span{font-weight:800;min-width:16px;text-align:center}.remove{color:#a32626;border-color:#f1d3d3;margin-top:7px;font-size:12px}
 .line-total{font-weight:800;color:#102b55;white-space:nowrap}.summary h2{margin:0 0 16px;color:#102b55;font-size:18px}.summary-row{display:flex;justify-content:space-between;gap:12px;margin:12px 0;color:#536078}.grand{border-top:1px solid #e5eaf2;padding-top:14px;font-size:18px;font-weight:900;color:#102b55}
-.checkout{width:100%;border:0;border-radius:9px;padding:14px;background:#ffc400;color:#071f50;font-size:14px;font-weight:900;margin-top:14px;cursor:not-allowed;opacity:.65}
+.checkout{width:100%;border:0;border-radius:9px;padding:14px;background:#ffc400;color:#071f50;font-size:14px;font-weight:900;margin-top:14px;cursor:pointer}.checkout:disabled{opacity:.6;cursor:not-allowed}
 .notice{font-size:12px;color:#778399;line-height:1.5;margin-top:12px}
 .empty{text-align:center;padding:36px 15px}.empty h2{color:#102b55}.empty a{display:inline-block;margin-top:10px;background:#102b55;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:800}
 .nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-around;background:#071f50;border-top:2px solid #ffc400;padding:9px 3px calc(9px + env(safe-area-inset-bottom))}
@@ -63,8 +63,9 @@ function render(){
   list.appendChild(row);
  });
  const summary=document.createElement("aside");summary.className="summary";
- summary.innerHTML='<h2>Order summary</h2><div class="summary-row"><span>Items ('+count+')</span><strong>'+money(total)+'</strong></div><div class="summary-row"><span>Delivery</span><span>Calculated later</span></div><div class="summary-row grand"><span>Total</span><span>'+money(total)+'</span></div><button class="checkout" type="button" disabled>Checkout coming soon</button><p class="notice">Online checkout and delivery charges are not connected yet. No payment will be taken from this page.</p>';
+ summary.innerHTML='<h2>Order summary</h2><div class="summary-row"><span>Items ('+count+')</span><strong>'+money(total)+'</strong></div><div class="summary-row"><span>Delivery</span><span>Calculated later</span></div><div class="summary-row grand"><span>Total</span><span>'+money(total)+'</span></div><button class="checkout" type="button" id="checkoutButton">Proceed to Checkout</button><p class="notice">Secure payment is handled by Paystack. Delivery fee will be confirmed separately by the seller.</p>';
  root.replaceChildren(list,summary);
+ document.getElementById("checkoutButton").addEventListener("click",()=>location.href="checkout.html");
 }
 function change(id,delta){const items=readCart();const item=items.find(x=>x.id===id);if(!item)return;item.quantity=Math.max(1,Math.min(99,(Number(item.quantity)||1)+delta));saveCart(items);render()}
 function removeItem(id){saveCart(readCart().filter(x=>x.id!==id));render()}
