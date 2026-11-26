@@ -88,7 +88,7 @@ $("verifyBtn").onclick=async()=>{
  const code=$("loginCode").value.trim();
  if(!/^\d{6}$/.test(code)){status("Enter the 6-digit code from your authenticator app.",true);return;}
  try{status("Checking code…");const v=await auth.auth.mfa.verify({factorId,challengeId,code});if(v.error)throw v.error;
- status("Verified. Returning to DAVIMART…");location.href="index.html";
+ status("Verified. Returning to DAVIMART…");const next=new URLSearchParams(location.search).get("next");location.href=next&&next.startsWith("/")&&!next.startsWith("//")?next:"index.html";
  }catch(e){status(e.message||"Invalid code. Try the latest code.",true);}
 };
 $("testBtn").onclick=async()=>{try{status("Preparing verification…");await startChallenge((await auth.auth.mfa.listFactors()).data.totp.find(f=>f.status==="verified").id);status("Enter your authenticator code.");}catch(e){status(e.message,true);}};
