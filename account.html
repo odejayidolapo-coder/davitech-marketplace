@@ -24,6 +24,7 @@ button.secondary{background:#e8edf5;color:#102b55}
 .features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .feature{border:1px solid #e1e5eb;border-radius:10px;padding:17px;background:#fff}.account-menu-link{display:block;color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}.account-menu-link:hover,.account-menu-link:focus-visible{border-color:#d9a72e;transform:translateY(-1px);outline:2px solid #d9a72e;outline-offset:2px}.account-menu-link strong{display:block;margin-bottom:7px}
 .feature strong{display:block;color:#102b55;margin-bottom:7px}
+#notificationsSection{cursor:pointer;position:relative}#notificationsSection:focus-visible{outline:3px solid #d9a72e;outline-offset:3px}.notification-open-link{display:inline-block;margin-top:12px;text-decoration:none}.notification-open-link button{cursor:pointer;min-height:42px}
 .feature p{font-size:13px;color:#667085;line-height:1.5;margin:0}
 .status{font-size:12px;color:#8a5b00;margin-top:10px}
 .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -208,11 +209,11 @@ body.camera-open{overflow:hidden}
 <p>Manage conversations with sellers and buyers.</p>
 <a href="messages.html"><button type="button">Open Inbox</button></a>
 </div>
-<a class="feature account-menu-link" href="notification-centre.html" id="notificationsSection">
+<div class="feature" id="notificationsSection" role="link" tabindex="0" onclick="window.location.href='notification-centre.html'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='notification-centre.html';}">
 <strong>🔔 My Notifications <span id="unreadNotificationCount" class="status"></span></strong>
 <p>Open your notification centre to view account and marketplace updates.</p>
-<span class="status">View all notifications →</span>
-</a>
+<a href="notification-centre.html" class="notification-open-link"><button type="button">Open Notifications →</button></a>
+</div>
 <div class="feature">
 <strong>🏪 Seller Dashboard</strong>
 <p>Manage your seller application and listings.</p>
