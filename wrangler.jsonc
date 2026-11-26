@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "davitech-marketplace",
-  "compatibility_date": "2026-11-10",
+  "compatibility_date": "2026-11-26",
   "assets": {
     "directory": "."
   }
