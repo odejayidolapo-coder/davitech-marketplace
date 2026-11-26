@@ -191,7 +191,7 @@ body.camera-open{overflow:hidden}
 <div class="feature">
 <strong>👤 My Profile</strong>
 <p>View your account details and profile picture.</p>
-<button type="button" onclick="openAccountDestination('profile')">Open Profile</button>
+<a href="profile.html"><button type="button">Open Profile</button></a>
 </div>
 <div class="feature">
 <strong>📦 My Orders</strong>
@@ -475,7 +475,7 @@ user.email || "";
  .single();
 
  document.getElementById("profileName").textContent =
- "Name: " + (profile?.full_name || user.user_metadata?.full_name || "DAVIMART Member");
+ "Name: " + (user.user_metadata?.full_name || profile?.full_name || "DAVIMART Member");
 
  document.getElementById("profileRole").textContent =
  "Account type: " + (profile?.role || "Not available");
