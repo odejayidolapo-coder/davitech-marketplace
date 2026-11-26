@@ -2416,8 +2416,7 @@ window.showMessage = function(type) {
   async function startGoogleSignIn(statusId, intent) {
     const status = document.getElementById(statusId);
     status.textContent = intent === "signup" ? "Creating your account with Google..." : "Redirecting to Google...";
-    const nextPath = intent === "signup" ? "/set-password.html" : "/index.html?refresh=a5366c90";
-    const redirectPath = "/google-otp.html?next=" + encodeURIComponent(nextPath);
+    const redirectPath = intent === "signup" ? "/set-password.html" : "/index.html?refresh=a5366c90";
     const { error } = await db.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -2707,21 +2706,3 @@ async function showDashboard() {
   }
 }
 </style>
-
-<script>
-(async function enforceGoogleEmailVerification(){
-  try {
-    const { data: { session } } = await db.auth.getSession();
-    const user = session?.user;
-    if (!user) return;
-    const isGoogle = user.app_metadata?.provider === "google" ||
-      (Array.isArray(user.app_metadata?.providers) && user.app_metadata.providers.includes("google"));
-    if (!isGoogle) return;
-    if (sessionStorage.getItem("davimart_google_otp_verified") === user.id) return;
-    const next = window.location.pathname + window.location.search + window.location.hash;
-    window.location.replace("/google-otp.html?next=" + encodeURIComponent(next));
-  } catch (error) {
-    console.error("Google email verification check failed:", error);
-  }
-})();
-</script>
