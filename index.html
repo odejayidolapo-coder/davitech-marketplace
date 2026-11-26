@@ -2443,6 +2443,7 @@ async function loadNotifications() {
 document.getElementById("headerNotificationBell").onclick = () => {
   window.location.href = "notifications.html";
 };
+loadNotifications();
 async function showDashboard() {
   const { data: { user } } = await db.auth.getUser();
 
