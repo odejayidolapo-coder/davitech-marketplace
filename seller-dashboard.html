@@ -6,7 +6,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--navy:#071f50;--blue:#0b56c5;--gold:#ffc400;--ink:#102044;--muted:#65728a;--bg:#f4f6fb}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px Arial,sans-serif;color:var(--ink)}header{background:var(--navy);color:white;padding:17px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}header a{color:white;text-decoration:none}main{max-width:1100px;margin:28px auto;padding:0 16px}.panel{background:white;border-radius:16px;padding:22px;margin:16px 0;box-shadow:0 5px 22px rgba(7,31,80,.07)}h1,h2{margin-top:0}label{display:block;font-weight:700;margin:13px 0 6px}input,textarea,select{display:block;width:100%;padding:12px;border:1px solid #d8e0ed;border-radius:9px;font:inherit;background:white}textarea{min-height:100px;resize:vertical}.btn{border:0;border-radius:9px;padding:12px 17px;font-weight:700;cursor:pointer}.primary{background:var(--navy);color:white}.gold{background:var(--gold);color:var(--navy)}.muted{color:var(--muted)}.status{padding:10px 0;color:var(--blue)}.listing{border:1px solid #e5eaf2;border-radius:12px;padding:14px;margin:12px 0;display:flex;gap:14px;align-items:center;flex-wrap:wrap}.listing img{width:100px;height:90px;object-fit:cover;border-radius:8px}.listing .info{flex:1;min-width:180px}.pill{display:inline-block;padding:5px 9px;border-radius:20px;background:#edf2fa;font-size:12px;font-weight:700}.pill.approved{background:#e3f7eb;color:#126b39}.pill.pending{background:#fff5d6;color:#805900}.pill.rejected{background:#fde8e8;color:#9a2020}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}.stat{background:#f5f7fb;padding:14px;border-radius:12px}.stat b{display:block;font-size:22px;color:var(--navy)}@media(max-width:600px){.panel{padding:17px}.listing img{width:76px;height:76px}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px Arial,sans-serif;color:var(--ink)}header{background:var(--navy);color:white;padding:17px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}header a{color:white;text-decoration:none}main{max-width:1100px;margin:28px auto;padding:0 16px}.panel{background:white;border-radius:16px;padding:22px;margin:16px 0;box-shadow:0 5px 22px rgba(7,31,80,.07)}h1,h2{margin-top:0}label{display:block;font-weight:700;margin:13px 0 6px}.detail-fields{border:1px solid #e5eaf2;border-radius:12px;padding:15px;margin:18px 0;background:#fbfcff}.detail-fields h3{margin:0 0 8px;color:var(--navy)}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}@media(max-width:520px){.form-grid{grid-template-columns:1fr}}input,textarea,select{display:block;width:100%;padding:12px;border:1px solid #d8e0ed;border-radius:9px;font:inherit;background:white}textarea{min-height:100px;resize:vertical}.btn{border:0;border-radius:9px;padding:12px 17px;font-weight:700;cursor:pointer}.primary{background:var(--navy);color:white}.gold{background:var(--gold);color:var(--navy)}.muted{color:var(--muted)}.status{padding:10px 0;color:var(--blue)}.listing{border:1px solid #e5eaf2;border-radius:12px;padding:14px;margin:12px 0;display:flex;gap:14px;align-items:center;flex-wrap:wrap}.listing img{width:100px;height:90px;object-fit:cover;border-radius:8px}.listing .info{flex:1;min-width:180px}.pill{display:inline-block;padding:5px 9px;border-radius:20px;background:#edf2fa;font-size:12px;font-weight:700}.pill.approved{background:#e3f7eb;color:#126b39}.pill.pending{background:#fff5d6;color:#805900}.pill.rejected{background:#fde8e8;color:#9a2020}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}.stat{background:#f5f7fb;padding:14px;border-radius:12px}.stat b{display:block;font-size:22px;color:var(--navy)}@media(max-width:600px){.panel{padding:17px}.listing img{width:76px;height:76px}}
 </style></head>
 <body>
 <header><strong>DAVIMART SELLER CENTRE</strong><a href="index.html">← Back to marketplace</a></header>
@@ -16,17 +16,56 @@
 <div id="sellerApp" hidden>
 <div class="panel"><h1>Seller Dashboard</h1><p id="sellerWelcome" class="muted">Manage your DAVIMART products and listings.</p>
 <div class="grid"><div class="stat"><b id="totalCount">0</b>Total listings</div><div class="stat"><b id="pendingCount">0</b>Awaiting review</div><div class="stat"><b id="approvedCount">0</b>Published</div></div></div>
-<section class="panel"><h2>Add a product or property</h2><p class="muted">Your new listing will be reviewed by DAVIMART before it appears publicly.</p>
+<section class="panel"><h2>Create a listing</h2><p class="muted">One seller account can publish products, services and properties. Complete the fields for the type you choose. Every new listing is reviewed before publication.</p>
 <form id="listingForm">
-<label for="title">Product or property name</label><input id="title" required maxlength="120" placeholder="e.g. Android smartphone">
-<label for="description">Description</label><textarea id="description" required maxlength="3000" placeholder="Describe the item clearly"></textarea>
-<label for="price">Price (₦)</label><input id="price" type="number" min="0" step="0.01" required placeholder="Enter price">
-<label for="category">Category</label><input id="category" required maxlength="80" placeholder="e.g. Phones & Accessories">
-<label for="type">Listing type</label><select id="type"><option value="product">Product</option><option value="property">Property</option></select>
-<label for="location">Location</label><input id="location" required placeholder="Town / city">
-<label for="photo">Product photo (JPG, PNG or WEBP; max 5 MB)</label><input id="photo" type="file" accept="image/jpeg,image/png,image/webp">
-<div id="photoPreview"></div><p id="photoCompressionStatus" class="status" role="status">Product images are compressed on your device before upload.</p><button class="btn primary" type="submit" id="submitListing">Submit for review</button><p id="formStatus" class="status" role="status"></p>
+<label for="type">What are you listing?</label><select id="type"><option value="product">Product — items for sale</option><option value="service">Service — work you offer</option><option value="property">Property — sale, rent or lease</option></select>
+<label for="title">Listing title</label><input id="title" required maxlength="120" placeholder="Give your listing a clear title">
+<label for="description">Description</label><textarea id="description" required maxlength="3000" placeholder="Describe what buyers or customers should know"></textarea>
+<label for="price">Price (₦)</label><input id="price" type="number" min="0" step="0.01" required placeholder="Enter amount">
+<label for="category">Category</label><input id="category" required maxlength="80" placeholder="e.g. Phones, Cleaning, Houses">
+<label for="location">Location</label><input id="location" required maxlength="180" placeholder="Town, city and state">
+<div id="productFields" class="detail-fields">
+<h3>Product information</h3>
+<label for="productCondition">Condition</label><select id="productCondition"><option value="new">New</option><option value="used">Used</option><option value="refurbished">Refurbished</option></select>
+<label for="productBrand">Brand</label><input id="productBrand" maxlength="100" placeholder="Brand name">
+<label for="productModel">Model / specifications</label><input id="productModel" maxlength="180" placeholder="Model, size, colour or key specifications">
+<label for="productStock">Available quantity</label><input id="productStock" type="number" min="1" step="1" value="1">
+<label for="deliveryAreas">Delivery areas and fees</label><textarea id="deliveryAreas" maxlength="1000" placeholder="Where can you deliver? State delivery fees or collection options."></textarea>
+<label for="returnPolicy">Return / warranty information</label><textarea id="returnPolicy" maxlength="1000" placeholder="State your return policy and warranty, if any."></textarea>
+</div>
+<div id="serviceFields" class="detail-fields" hidden>
+<h3>Service information</h3>
+<label for="serviceMode">How do you provide this service?</label><select id="serviceMode"><option value="in_person">In person</option><option value="online">Online / remote</option><option value="both">Both online and in person</option></select>
+<label for="serviceAreas">Areas covered</label><input id="serviceAreas" maxlength="250" placeholder="Locations or regions you serve">
+<label for="pricingMethod">Pricing method</label><select id="pricingMethod"><option value="fixed">Fixed price</option><option value="hourly">Per hour</option><option value="daily">Per day</option><option value="negotiable">Negotiable / request a quote</option></select>
+<label for="serviceDuration">Estimated duration</label><input id="serviceDuration" maxlength="120" placeholder="e.g. 2 hours, 3 days">
+<label for="serviceHours">Working hours / availability</label><input id="serviceHours" maxlength="180" placeholder="e.g. Monday–Saturday, 9am–5pm">
+<label for="serviceExperience">Experience and qualifications</label><textarea id="serviceExperience" maxlength="1200" placeholder="Relevant experience, licences or qualifications (if applicable)"></textarea>
+<label for="bookingRequirements">Booking requirements</label><textarea id="bookingRequirements" maxlength="800" placeholder="Deposit, notice period, materials or other requirements"></textarea>
+<label for="portfolio">Portfolio / sample work link</label><input id="portfolio" type="url" maxlength="500" placeholder="https://... (optional)">
+</div>
+<div id="propertyFields" class="detail-fields" hidden>
+<h3>Property information</h3>
+<label for="propertyPurpose">Property purpose</label><select id="propertyPurpose"><option value="sale">For sale</option><option value="rent">For rent</option><option value="lease">For lease</option></select>
+<label for="propertyType">Property type</label><select id="propertyType"><option>House</option><option>Apartment / Flat</option><option>Land</option><option>Shop / Office</option><option>Warehouse</option><option>Other</option></select>
+<div class="form-grid"><div><label for="bedrooms">Bedrooms</label><input id="bedrooms" type="number" min="0" step="1"></div><div><label for="bathrooms">Bathrooms</label><input id="bathrooms" type="number" min="0" step="1"></div><div><label for="toilets">Toilets</label><input id="toilets" type="number" min="0" step="1"></div><div><label for="parking">Parking spaces</label><input id="parking" type="number" min="0" step="1"></div></div>
+<label for="propertySize">Land / building size</label><input id="propertySize" maxlength="120" placeholder="e.g. 500 sqm, 3-bedroom">
+<label for="furnishing">Furnishing and facilities</label><textarea id="furnishing" maxlength="1000" placeholder="Furnished/unfurnished, water, power, security, etc."></textarea>
+<label for="propertyCondition">Property condition and availability</label><input id="propertyCondition" maxlength="180" placeholder="e.g. Newly built; available immediately">
+<label for="inspection">Inspection arrangements</label><textarea id="inspection" maxlength="800" placeholder="How can interested people arrange an inspection?"></textarea>
+<label for="ownershipProof">Ownership / agent authorisation</label><select id="ownershipProof"><option value="owner">I am the owner</option><option value="authorised_agent">I am an authorised agent</option><option value="representative">I represent the owner</option></select>
+<p class="muted">DAVIMART may request proof of ownership or written authorisation privately during review. Do not put sensitive identity documents in public listing photos.</p>
+</div>
+<div class="detail-fields">
+<h3>Customer contact and photos</h3>
+<label for="contactPhone">Contact phone</label><input id="contactPhone" type="tel" maxlength="30" placeholder="Phone number customers can reach">
+<label for="whatsapp">WhatsApp number (optional)</label><input id="whatsapp" type="tel" maxlength="30" placeholder="WhatsApp number">
+<label for="photo">Main listing photo (JPG, PNG or WEBP; max 5 MB)</label><input id="photo" type="file" accept="image/jpeg,image/png,image/webp">
+<div id="photoPreview"></div><p id="photoCompressionStatus" class="status" role="status">Images are compressed on your device before upload.</p>
+</div>
+<button class="btn primary" type="submit" id="submitListing">Submit for review</button><p id="formStatus" class="status" role="status"></p>
 </form></section>
+<section class="panel"><h2>Seller Centre</h2><p class="muted">Use your one seller account to manage listings in all three marketplace areas.</p><div class="grid"><div class="stat"><b>Products</b>Goods and inventory</div><div class="stat"><b>Services</b>Bookings and enquiries</div><div class="stat"><b>Properties</b>Sale, rent and lease</div></div></section>
 <section class="panel"><h2>Messages</h2><p class="muted">Reply to buyers and contact DAVIMART admin.</p><a class="btn gold" href="messages.html">Open messages</a></section><section class="panel"><h2>My listings</h2><button class="btn gold" id="refreshListings" type="button">Refresh listings</button><div id="myListings" class="muted">Loading your listings…</div></section>
 </div></main>
 <script>
@@ -94,7 +133,7 @@ $("photo").onchange=async()=>{
 };
 async function loadMyListings(){
  $("myListings").textContent="Loading your listings…";
- const {data,error}=await db.from("listings").select("id,title,description,price,category,listing_type,location,status,image_url,created_at").eq("seller_id",currentUser.id).order("created_at",{ascending:false});
+ const {data,error}=await db.from("listings").select("id,title,description,price,category,listing_type,listing_details,location,status,image_url,created_at").eq("seller_id",currentUser.id).order("created_at",{ascending:false});
  if(error){$("myListings").textContent="Could not load listings: "+error.message;return;}
  const rows=data||[];
  $("totalCount").textContent=rows.length;
@@ -109,10 +148,26 @@ async function loadMyListings(){
   const name=document.createElement("strong");name.textContent=item.title;
   const detail=document.createElement("p");detail.className="muted";detail.textContent="₦"+Number(item.price).toLocaleString("en-NG")+" · "+item.category+" · "+item.listing_type;
   const location=document.createElement("small");location.textContent=item.location||"";
-  info.append(name,detail,location);card.append(info,statusPill(item.status));$("myListings").appendChild(card);
+  const extra=document.createElement("p");extra.className="muted";extra.textContent=item.listing_type==="property"?((item.listing_details?.purpose||"")+" · "+(item.listing_details?.property_type||"")):item.listing_type==="service"?((item.listing_details?.service_mode||"")+" · "+(item.listing_details?.pricing_method||"")):((item.listing_details?.condition||"")+" · Stock: "+(item.listing_details?.stock_quantity??""));
+  info.append(name,detail,location,extra);card.append(info,statusPill(item.status));$("myListings").appendChild(card);
  });
 }
 $("refreshListings").onclick=loadMyListings;
+const typeSelect=$("type");
+function syncListingTypeFields(){
+ const type=typeSelect.value;
+ $("productFields").hidden=type!=="product";
+ $("serviceFields").hidden=type!=="service";
+ $("propertyFields").hidden=type!=="property";
+}
+typeSelect.addEventListener("change",syncListingTypeFields);
+syncListingTypeFields();
+function readDetailFields(type){
+ const common={contact_phone:$("contactPhone").value.trim(),whatsapp:$("whatsapp").value.trim()};
+ if(type==="product")return {...common,condition:$("productCondition").value,brand:$("productBrand").value.trim(),model_specs:$("productModel").value.trim(),stock_quantity:Number($("productStock").value||1),delivery:$("deliveryAreas").value.trim(),returns_warranty:$("returnPolicy").value.trim()};
+ if(type==="service")return {...common,service_mode:$("serviceMode").value,areas_covered:$("serviceAreas").value.trim(),pricing_method:$("pricingMethod").value,estimated_duration:$("serviceDuration").value.trim(),working_hours:$("serviceHours").value.trim(),experience_qualifications:$("serviceExperience").value.trim(),booking_requirements:$("bookingRequirements").value.trim(),portfolio_url:$("portfolio").value.trim()};
+ return {...common,purpose:$("propertyPurpose").value,property_type:$("propertyType").value,bedrooms:$("bedrooms").value===""?null:Number($("bedrooms").value),bathrooms:$("bathrooms").value===""?null:Number($("bathrooms").value),toilets:$("toilets").value===""?null:Number($("toilets").value),parking_spaces:$("parking").value===""?null:Number($("parking").value),size:$("propertySize").value.trim(),furnishing_facilities:$("furnishing").value.trim(),condition_availability:$("propertyCondition").value.trim(),inspection_arrangements:$("inspection").value.trim(),ownership_declaration:$("ownershipProof").value};
+}
 $("listingForm").onsubmit=async e=>{
  e.preventDefault();if(productImageCompressing){$("formStatus").textContent="Please wait for image compression to finish.";return;}if($("photo").files[0]&&!compressedProductImage){$("formStatus").textContent="The product image could not be compressed. Please choose it again or select another image.";return;}$("submitListing").disabled=true;$("formStatus").textContent="Submitting your listing…";
  let imageUrl=null;const file=compressedProductImage;
@@ -123,7 +178,7 @@ $("listingForm").onsubmit=async e=>{
   if(upload.error){$("formStatus").textContent="Photo upload failed: "+upload.error.message;$("submitListing").disabled=false;return;}
   imageUrl=db.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
  }
- const {error}=await db.from("listings").insert({seller_id:currentUser.id,title:$("title").value.trim(),description:$("description").value.trim(),price:Number($("price").value),category:$("category").value.trim(),listing_type:$("type").value,location:$("location").value.trim(),image_url:imageUrl,status:"pending"});
+ const {error}=await db.from("listings").insert({seller_id:currentUser.id,title:$("title").value.trim(),description:$("description").value.trim(),price:Number($("price").value),category:$("category").value.trim(),listing_type:$("type").value,listing_details:readDetailFields($("type").value),location:$("location").value.trim(),image_url:imageUrl,status:"pending"});
  $("formStatus").textContent=error?"Could not submit listing: "+error.message:"Listing submitted. It will appear in the marketplace after admin approval.";
  if(!error){$("listingForm").reset();$("photoPreview").innerHTML="";$("photoCompressionStatus").textContent="Product images are compressed on your device before upload.";compressedProductImage=null;await loadMyListings();}
  $("submitListing").disabled=false;
