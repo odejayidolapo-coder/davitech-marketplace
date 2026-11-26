@@ -22,7 +22,7 @@ button.secondary{background:#e8edf5;color:#102b55}
 .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
 #authStatus,#accountStatus{line-height:1.5;overflow-wrap:anywhere}
 .features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.feature{border:1px solid #e1e5eb;border-radius:10px;padding:17px;background:#fff}
+.feature{border:1px solid #e1e5eb;border-radius:10px;padding:17px;background:#fff}.account-menu-link{display:block;color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}.account-menu-link:hover,.account-menu-link:focus-visible{border-color:#d9a72e;transform:translateY(-1px);outline:2px solid #d9a72e;outline-offset:2px}.account-menu-link strong{display:block;margin-bottom:7px}
 .feature strong{display:block;color:#102b55;margin-bottom:7px}
 .feature p{font-size:13px;color:#667085;line-height:1.5;margin:0}
 .status{font-size:12px;color:#8a5b00;margin-top:10px}
@@ -148,7 +148,7 @@ body.camera-open{overflow:hidden}
 <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:14px 0">
 <img id="profileAvatar" class="profile-avatar" alt="Your profile picture" hidden>
 <div id="profileAvatarPlaceholder" class="profile-avatar-placeholder" aria-label="No profile picture yet">👤</div>
-<div><strong>Profile picture</strong><p class="form-help">Take a new picture or choose a JPEG image. It will appear as a circle on DAVIMART.</p><button type="button" id="openProfileCamera">Take profile picture</button><input id="profilePhotoFallback" type="file" accept="image/jpeg" hidden><button type="button" class="secondary" id="chooseProfilePhoto">Upload JPEG</button><button type="button" class="secondary" id="removeProfilePhoto" hidden>Remove picture</button></div>
+<div><strong>Profile picture</strong><p class="form-help">Take a new picture or choose a JPEG, PNG or WebP image. Images are automatically resized and saved as JPEG.</p><button type="button" id="openProfileCamera">Take profile picture</button><input id="profilePhotoFallback" type="file" accept="image/jpeg,image/png,image/webp" hidden><button type="button" class="secondary" id="chooseProfilePhoto">Upload Photo</button><button type="button" class="secondary" id="removeProfilePhoto" hidden>Remove picture</button></div>
 </div>
 <div class="camera-box" id="profileCameraBox" data-camera-kind="profile" hidden>
 <video id="profileVideo" autoplay playsinline muted hidden></video><img id="profilePreview" alt="Profile picture preview" hidden><canvas id="profileCanvas" hidden></canvas>
@@ -227,65 +227,22 @@ body.camera-open{overflow:hidden}
 <section class="panel">
 <h2>My DAVIMART Account</h2>
 <div class="features">
-<div class="feature" onclick="openAccountSection('Orders')">
-<strong>📦 Orders</strong>
-<p>View and track your purchases.</p>
-</div>
-
-<div class="feature" onclick="openAccountSection('Inbox')">
-<strong>💬 Inbox</strong>
-<p>Messages from buyers and sellers.</p>
-</div>
-
-<div class="feature" onclick="openAccountSection('Ratings & Reviews')">
-<strong>⭐ Ratings & Reviews</strong>
-<p>Manage your product reviews.</p>
-</div>
-
-<div class="feature" onclick="openAccountSection('Vouchers')">
-<strong>🎟️ Vouchers</strong>
-<p>View your available vouchers.</p>
-</div>
-
-<div class="feature" onclick="openAccountSection('Follow Seller')">
-<strong>🏪 Follow Seller</strong>
-<p>Keep up with your favourite sellers.</p>
-</div>
-
-<div class="feature" onclick="openAccountSection('Recently Viewed')">
-<strong>🕒 Recently Viewed</strong>
-<p>See products you recently viewed.</p>
-</div>
+<a class="feature account-menu-link" href="account-tools.html?section=orders"><strong>📦 Orders</strong><p>View and track your purchases.</p></a>
+<a class="feature account-menu-link" href="messages.html"><strong>💬 Inbox</strong><p>Messages from buyers and sellers.</p></a>
+<a class="feature account-menu-link" href="account-tools.html?section=reviews"><strong>⭐ Ratings & Reviews</strong><p>Manage your product reviews.</p></a>
+<a class="feature account-menu-link" href="account-tools.html?section=vouchers"><strong>🎟️ Vouchers</strong><p>View your available vouchers.</p></a>
+<a class="feature account-menu-link" href="account-tools.html?section=followed-sellers"><strong>🏪 Followed Sellers</strong><p>Keep up with your favourite sellers.</p></a>
+<a class="feature account-menu-link" href="account-tools.html?section=recently-viewed"><strong>🕒 Recently Viewed</strong><p>See products you recently viewed.</p></a>
 </div>
 </section>
-
 <section class="panel">
 <h2>My Settings</h2>
 <div class="features">
-<div class="feature" onclick="openAccountSection('Address Book')">
-<strong>📍 Address Book</strong>
-<p>Manage your delivery addresses.</p>
-</div>
-
-<div class="feature" onclick="openAccountSection('Account Management')">
-<strong>👤 Account Management</strong>
-<p>Manage your account information.</p>
-</div>
-
-<div class="feature" onclick="openAccountSection('Notification Preferences')">
-<strong>🔔 Notification Preferences</strong>
-<p>Manage your notifications.</p>
-</div>
-
-<div class="feature" onclick="openAccountSection('Privacy Policy')">
-<strong>🔒 Privacy Policy</strong>
-<p>Read our privacy information.</p>
-</div>
-
-<div class="feature" onclick="openAccountSection('Close Account')">
-<strong>❌ Close Account</strong>
-<p>Request assistance with closing your account.</p>
-</div>
+<a class="feature account-menu-link" href="account-tools.html?section=addresses"><strong>📍 Address Book</strong><p>Manage your delivery addresses.</p></a>
+<a class="feature account-menu-link" href="profile.html"><strong>👤 Account Management</strong><p>Manage your account information.</p></a>
+<a class="feature account-menu-link" href="account-tools.html?section=notification-preferences"><strong>🔔 Notification Preferences</strong><p>Manage your notifications.</p></a>
+<a class="feature account-menu-link" href="privacy.html"><strong>🔒 Privacy Policy</strong><p>Read our privacy information.</p></a>
+<a class="feature account-menu-link" href="account-tools.html?section=close-account"><strong>❌ Close Account</strong><p>Request assistance with closing your account.</p></a>
 </div>
 </section>
 </main>
@@ -775,10 +732,44 @@ document.getElementById("removeProfilePhoto").onclick=async()=>{
  }catch(error){document.getElementById("profileCameraStatus").textContent=error.message||"Could not remove the profile picture.";}
  finally{button.disabled=false;}
 };
-document.getElementById("profilePhotoFallback").addEventListener("change",e=>{const file=e.target.files[0];if(!file)return;if(file.type!=="image/jpeg"||file.size>2*1024*1024){document.getElementById("profileCameraStatus").textContent="Choose a JPEG image under 2 MB.";e.target.value="";return;}cameraCaptures.profile=file;const p=document.getElementById("profilePreview");p.src=URL.createObjectURL(file);p.hidden=false;document.getElementById("profileCameraBox").hidden=false;document.getElementById("saveProfilePhoto").disabled=false;document.getElementById("profileCameraStatus").textContent="JPEG photo selected. Save to use it as your profile picture.";});
+async function prepareAccountProfileJpeg(file){
+ if(!["image/jpeg","image/png","image/webp"].includes(file.type))throw new Error("Choose a JPEG, PNG or WebP image.");
+ if(file.size>10*1024*1024)throw new Error("Please choose an image smaller than 10 MB.");
+ const src=URL.createObjectURL(file);
+ try{
+  const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error("This image could not be opened."));img.src=src;});
+  let scale=Math.min(1,1280/Math.max(img.naturalWidth,img.naturalHeight));
+  for(let n=0;n<6;n++){
+   const canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+   const ctx=canvas.getContext("2d");if(!ctx)throw new Error("Your browser could not prepare this photo.");
+   ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+   const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",[.88,.82,.76,.7,.64,.58][n]));
+   if(!blob)throw new Error("Could not prepare your photo.");
+   if(blob.size<=1800*1024)return new File([blob],"avatar.jpg",{type:"image/jpeg"});
+   scale*=.82;
+  }
+  throw new Error("This photo is too large. Please choose a smaller image.");
+ }finally{URL.revokeObjectURL(src);}
+}
+document.getElementById("profilePhotoFallback").addEventListener("change",async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ const status=document.getElementById("profileCameraStatus"),button=document.getElementById("chooseProfilePhoto");
+ button.disabled=true;status.textContent="Preparing your profile photo…";
+ try{
+  const jpeg=await prepareAccountProfileJpeg(file);cameraCaptures.profile=jpeg;
+  const p=document.getElementById("profilePreview");if(p.dataset.objectUrl)URL.revokeObjectURL(p.dataset.objectUrl);
+  p.dataset.objectUrl=URL.createObjectURL(jpeg);p.src=p.dataset.objectUrl;p.hidden=false;
+  document.getElementById("profileCameraBox").hidden=false;document.getElementById("saveProfilePhoto").disabled=false;
+  status.textContent="Photo ready. Tap Save Picture to upload it.";
+ }catch(error){status.textContent=error.message||"Could not prepare this photo.";}
+ finally{button.disabled=false;e.target.value="";}
+});
 document.getElementById("saveProfilePhoto").onclick=async()=>{
- const file=cameraCaptures.profile;if(!file)return;
- const button=document.getElementById("saveProfilePhoto"),status=document.getElementById("profileCameraStatus");button.disabled=true;status.textContent="Saving your profile picture...";
+ let file=cameraCaptures.profile;if(!file)return;
+ const button=document.getElementById("saveProfilePhoto"),status=document.getElementById("profileCameraStatus");button.disabled=true;status.textContent="Preparing your profile picture…";
+ try{if(file.type!=="image/jpeg")file=await prepareAccountProfileJpeg(file);else if(file.size>1800*1024)file=await prepareAccountProfileJpeg(file);cameraCaptures.profile=file;}
+ catch(error){status.textContent=error.message||"Could not prepare your photo.";button.disabled=false;return;}
+ status.textContent="Saving your profile picture…";
  try{
   const {data:{user},error:userError}=await db.auth.getUser();if(userError||!user)throw new Error("Please sign in again.");
   const path=user.id+"/avatar.jpg";
