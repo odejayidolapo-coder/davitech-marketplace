@@ -58,7 +58,7 @@ async function loadWishlist(){
   statusBox.hidden=true;
   grid.innerHTML=visible.map(({saved:row,item})=>{
     const image=item.image_url?'<img src="'+escapeHtml(item.image_url)+'" alt="'+escapeHtml(item.title)+'" loading="lazy">':'<div style="height:170px;display:grid;place-items:center;background:#eef2f7;font-size:44px">🛍️</div>';
-    return '<article class="item" data-id="'+escapeHtml(row.id)+'">'+image+'<div class="item-body"><h2>'+escapeHtml(item.title)+'</h2><p class="price">'+money(item.price)+'</p><div class="meta">'+escapeHtml(item.listing_type)+' · '+escapeHtml(item.category||"General")+(item.location?' · '+escapeHtml(item.location):'')+'</div><div class="actions"><a class="view" href="listing.html?id='+encodeURIComponent(item.id)+'">View item</a><button class="remove" type="button" data-remove="'+escapeHtml(row.id)+'">Remove</button></div></div></article>';
+    return '<article class="item" data-id="'+escapeHtml(row.id)+'">'+image+'<div class="item-body"><h2>'+escapeHtml(item.title)+'</h2><p class="price">'+money(item.price)+'</p><div class="meta">'+escapeHtml(item.listing_type)+' · '+escapeHtml(item.category||"General")+(item.location?' · '+escapeHtml(item.location):'')+'</div><div class="actions"><a class="view" href="product.html?id='+encodeURIComponent(item.id)+'">View item</a><button class="remove" type="button" data-remove="'+escapeHtml(row.id)+'">Remove</button></div></div></article>';
   }).join("");
 }
 grid.addEventListener("click",async event=>{
