@@ -33,17 +33,27 @@ main{max-width:1000px;margin:26px auto;padding:0 16px}h1{color:#102b55;margin:0 
 <div id="cartRoot" class="cart-layout"><div class="items">Loading your cart…</div></div>
 </main>
 <nav class="nav"><a href="index.html"><span>⌂</span>Home</a><a href="shop.html"><span>▦</span>Shop</a><a href="cart.html"><span>🛒</span>Cart</a><a href="account.html"><span>👤</span>Account</a></nav>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
 const KEY="davimart_cart";
 const root=document.getElementById("cartRoot");
 const money=n=>new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",maximumFractionDigits:0}).format(Number(n)||0);
 function readCart(){try{const data=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(data)?data:[]}catch(e){return[]}}
 function saveCart(items){localStorage.setItem(KEY,JSON.stringify(items));window.dispatchEvent(new Event("davimart-cart-updated"))}
-function render(){
+async function render(){
  const items=readCart().filter(x=>x&&x.id);
+ if(items.length){
+  const result=await db.from("listings").select("id,listing_type,status,listing_details").in("id",items.map(x=>x.id));
+  if(!result.error&&Array.isArray(result.data)){
+   const byId=new Map(result.data.map(x=>[x.id,x]));
+   items.forEach(item=>{const listing=byId.get(item.id);if(!listing||listing.status!=="approved"||listing.listing_type!=="product"){item.stock_quantity=0;item.unavailable=true;}else{item.stock_quantity=Math.max(0,Math.floor(Number(listing.listing_details?.stock_quantity??1)||0));item.unavailable=false;}item.quantity=Math.min(item.stock_quantity,Math.max(0,Number(item.quantity)||0));});
+   saveCart(items);
+  }
+ }
  if(!items.length){root.innerHTML='<section class="items empty"><div style="font-size:44px">🛒</div><h2>Your cart is empty</h2><p class="muted">You have not added any products yet.</p><a href="index.html">Explore products</a></section>';return}
- const count=items.reduce((n,x)=>n+Math.max(1,Number(x.quantity)||1),0);
- const total=items.reduce((n,x)=>n+(Number(x.price)||0)*Math.max(1,Number(x.quantity)||1),0);
+ const count=items.reduce((n,x)=>n+Math.max(0,Number(x.quantity)||0),0);
+ const total=items.reduce((n,x)=>n+(Number(x.price)||0)*Math.max(0,Number(x.quantity)||0),0);
  const list=document.createElement("section");list.className="items";
  items.forEach(item=>{
   const row=document.createElement("article");row.className="cart-item";
@@ -53,23 +63,24 @@ function render(){
   const price=document.createElement("p");price.className="price";price.textContent=money(item.price);
   const qty=document.createElement("div");qty.className="qty";
   const stock=Math.max(0,Math.floor(Number(item.stock_quantity??1)||0));
-  item.quantity=Math.min(stock,Math.max(1,Number(item.quantity)||1));
+  item.quantity=Math.min(stock,Math.max(0,Number(item.quantity)||0));
   const minus=document.createElement("button");minus.type="button";minus.textContent="−";minus.setAttribute("aria-label","Decrease quantity");
-  const number=document.createElement("span");number.textContent=item.quantity;
+  const number=document.createElement("span");number.textContent=item.quantity;minus.disabled=item.quantity<=1||stock<1;
   const plus=document.createElement("button");plus.type="button";plus.textContent="+";plus.setAttribute("aria-label","Increase quantity");plus.disabled=item.quantity>=stock;
   minus.onclick=()=>change(item.id,-1);plus.onclick=()=>change(item.id,1);
   qty.append(minus,number,plus);
   const remove=document.createElement("button");remove.type="button";remove.className="remove";remove.textContent="Remove";remove.onclick=()=>removeItem(item.id);
-  details.append(title,price,qty,remove);row.appendChild(details);
+  if(stock<1){const warning=document.createElement("p");warning.textContent=item.unavailable?"This product is no longer available.":"Out of stock";warning.style.color="#b42318";details.append(title,price,warning,qty,remove);}else details.append(title,price,qty,remove);row.appendChild(details);
   const line=document.createElement("div");line.className="line-total";line.textContent=money((Number(item.price)||0)*Math.max(1,Number(item.quantity)||1));row.appendChild(line);
   list.appendChild(row);
  });
  const summary=document.createElement("aside");summary.className="summary";
- summary.innerHTML='<h2>Order summary</h2><div class="summary-row"><span>Items ('+count+')</span><strong>'+money(total)+'</strong></div><div class="summary-row"><span>Delivery</span><span>Calculated later</span></div><div class="summary-row grand"><span>Total</span><span>'+money(total)+'</span></div><button class="checkout" type="button" id="checkoutButton">Proceed to Checkout</button><p class="notice">Secure payment is handled by Paystack. Delivery fee will be confirmed separately by the seller.</p>';
+ const hasUnavailable=items.some(x=>x.unavailable||Number(x.stock_quantity)<1||Number(x.quantity)<1);
+ summary.innerHTML='<h2>Order summary</h2><div class="summary-row"><span>Items ('+count+')</span><strong>'+money(total)+'</strong></div><div class="summary-row"><span>Delivery</span><span>Calculated later</span></div><div class="summary-row grand"><span>Total</span><span>'+money(total)+'</span></div><button class="checkout" type="button" id="checkoutButton" '+(hasUnavailable?'disabled':'')+'>Proceed to Checkout</button><p class="notice">Secure payment is handled by Paystack. Delivery fee will be confirmed separately by the seller.</p>';
  root.replaceChildren(list,summary);
  document.getElementById("checkoutButton").addEventListener("click",()=>location.href="checkout.html");
 }
-function change(id,delta){const items=readCart();const item=items.find(x=>x.id===id);if(!item)return;const stock=Math.max(0,Math.floor(Number(item.stock_quantity??1)||0));item.quantity=Math.max(1,Math.min(stock,(Number(item.quantity)||1)+delta));saveCart(items);render()}
+function change(id,delta){const items=readCart();const item=items.find(x=>x.id===id);if(!item)return;const stock=Math.max(0,Math.floor(Number(item.stock_quantity??1)||0));item.quantity=Math.max(0,Math.min(stock,(Number(item.quantity)||0)+delta));saveCart(items);render()}
 function removeItem(id){saveCart(readCart().filter(x=>x.id!==id));render()}
 window.addEventListener("storage",render);window.addEventListener("davimart-cart-updated",render);render();
 </script>
