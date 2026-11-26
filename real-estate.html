@@ -84,11 +84,9 @@ button{background:#102b55;color:white;border:0;border-radius:7px;padding:13px 18
 </div>
 </section>
 
-<section class="results">
-<div class="empty-icon">🏡</div>
-<h2 id="resultHeading">Available Properties</h2>
-<p id="resultDescription">There are no approved property listings available yet. Please check back soon.</p>
-<p class="note">Property listings will appear here after they have been submitted and approved.</p>
+<section class="results" style="max-width:1100px;margin:18px auto;padding:22px 16px;text-align:left">
+<h2 id="resultHeading">Available Properties</h2><p id="resultDescription" class="note">Browse approved properties.</p>
+<div id="propertyGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px"><p>Loading properties…</p></div>
 </section>
 
 <nav class="bottom-nav" aria-label="Main navigation">
@@ -99,38 +97,36 @@ button{background:#102b55;color:white;border:0;border-radius:7px;padding:13px 18
 <a href="account.html"><span>♙</span>Account</a>
 </nav>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const params = new URLSearchParams(window.location.search);
-const type = params.get("type");
-const query = params.get("q");
-
-if(type){
- document.getElementById("resultHeading").textContent = type + " Properties";
- document.getElementById("resultDescription").textContent =
- "There are no approved " + type + " property listings available yet.";
+const params=new URLSearchParams(location.search);
+const type=params.get("type"),query=(params.get("q")||"").trim().toLowerCase();
+const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
+const grid=document.getElementById("propertyGrid");
+if(type)document.getElementById("resultHeading").textContent=type+" Properties";
+if(query)document.getElementById("resultHeading").textContent='Property search results for "'+query+'"';
+document.getElementById("propertySearch").addEventListener("submit",e=>{e.preventDefault();const q=document.getElementById("propertyQuery").value.trim(),t=document.getElementById("propertyType").value,p=new URLSearchParams();if(q)p.set("q",q);if(t)p.set("type",t);location.href="real-estate.html"+(p.toString()?"?"+p.toString():"");});
+async function loadProperties(){
+ let req=db.from("listings").select("id,title,description,price,category,location,image_url,listing_details").eq("status","approved").eq("listing_type","property").order("created_at",{ascending:false});
+ if(type&&["Land","House","Apartment","Commercial"].includes(type))req=req.ilike("listing_details->>property_type","%"+type+"%");
+ if(type==="Rent")req=req.eq("listing_details->>purpose","rent");
+ if(type==="Sale")req=req.eq("listing_details->>purpose","sale");
+ const {data,error}=await req.limit(60);grid.innerHTML="";
+ if(error){grid.textContent="Properties could not be loaded. Please refresh and try again.";return;}
+ const rows=(data||[]).filter(x=>!query||[x.title,x.description,x.category,x.location,x.listing_details?.property_type].join(" ").toLowerCase().includes(query));
+ if(!rows.length){grid.textContent="No approved properties match this search yet. Please check back soon.";return;}
+ rows.forEach(item=>{
+  const card=document.createElement("a");card.href="property.html?id="+encodeURIComponent(item.id);card.style.cssText="display:block;background:#fff;border:1px solid #e1e6ee;border-radius:12px;overflow:hidden;color:#17243a;text-decoration:none;box-shadow:0 3px 12px #071f500d";
+  const img=document.createElement("img");img.src=item.image_url||"";img.alt=item.title||"Property";img.style.cssText="width:100%;height:190px;object-fit:cover;background:#eef2f7";card.appendChild(img);
+  const body=document.createElement("div");body.style.cssText="padding:14px";
+  const name=document.createElement("h3");name.textContent=item.title||"Property";name.style.cssText="font-size:17px;margin:0 0 8px;color:#102b55";
+  const price=document.createElement("strong");price.textContent="₦"+Number(item.price||0).toLocaleString("en-NG")+(item.listing_details?.purpose==="rent"?" / rent":"");price.style.cssText="font-size:19px;color:#102b55";
+  const meta=document.createElement("p");meta.textContent=[item.listing_details?.purpose||"Property",item.listing_details?.property_type||item.category,item.location].filter(Boolean).join(" · ");meta.style.cssText="font-size:13px;color:#667085;line-height:1.5";
+  body.append(name,price,meta);card.appendChild(body);grid.appendChild(card);
+ });
 }
-
-if(query){
- document.getElementById("resultHeading").textContent =
- 'Property search results for "' + query + '"';
-}
-
-document.getElementById("propertySearch").addEventListener("submit",function(event){
- event.preventDefault();
- const query = document.getElementById("propertyQuery").value.trim();
- const type = document.getElementById("propertyType").value;
- let url = "real-estate.html";
- const params = new URLSearchParams();
- if(query) params.set("q",query);
- if(type) params.set("type",type);
- if(params.toString()) url += "?" + params.toString();
- window.location.href = url;
-});
-
-window.addEventListener("load",function(){
- document.getElementById("loader").style.display="none";
-});
-</script>
+loadProperties().finally(()=>document.getElementById("loader").style.display="none");
+</script>>
 </body>
   </html>
   

@@ -1588,6 +1588,11 @@ body{padding-bottom:78px!important}
 }
 @media(min-width:701px){.dm-bottom-nav,.bottom-nav{display:none!important}}
 </style>
+<style>
+.dm-cart-button{position:relative;display:inline-flex!important;align-items:center;justify-content:center;width:42px;height:42px;flex:0 0 42px;border:1px solid rgba(255,255,255,.28);border-radius:12px;background:rgba(255,255,255,.1);color:#fff;text-decoration:none;font-size:22px;line-height:1}
+.dm-cart-button span{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 5px;display:grid;place-items:center;border-radius:999px;background:#ffc400;color:#071f50;font-size:11px;font-weight:900;border:2px solid #071f50}
+.dm-bottom-nav a b{display:inline-grid;place-items:center;min-width:15px;height:15px;margin-left:2px;border-radius:9px;background:#ffc400;color:#071f50;font-size:9px}
+</style>
 </head>
 <body>
 
@@ -1599,6 +1604,8 @@ body{padding-bottom:78px!important}
       <img id="davimartHeaderLogoImage" class="logo-image" alt="DAVIMART store logo">
     </a>
     <div class="dm-header-tools">
+      <a class="dm-cart-button" href="cart.html" aria-label="Shopping cart" title="Shopping cart">🛒<span id="dmCartCount" aria-live="polite">0</span></a>
+      
       <button id="headerNotificationBell" class="notification-bell" aria-label="Notifications">♧<span id="notificationCount">0</span></button>
       <button class="market-action account-action" id="accountBtn" aria-label="Open account menu">
         <img id="accountAvatar" class="account-avatar" alt="Profile picture" hidden>
@@ -1608,7 +1615,11 @@ body{padding-bottom:78px!important}
       <div id="accountMenu" class="account-menu" hidden>
         <button id="menuSignInBtn" onclick="showMessage('signin')">Sign In</button>
         <button onclick="window.location.href='settings.html'">⚙️ Settings</button>
-        <button>My Profile</button><button>My Orders</button><button>My Wishlist</button><button>My Inbox</button><button>My Notifications</button>
+        <button type="button" onclick="window.location.href='profile.html'">My Profile</button>
+        <button type="button" onclick="window.location.href='orders.html'">My Orders</button>
+        <button type="button" onclick="window.location.href='wishlist.html'">My Wishlist</button>
+        <button type="button" onclick="window.location.href='messages.html'">My Inbox</button>
+        <button type="button" onclick="window.location.href='notifications.html'">My Notifications</button>
         <button id="sellerDashboardBtn" hidden>🏪 Seller Dashboard</button><button id="menuAdminBtn" hidden>🔐 Admin Dashboard</button><button id="signoutBtn" hidden>Sign Out</button>
       </div>
     </div>
@@ -1744,6 +1755,7 @@ body{padding-bottom:78px!important}
 <nav class="dm-bottom-nav" aria-label="Main navigation">
 <a href="index.html" aria-current="page"><span>⌂</span>Home</a>
 <a href="shop.html"><span>▦</span>Shop</a>
+<a href="cart.html"><span>🛒</span>Cart <b id="dmBottomCartCount">0</b></a>
 <a href="services-marketplace.html"><span>▣</span>Services</a>
 <a href="real-estate.html"><span>⌂</span>Properties</a>
 <a href="account.html"><span>♙</span>Account</a>
@@ -1863,6 +1875,16 @@ function closeSearchResults() {
 
 
 
+<script>
+(function(){
+ function count(){
+  let items=[];try{items=JSON.parse(localStorage.getItem("davimart_cart")||"[]");if(!Array.isArray(items))items=[];}catch(e){}
+  const total=items.reduce((sum,row)=>sum+Math.max(0,Number(row.quantity)||0),0);
+  ["dmCartCount","dmBottomCartCount"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=total>99?"99+":String(total);});
+ }
+ count();window.addEventListener("storage",count);
+})();
+</script>
 </body>
 </html>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
