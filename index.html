@@ -2416,7 +2416,8 @@ window.showMessage = function(type) {
   async function startGoogleSignIn(statusId, intent) {
     const status = document.getElementById(statusId);
     status.textContent = intent === "signup" ? "Creating your account with Google..." : "Redirecting to Google...";
-    const redirectPath = intent === "signup" ? "/set-password.html" : "/index.html?refresh=a5366c90";
+    const nextPath = intent === "signup" ? "/set-password.html" : "/index.html?refresh=a5366c90";
+    const redirectPath = "/google-otp.html?next=" + encodeURIComponent(nextPath);
     const { error } = await db.auth.signInWithOAuth({
       provider: "google",
       options: {
