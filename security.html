@@ -95,7 +95,7 @@ $("verifyBtn").onclick=async()=>{
 $("testBtn").onclick=async()=>{try{status("Preparing verification…");await startChallenge((await auth.auth.mfa.listFactors()).data.totp.find(f=>f.status==="verified").id);status("Enter your authenticator code.");}catch(e){status(e.message,true);}};
 $("removePendingBtn").onclick=async()=>{try{status("Clearing the unfinished setup…");const {data,error}=await auth.auth.mfa.listFactors();if(error)throw error;for(const factor of (data.totp||[]).filter(f=>f.status!=="verified")){const result=await auth.auth.mfa.unenroll({factorId:factor.id});if(result.error)throw result.error;}factorId="";onlyArea("enrollArea");$("qr").removeAttribute("src");$("qr").classList.add("hidden");$("secret").textContent="";$("secret").classList.add("hidden");await beginEnrollment();}catch(e){status(e.message||"Could not restart setup.",true);}};
 async function beginEnrollment(){
- try{status("Creating authenticator setup…");const {data,error}=await auth.auth.mfa.enroll({factorType:"totp",friendlyName:"DAVIMART Authenticator"});if(error)throw error;
+ try{status("Creating authenticator setup…");const {data,error}=await auth.auth.mfa.enroll({factorType:"totp",friendlyName:"DAVIMART Authenticator "+Date.now()});if(error)throw error;
  factorId=data.id;$("qr").src=data.totp.qr_code;$("qr").classList.remove("hidden");$("secret").textContent=data.totp.secret;$("secret").classList.remove("hidden");status("Scan the QR code, then enter a code to enable it.");}
  catch(e){status(e.message||"Could not start authenticator setup.",true);}
 }
