@@ -21,6 +21,7 @@
 <h2>Authenticator protection</h2>
 <p id="enrollIntro">Authenticator protection is optional for buyers. Sellers are encouraged to enable it to protect their marketplace account. Once enabled, a code will be required when signing in.</p>
 <button class="btn gold" id="startEnrollBtn">Set up authenticator</button>
+<button class="btn" id="optionalContinueBtn" type="button">Continue without authenticator</button>
 <div id="enrollDetails" class="hidden">
 <p>Open your authenticator app, choose add account, then scan this QR code. If scanning isn't possible, enter the setup key manually.</p>
 <img id="qr" alt="Authenticator setup QR code">
@@ -84,6 +85,8 @@ async function refresh(){
      ? "For account security, the DAVIMART administrator must enable an authenticator before continuing."
      : "Authenticator protection is optional for buyers. Sellers are strongly encouraged to enable it. If you turn it on, DAVIMART will ask for a code after password sign-in.";
    hide("enrollDetails");
+   $("optionalContinueBtn").classList.toggle("hidden", required);
+   $("startEnrollBtn").classList.remove("hidden");
    $("qr").removeAttribute("src");$("secret").textContent="";
  }
 }
@@ -110,6 +113,7 @@ async function beginEnrollment(){
  catch(e){status(e.message||"Could not start authenticator setup.",true);}
 }
 $("startEnrollBtn").onclick=async()=>{show("enrollDetails");$("startEnrollBtn").disabled=true;await beginEnrollment();$("startEnrollBtn").disabled=false;};
+$("optionalContinueBtn").onclick=()=>{const next=new URLSearchParams(location.search).get("next");location.replace(next&&next.startsWith("/")&&!next.startsWith("//")?next:"index.html");};
 (async()=>{await refresh();})();
 </script>
 
