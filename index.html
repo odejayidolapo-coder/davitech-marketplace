@@ -2320,7 +2320,7 @@ db.auth.onAuthStateChange((event, session) => {
     setTimeout(showHomepagePasswordRecovery, 0);
     return;
   }
-  if (event === "SIGNED_IN" && session) {
+  if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
     setTimeout(() => davimartRequireMfa(session), 0);
   }
   updateHeaderAvatar(session?.user);
