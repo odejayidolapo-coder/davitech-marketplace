@@ -84,5 +84,7 @@ function change(id,delta){const items=readCart();const item=items.find(x=>x.id==
 function removeItem(id){saveCart(readCart().filter(x=>x.id!==id));render()}
 window.addEventListener("storage",render);window.addEventListener("davimart-cart-updated",render);render();
 </script>
+
+<script src="assets/davimart-navigation.js" defer></script>
 </body>
 </html>

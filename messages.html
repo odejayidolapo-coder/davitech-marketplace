@@ -25,4 +25,6 @@ $("adminPicker").onchange=e=>{if(e.target.value)startConversation(e.target.value
 $("backToList").onclick=()=>$("layout").classList.remove("chat-open");
 (async()=>{const {data:{user:current},error}=await db.auth.getUser();if(error||!current){say("Please sign in to DAVIMART to use messages.");$("conversationList").textContent="Sign in first, then return here.";return;}user=current;role=user.id===ADMIN_ID?"admin":"buyer";const {data:profile}=await db.from("profiles").select("role,seller_status").eq("id",user.id).maybeSingle();if(role!=="admin")role=profile?.role||"buyer";if(role==="admin"){$("adminPicker").hidden=false;await loadAdminSellers();}if(role==="buyer")$("newChat").hidden=false;await loadConversations();if(role==="seller"&&sellerParam===user.id)say("You can reply to buyer messages here. Admin conversations appear in this inbox too.");if(sellerParam&&listingParam&&role==="buyer")await startConversation(sellerParam,listingParam,listingTitle);if(params.get("seller_id")&&role==="admin")await startConversation(sellerParam,null,null);})();
 window.addEventListener("beforeunload",()=>{if(channel)db.removeChannel(channel);});
-</script></body></html>
+</script>
+<script src="assets/davimart-navigation.js" defer></script>
+</body></html>

@@ -45,4 +45,6 @@ document.getElementById("refresh").addEventListener("click",loadNotifications);
 markAll.addEventListener("click",async()=>{const {data:{user},error:userError}=await db.auth.getUser();if(userError||!user){status.textContent="Please sign in again.";return;}markAll.disabled=true;const {error}=await db.from("notifications").update({is_read:true}).eq("user_id",user.id).eq("is_read",false);if(error){status.textContent="Could not update notifications: "+error.message;markAll.disabled=false;return;}await loadNotifications();});
 loadNotifications();
 </script>
+
+<script src="assets/davimart-navigation.js" defer></script>
 </body></html>

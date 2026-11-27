@@ -7,4 +7,6 @@
 const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
 const ADMIN_ID="4aa054c0-97c2-45c3-8c3a-9bf87f2c365c";
 (async()=>{const {data:{user},error}=await db.auth.getUser();document.getElementById("checking").classList.add("hidden");if(error||!user||user.id!==ADMIN_ID){document.getElementById("denied").classList.remove("hidden");return;}document.getElementById("adminEmail").textContent=user.email||"Authorized account";document.getElementById("adminStatus").textContent="Authorized — access active";document.getElementById("details").classList.remove("hidden");})();
-</script></body></html>
+</script>
+<script src="assets/davimart-navigation.js" defer></script>
+</body></html>
