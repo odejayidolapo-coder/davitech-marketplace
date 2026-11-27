@@ -2302,8 +2302,7 @@ async function davimartRequireMfa(session) {
   const next = location.pathname + location.search + location.hash;
 
   // Google-only accounts must create a DAVIMART password before entering the marketplace.
-  const hasEmailIdentity = (session.user.identities || []).some(identity => identity.provider === "email");
-  const hasDavimartPassword = session.user.user_metadata?.davimart_password_set === true || hasEmailIdentity;
+  const hasDavimartPassword = session.user.user_metadata?.davimart_password_set === true;
   if (!hasDavimartPassword) {
     davimartMfaRedirecting = true;
     location.replace("set-password.html?required=1&next=" + encodeURIComponent(next));
