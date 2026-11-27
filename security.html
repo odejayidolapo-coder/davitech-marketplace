@@ -12,7 +12,7 @@
 </head>
 <body>
 <div class="wrap"><div class="card">
-<a href="index.html">← Back to DAVIMART</a>
+<a href="index.html" id="backToHome">← Back to DAVIMART</a>
 <h1>Account Security</h1>
 <p>Protect your account with a free authenticator app. Google Authenticator, Microsoft Authenticator, and other TOTP apps work. No email or SMS codes are sent.</p>
 <div id="status" class="status">Checking your account…</div>
@@ -54,6 +54,7 @@ function show(id){$(id).classList.remove("hidden");}
 function hide(id){$(id).classList.add("hidden");}
 function onlyArea(id){["enrollArea","challengeArea","manageArea","pendingArea"].forEach(hide);if(id)show(id);}
 async function startChallenge(id){factorId=id;const {data,error}=await auth.auth.mfa.challenge({factorId:id});if(error)throw error;challengeId=data.id;onlyArea("challengeArea");$("loginCode").value;}
+$("backToHome").addEventListener("click",async(event)=>{event.preventDefault();$("backToHome").textContent="Signing out…";try{await auth.auth.signOut({scope:"local"});}catch(e){console.error("DAVIMART sign-out failed",e);}location.replace("index.html");});
 async function refresh(){
  const {data:{session}}=await auth.auth.getSession();
  if(!session){status("Please sign in to DAVIMART first.");return;}
