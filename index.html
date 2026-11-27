@@ -2301,28 +2301,48 @@ async function davimartRequireMfa(session) {
   if (!session || davimartMfaRedirecting || location.pathname.endsWith("/security.html")) return false;
   const next = location.pathname + location.search + location.hash;
   try {
-    // Check the assurance level first so an enrolled factor is challenged after OAuth returns.
-    const { data: aal, error: aalError } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (aalError) throw aalError;
+    const isAdmin = session.user.id === DAVIMART_ADMIN_ID;
+    let isSeller = false;
+    if (!isAdmin) {
+      const { data: profile, error: profileError } = await db
+        .from("profiles")
+        .select("role,seller_status")
+        .eq("id", session.user.id)
+        .maybeSingle();
+      if (profileError) console.warn("Could not read DAVIMART account role for MFA policy:", profileError);
+      isSeller = profile?.role === "seller" || profile?.seller_status === "approved" || profile?.seller_status === "pending";
+    }
+
     const { data: factors, error: factorsError } = await db.auth.mfa.listFactors();
     if (factorsError) throw factorsError;
     const verified = (factors.totp || []).some(f => f.status === "verified");
-    davimartMfaRedirecting = true;
+
+    // Buyers and sellers may use email/password alone unless they opted into TOTP.
+    // The DAVIMART administrator must enroll before continuing.
     if (!verified) {
-      location.replace("security.html?setup=1&next=" + encodeURIComponent(next));
-      return true;
+      if (isAdmin) {
+        davimartMfaRedirecting = true;
+        location.replace("security.html?setup=1&required=1&next=" + encodeURIComponent(next));
+        return true;
+      }
+      return false;
     }
+
+    // Any account that has enabled TOTP must complete its second factor at login.
+    const { data: aal, error: aalError } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aalError) throw aalError;
     if (aal.currentLevel === "aal1" && aal.nextLevel === "aal2") {
+      davimartMfaRedirecting = true;
       location.replace("security.html?next=" + encodeURIComponent(next));
       return true;
     }
-    davimartMfaRedirecting = false;
     return false;
   } catch (e) {
     console.error("DAVIMART authenticator check failed", e);
-    // Send the signed-in user to the security page so it can display the actual Supabase error.
+    // Do not lock ordinary buyers or sellers out because an optional MFA status check failed.
+    if (session.user.id !== DAVIMART_ADMIN_ID) return false;
     davimartMfaRedirecting = true;
-    location.replace("security.html?next=" + encodeURIComponent(next));
+    location.replace("security.html?required=1&next=" + encodeURIComponent(next));
     return true;
   }
 }
