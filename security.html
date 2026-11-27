@@ -39,8 +39,8 @@
 <button class="btn" id="testBtn">Verify authenticator</button>
 </div>
 <div id="pendingArea" class="hidden">
-<p>A previous authenticator setup was not completed. Remove that unfinished setup and start again.</p>
-<button class="btn" id="removePendingBtn">Remove unfinished setup</button>
+<p>A previous setup was cancelled before verification. You can remove it and scan a fresh QR code.</p>
+<button class="btn" id="removePendingBtn">Start a fresh scan</button>
 </div>
 </div>
 <p class="muted">Keep your authenticator app and phone secure. If you lose access to it, you may need account recovery.</p>
@@ -54,7 +54,7 @@ function show(id){$(id).classList.remove("hidden");}
 function hide(id){$(id).classList.add("hidden");}
 function onlyArea(id){["enrollArea","challengeArea","manageArea","pendingArea"].forEach(hide);if(id)show(id);}
 async function startChallenge(id){factorId=id;const {data,error}=await auth.auth.mfa.challenge({factorId:id});if(error)throw error;challengeId=data.id;onlyArea("challengeArea");$("loginCode").value;}
-$("backToHome").addEventListener("click",async(event)=>{event.preventDefault();$("backToHome").textContent="Signing out…";try{await auth.auth.signOut({scope:"local"});}catch(e){console.error("DAVIMART sign-out failed",e);}location.replace("index.html");});
+$("backToHome").addEventListener("click",async(event)=>{event.preventDefault();$("backToHome").textContent="Cancelling setup…";try{const {data,error}=await auth.auth.mfa.listFactors();if(error)throw error;for(const factor of (data.totp||[]).filter(f=>f.status!=="verified")){const result=await auth.auth.mfa.unenroll({factorId:factor.id});if(result.error)throw result.error;}await auth.auth.signOut({scope:"local"});}catch(e){console.error("DAVIMART setup cancellation:",e);try{await auth.auth.signOut({scope:"local"});}catch(_){}}location.replace("index.html");});
 async function refresh(){
  const {data:{session}}=await auth.auth.getSession();
  if(!session){status("Please sign in to DAVIMART first.");return;}
@@ -93,7 +93,7 @@ $("verifyBtn").onclick=async()=>{
  }catch(e){status(e.message||"Invalid code. Try the latest code.",true);}
 };
 $("testBtn").onclick=async()=>{try{status("Preparing verification…");await startChallenge((await auth.auth.mfa.listFactors()).data.totp.find(f=>f.status==="verified").id);status("Enter your authenticator code.");}catch(e){status(e.message,true);}};
-$("removePendingBtn").onclick=async()=>{try{const {error}=await auth.auth.mfa.unenroll({factorId});if(error)throw error;status("Unfinished setup removed.");location.reload();}catch(e){status(e.message,true);}};
+$("removePendingBtn").onclick=async()=>{try{status("Clearing the unfinished setup…");const {data,error}=await auth.auth.mfa.listFactors();if(error)throw error;for(const factor of (data.totp||[]).filter(f=>f.status!=="verified")){const result=await auth.auth.mfa.unenroll({factorId:factor.id});if(result.error)throw result.error;}factorId="";onlyArea("enrollArea");$("qr").removeAttribute("src");$("qr").classList.add("hidden");$("secret").textContent="";$("secret").classList.add("hidden");await beginEnrollment();}catch(e){status(e.message||"Could not restart setup.",true);}};
 async function beginEnrollment(){
  try{status("Creating authenticator setup…");const {data,error}=await auth.auth.mfa.enroll({factorType:"totp",friendlyName:"DAVIMART Authenticator"});if(error)throw error;
  factorId=data.id;$("qr").src=data.totp.qr_code;$("qr").classList.remove("hidden");$("secret").textContent=data.totp.secret;$("secret").classList.remove("hidden");status("Scan the QR code, then enter a code to enable it.");}
