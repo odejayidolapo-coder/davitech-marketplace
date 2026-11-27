@@ -95,4 +95,6 @@ async function loadApplications(){
 document.getElementById("refreshBtn").onclick=loadApplications;
 document.getElementById("logoutBtn").onclick=async()=>{await db.auth.signOut();dashboard.hidden=true;loginPanel.hidden=false};
 db.auth.getUser().then(({data})=>{if(data.user)checkAdmin()});
-</script></body></html>
+</script>
+<script src="assets/davimart-navigation.js" defer></script>
+</body></html>
