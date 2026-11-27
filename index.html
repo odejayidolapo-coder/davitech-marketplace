@@ -2298,31 +2298,60 @@ async function updateAccountButtons() {
 
 let davimartMfaRedirecting = false;
 async function davimartRequireMfa(session) {
-  if (!session || davimartMfaRedirecting || location.pathname.endsWith("/security.html")) return false;
+  if (!session || davimartMfaRedirecting || location.pathname.endsWith("/security.html") || location.pathname.endsWith("/set-password.html")) return false;
   const next = location.pathname + location.search + location.hash;
+
+  // Google-only accounts must create a DAVIMART password before entering the marketplace.
+  const hasDavimartPassword = session.user.user_metadata?.davimart_password_set === true;
+  if (!hasDavimartPassword) {
+    davimartMfaRedirecting = true;
+    location.replace("set-password.html?required=1&next=" + encodeURIComponent(next));
+    return true;
+  }
+
   try {
-    // Check the assurance level first so an enrolled factor is challenged after OAuth returns.
-    const { data: aal, error: aalError } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (aalError) throw aalError;
+    const isAdmin = session.user.id === DAVIMART_ADMIN_ID;
+    let isSeller = false;
+    if (!isAdmin) {
+      const { data: profile, error: profileError } = await db
+        .from("profiles")
+        .select("role,seller_status")
+        .eq("id", session.user.id)
+        .maybeSingle();
+      if (profileError) console.warn("Could not read DAVIMART account role for MFA policy:", profileError);
+      isSeller = profile?.role === "seller" || profile?.seller_status === "approved" || profile?.seller_status === "pending";
+    }
+
     const { data: factors, error: factorsError } = await db.auth.mfa.listFactors();
     if (factorsError) throw factorsError;
     const verified = (factors.totp || []).some(f => f.status === "verified");
-    davimartMfaRedirecting = true;
+
+    // Buyers and sellers may use email/password alone unless they opted into TOTP.
+    // The DAVIMART administrator must enroll before continuing.
     if (!verified) {
-      location.replace("security.html?setup=1&next=" + encodeURIComponent(next));
-      return true;
+      if (isAdmin) {
+        davimartMfaRedirecting = true;
+        location.replace("security.html?setup=1&required=1&next=" + encodeURIComponent(next));
+        return true;
+      }
+      return false;
     }
+
+    // Any account that has enabled TOTP must complete its second factor at login.
+    const { data: aal, error: aalError } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aalError) throw aalError;
     if (aal.currentLevel === "aal1" && aal.nextLevel === "aal2") {
+      davimartMfaRedirecting = true;
       location.replace("security.html?next=" + encodeURIComponent(next));
       return true;
     }
-    davimartMfaRedirecting = false;
     return false;
   } catch (e) {
     console.error("DAVIMART authenticator check failed", e);
-    // Send the signed-in user to the security page so it can display the actual Supabase error.
+    // Do not lock ordinary buyers or sellers out because an optional MFA status check failed.
+    if (session.user.id !== DAVIMART_ADMIN_ID) return false;
     davimartMfaRedirecting = true;
-    location.replace("security.html?next=" + encodeURIComponent(next));
+    location.replace("security.html?required=1&next=" + encodeURIComponent(next));
     return true;
   }
 }
@@ -2438,7 +2467,7 @@ window.showMessage = function(type) {
         <h4>Create Account</h4>
         <input id="fullName" placeholder="Full name" autocomplete="name" style="width:100%;padding:12px;margin:8px 0">
         <input id="registerEmail" type="email" autocomplete="email" inputmode="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0" required>
-        <input id="registerPassword" type="password" autocomplete="new-password" placeholder="Create password (minimum 8 characters)" style="width:100%;padding:12px;margin:8px 0">
+        <div style="position:relative;width:100%;margin:8px 0"><input id="registerPassword" type="password" autocomplete="new-password" placeholder="Create password (minimum 8 characters)" style="width:100%;padding:12px;padding-right:44px;box-sizing:border-box"><button type="button" id="toggleRegisterPasswordBtn" aria-label="Show password" aria-pressed="false" style="position:absolute;right:9px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;color:#64748b;cursor:pointer;z-index:2"><svg id="registerPasswordEyeIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div>
         <p id="registerStatus" aria-live="polite"></p>
         <button class="btn primary" id="registerBtn">Create account with email</button>
         <button type="button" class="btn outline" id="googleRegisterBtn" style="width:100%;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:10px">
@@ -2453,7 +2482,7 @@ window.showMessage = function(type) {
   async function startGoogleSignIn(statusId, intent) {
     const status = document.getElementById(statusId);
     status.textContent = intent === "signup" ? "Creating your account with Google..." : "Redirecting to Google...";
-    const redirectPath = intent === "signup" ? "/set-password.html" : "/index.html?refresh=a5366c90";
+    const redirectPath = "/set-password.html?source=google";
     const { error } = await db.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -2474,6 +2503,18 @@ window.showMessage = function(type) {
     document.getElementById("passwordEyeIcon").innerHTML = showing ? '<path d="M3 3l18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a15.8 15.8 0 0 1-3 3.8"></path><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4-.8"></path>' : '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle>';
     togglePasswordBtn.setAttribute("aria-label", showing ? "Hide password" : "Show password");
     togglePasswordBtn.setAttribute("aria-pressed", String(showing));
+  };
+
+  const registerPasswordInput = document.getElementById("registerPassword");
+  const toggleRegisterPasswordBtn = document.getElementById("toggleRegisterPasswordBtn");
+  toggleRegisterPasswordBtn.onclick = () => {
+    const showing = registerPasswordInput.type === "password";
+    registerPasswordInput.type = showing ? "text" : "password";
+    document.getElementById("registerPasswordEyeIcon").innerHTML = showing
+      ? '<path d="M3 3l18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a15.8 15.8 0 0 1-3 3.8"></path><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4-.8"></path>'
+      : '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle>';
+    toggleRegisterPasswordBtn.setAttribute("aria-label", showing ? "Hide password" : "Show password");
+    toggleRegisterPasswordBtn.setAttribute("aria-pressed", String(showing));
   };
 
   document.getElementById("forgotPasswordBtn").onclick = async function() {
@@ -2531,8 +2572,15 @@ window.showMessage = function(type) {
 
     status.textContent = "Signing in...";
     const { data, error } = await db.auth.signInWithPassword({ email, password });
-    status.textContent = error ? error.message : "Signed in successfully!";
+    status.textContent = error
+      ? (error.message === "Invalid login credentials"
+          ? "This email/password combination did not work. If you originally registered with Google and never created a DAVIMART password, tap “Continue with Google” using the same Gmail. DAVIMART will then guide you to create a password."
+          : error.message)
+      : "Signed in successfully!";
     if (!error) {
+      // Remember that this account has successfully used email/password sign-in.
+      try { await db.auth.updateUser({ data: { davimart_password_set: true } }); }
+      catch (metadataError) { console.warn("Could not save password setup status:", metadataError); }
       if (await davimartRequireMfa(data.session)) return;
       await showDashboard();
       startLoginSuccessCountdown();
