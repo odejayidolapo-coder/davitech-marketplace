@@ -2298,8 +2298,18 @@ async function updateAccountButtons() {
 
 let davimartMfaRedirecting = false;
 async function davimartRequireMfa(session) {
-  if (!session || davimartMfaRedirecting || location.pathname.endsWith("/security.html")) return false;
+  if (!session || davimartMfaRedirecting || location.pathname.endsWith("/security.html") || location.pathname.endsWith("/set-password.html")) return false;
   const next = location.pathname + location.search + location.hash;
+
+  // Google-only accounts must create a DAVIMART password before entering the marketplace.
+  const hasEmailIdentity = (session.user.identities || []).some(identity => identity.provider === "email");
+  const hasDavimartPassword = session.user.user_metadata?.davimart_password_set === true || hasEmailIdentity;
+  if (!hasDavimartPassword) {
+    davimartMfaRedirecting = true;
+    location.replace("set-password.html?required=1&next=" + encodeURIComponent(next));
+    return true;
+  }
+
   try {
     const isAdmin = session.user.id === DAVIMART_ADMIN_ID;
     let isSeller = false;
