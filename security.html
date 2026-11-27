@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b55">
+<title>DAVIMART Account Security</title>
+<style>
+:root{--navy:#102b55;--blue:#174b91;--gold:#e4b449}*{box-sizing:border-box}body{margin:0;background:#f4f6fa;color:#17243a;font:16px Arial,sans-serif}.wrap{max-width:560px;margin:28px auto;padding:18px}.card{background:#fff;border-radius:16px;padding:24px;box-shadow:0 5px 24px #102b5512}h1,h2{color:var(--navy)}h1{font-size:25px}p{line-height:1.6;color:#526176}.btn{display:block;width:100%;border:0;border-radius:9px;padding:13px 16px;margin:12px 0;background:var(--navy);color:#fff;font-weight:bold;cursor:pointer}.btn.gold{background:var(--gold);color:var(--navy)}input{width:100%;padding:14px;border:1px solid #cbd5e1;border-radius:9px;font-size:18px;margin:8px 0 12px}#qr{display:block;width:220px;height:220px;max-width:100%;margin:16px auto}#secret{overflow-wrap:anywhere;background:#f3f6fa;padding:12px;border-radius:8px;font-family:monospace}.status{padding:12px;border-radius:8px;background:#eef4ff;color:#174b91;margin:12px 0}.error{background:#fff0f0;color:#a11}.muted{font-size:13px;color:#667085}.hidden{display:none!important}a{color:var(--blue)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="wrap"><div class="card">
+<a href="index.html" id="backToHome">← Back to DAVIMART</a>
+<h1>Account Security</h1>
+<p>Protect your account with a free authenticator app. Google Authenticator, Microsoft Authenticator, and other TOTP apps work. No email or SMS codes are sent.</p>
+<div id="status" class="status">Checking your account…</div>
+<div id="authArea" class="hidden">
+<div id="enrollArea" class="hidden">
+<h2>Set up authenticator</h2>
+<p>Open your authenticator app, choose add account, then scan this QR code. If scanning isn't possible, enter the setup key manually.</p>
+<img id="qr" alt="Authenticator setup QR code">
+<p class="muted">Manual setup key</p><div id="secret"></div>
+<label for="setupCode">Enter the 6-digit code from the app</label>
+<input id="setupCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+<button class="btn gold" id="enableBtn">Verify and enable</button>
+</div>
+<div id="challengeArea" class="hidden">
+<h2>Verify your identity</h2>
+<p>Enter the current 6-digit code from your authenticator app to continue.</p>
+<label for="loginCode">Authenticator code</label>
+<input id="loginCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+<button class="btn gold" id="verifyBtn">Verify code</button>
+</div>
+<div id="manageArea" class="hidden">
+<h2>Authenticator is enabled</h2>
+<p>Your account has an authenticator factor. Use the code from your app whenever DAVIMART asks you to verify your login.</p>
+<button class="btn" id="testBtn">Verify authenticator</button>
+</div>
+<div id="pendingArea" class="hidden">
+<p>A previous setup was cancelled before verification. You can remove it and scan a fresh QR code.</p>
+<button class="btn" id="removePendingBtn">Start a fresh scan</button>
+</div>
+</div>
+<p class="muted">Keep your authenticator app and phone secure. If you lose access to it, you may need account recovery.</p>
+</div></div>
+<script>
+const auth = window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
+const $=id=>document.getElementById(id);
+let factorId="",challengeId="";
+function status(message,error=false){$("status").textContent=message;$("status").classList.toggle("error",error);}
+function show(id){$(id).classList.remove("hidden");}
+function hide(id){$(id).classList.add("hidden");}
+function onlyArea(id){["enrollArea","challengeArea","manageArea","pendingArea"].forEach(hide);if(id)show(id);}
+async function startChallenge(id){factorId=id;const {data,error}=await auth.auth.mfa.challenge({factorId:id});if(error)throw error;challengeId=data.id;onlyArea("challengeArea");$("loginCode").value;}
+$("backToHome").addEventListener("click",async(event)=>{event.preventDefault();$("backToHome").textContent="Cancelling setup…";try{const {data,error}=await auth.auth.mfa.listFactors();if(error)throw error;for(const factor of (data.totp||[]).filter(f=>f.status!=="verified")){const result=await auth.auth.mfa.unenroll({factorId:factor.id});if(result.error)throw result.error;}await auth.auth.signOut({scope:"local"});}catch(e){console.error("DAVIMART setup cancellation:",e);try{await auth.auth.signOut({scope:"local"});}catch(_){}}location.replace("index.html");});
+async function refresh(){
+ const {data:{session}}=await auth.auth.getSession();
+ if(!session){status("Please sign in to DAVIMART first.");return;}
+ show("authArea");
+ const {data,error}=await auth.auth.mfa.listFactors();if(error){status(error.message,true);return;}
+ const verified=(data.totp||[]).filter(f=>f.status==="verified");
+ const pending=(data.totp||[]).filter(f=>f.status!=="verified");
+ const {data:aal,error:aalError}=await auth.auth.mfa.getAuthenticatorAssuranceLevel();
+ if(aalError){status(aalError.message,true);return;}
+ if(aal.currentLevel==="aal1"&&aal.nextLevel==="aal2"&&verified.length){
+   status("Your account needs authenticator verification.");
+   try{await startChallenge(verified[0].id);}catch(e){status(e.message,true);}
+ }else if(verified.length){
+   status("Authenticator is active.");
+   onlyArea("manageArea");
+ }else if(pending.length){
+   factorId=pending[0].id;status("Unfinished authenticator setup found.");onlyArea("pendingArea");
+ }else{
+   status("Set up your authenticator to protect your account.");onlyArea("enrollArea");hide("qr");hide("secret");
+   $("qr").classList.add("hidden");$("secret").classList.add("hidden");
+ }
+}
+$("enableBtn").onclick=async()=>{
+ const code=$("setupCode").value.trim();
+ if(!/^\d{6}$/.test(code)){status("Enter the 6-digit code from your authenticator app.",true);return;}
+ try{status("Verifying authenticator…");const c=await auth.auth.mfa.challenge({factorId});if(c.error)throw c.error;
+ const v=await auth.auth.mfa.verify({factorId,challengeId:c.data.id,code});if(v.error)throw v.error;
+ status("Authenticator enabled successfully. Your account is now verified.");const next=new URLSearchParams(location.search).get("next");location.href=next&&next.startsWith("/")&&!next.startsWith("//")?next:"index.html";
+ }catch(e){status(e.message||"Could not verify code. Try the latest code.",true);}
+};
+$("verifyBtn").onclick=async()=>{
+ const code=$("loginCode").value.trim();
+ if(!/^\d{6}$/.test(code)){status("Enter the 6-digit code from your authenticator app.",true);return;}
+ try{status("Checking code…");const v=await auth.auth.mfa.verify({factorId,challengeId,code});if(v.error)throw v.error;
+ status("Verified. Returning to DAVIMART…");const next=new URLSearchParams(location.search).get("next");location.href=next&&next.startsWith("/")&&!next.startsWith("//")?next:"index.html";
+ }catch(e){status(e.message||"Invalid code. Try the latest code.",true);}
+};
+$("testBtn").onclick=async()=>{try{status("Preparing verification…");await startChallenge((await auth.auth.mfa.listFactors()).data.totp.find(f=>f.status==="verified").id);status("Enter your authenticator code.");}catch(e){status(e.message,true);}};
+$("removePendingBtn").onclick=async()=>{try{status("Clearing the unfinished setup…");const {data,error}=await auth.auth.mfa.listFactors();if(error)throw error;for(const factor of (data.totp||[]).filter(f=>f.status!=="verified")){const result=await auth.auth.mfa.unenroll({factorId:factor.id});if(result.error)throw result.error;}factorId="";onlyArea("enrollArea");$("qr").removeAttribute("src");$("qr").classList.add("hidden");$("secret").textContent="";$("secret").classList.add("hidden");await beginEnrollment();}catch(e){status(e.message||"Could not restart setup.",true);}};
+async function beginEnrollment(){
+ try{status("Creating authenticator setup…");const {data,error}=await auth.auth.mfa.enroll({factorType:"totp",friendlyName:"DAVIMART Authenticator "+Date.now()});if(error)throw error;
+ factorId=data.id;$("qr").src=data.totp.qr_code;$("qr").classList.remove("hidden");$("secret").textContent=data.totp.secret;$("secret").classList.remove("hidden");status("Scan the QR code, then enter a code to enable it.");}
+ catch(e){status(e.message||"Could not start authenticator setup.",true);}
+}
+(async()=>{await refresh();if(!$("enrollArea").classList.contains("hidden")&&!$("qr").getAttribute("src"))await beginEnrollment();})();
+</script>
+</body>
+</html>

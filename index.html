@@ -1633,6 +1633,7 @@ body{padding-bottom:78px!important}
       <div id="accountMenu" class="account-menu" hidden>
         <button id="menuSignInBtn" onclick="showMessage('signin')">Sign In</button>
         <button onclick="window.location.href='settings.html'">⚙️ Settings</button>
+        <button type="button" id="securitySettingsBtn" onclick="window.location.href='security.html'">🔐 Authenticator Security</button>
         <button type="button" onclick="window.location.href='profile.html'">My Profile</button>
         <button type="button" id="menuSetPasswordBtn" hidden>🔑 Set email password</button>
         <button type="button" onclick="window.location.href='orders.html'">My Orders</button>
@@ -1904,8 +1905,6 @@ function closeSearchResults() {
  count();window.addEventListener("storage",count);
 })();
 </script>
-</body>
-</html>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const db = window.supabase.createClient(
@@ -2281,7 +2280,12 @@ function updateHeaderAvatar(user) {
   else{image.removeAttribute("src");image.hidden=true;fallback.hidden=false;}
 }
 async function updateAccountButtons() {
-  const { data: { session } } = await db.auth.getSession();
+  const { data: { session }, error: sessionError } = await db.auth.getSession();
+  if (sessionError) console.warn("DAVIMART session check failed", sessionError);
+  if (session) {
+    const redirected = await davimartRequireMfa(session);
+    if (redirected) return;
+  }
   updateHeaderAvatar(session?.user);
 
   document.getElementById("menuSignInBtn").hidden = !!session;
@@ -2292,10 +2296,43 @@ async function updateAccountButtons() {
   document.getElementById("accountMenu").hidden = true;
 }
 
+let davimartMfaRedirecting = false;
+async function davimartRequireMfa(session) {
+  if (!session || davimartMfaRedirecting || location.pathname.endsWith("/security.html")) return false;
+  const next = location.pathname + location.search + location.hash;
+  try {
+    // Check the assurance level first so an enrolled factor is challenged after OAuth returns.
+    const { data: aal, error: aalError } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aalError) throw aalError;
+    const { data: factors, error: factorsError } = await db.auth.mfa.listFactors();
+    if (factorsError) throw factorsError;
+    const verified = (factors.totp || []).some(f => f.status === "verified");
+    davimartMfaRedirecting = true;
+    if (!verified) {
+      location.replace("security.html?setup=1&next=" + encodeURIComponent(next));
+      return true;
+    }
+    if (aal.currentLevel === "aal1" && aal.nextLevel === "aal2") {
+      location.replace("security.html?next=" + encodeURIComponent(next));
+      return true;
+    }
+    davimartMfaRedirecting = false;
+    return false;
+  } catch (e) {
+    console.error("DAVIMART authenticator check failed", e);
+    // Send the signed-in user to the security page so it can display the actual Supabase error.
+    davimartMfaRedirecting = true;
+    location.replace("security.html?next=" + encodeURIComponent(next));
+    return true;
+  }
+}
 db.auth.onAuthStateChange((event, session) => {
   if (event === "PASSWORD_RECOVERY") {
     setTimeout(showHomepagePasswordRecovery, 0);
     return;
+  }
+  if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
+    setTimeout(() => davimartRequireMfa(session), 0);
   }
   updateHeaderAvatar(session?.user);
   document.getElementById("menuSignInBtn").hidden = !!session;
@@ -2493,9 +2530,10 @@ window.showMessage = function(type) {
     const status = document.getElementById("authStatus");
 
     status.textContent = "Signing in...";
-    const { error } = await db.auth.signInWithPassword({ email, password });
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
     status.textContent = error ? error.message : "Signed in successfully!";
     if (!error) {
+      if (await davimartRequireMfa(data.session)) return;
       await showDashboard();
       startLoginSuccessCountdown();
     }
@@ -2706,3 +2744,5 @@ async function showDashboard() {
   }
 }
 </style>
+</body>
+</html>
