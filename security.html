@@ -42,6 +42,7 @@
 <h2>Authenticator is enabled</h2>
 <p>Your account has an authenticator factor. Use the code from your app whenever DAVIMART asks you to verify your login.</p>
 <button class="btn" id="testBtn">Verify authenticator</button>
+<button class="btn" id="disableMfaBtn">Turn off authenticator</button>
 </div>
 <div id="pendingArea" class="hidden">
 <p>A previous setup was cancelled before verification. You can remove it and scan a fresh QR code.</p>
@@ -75,6 +76,8 @@ async function refresh(){
  }else if(verified.length){
    status("Authenticator is active.");
    onlyArea("manageArea");
+   const {data:{user}}=await auth.auth.getUser();
+   $("disableMfaBtn").classList.toggle("hidden", user?.id === "4aa054c0-97c2-45c3-8c3a-9bf87f2c365c");
  }else if(pending.length){
    factorId=pending[0].id;status("Unfinished authenticator setup found.");onlyArea("pendingArea");
  }else{
@@ -106,6 +109,7 @@ $("verifyBtn").onclick=async()=>{
  }catch(e){status(e.message||"Invalid code. Try the latest code.",true);}
 };
 $("testBtn").onclick=async()=>{try{status("Preparing verification…");await startChallenge((await auth.auth.mfa.listFactors()).data.totp.find(f=>f.status==="verified").id);status("Enter your authenticator code.");}catch(e){status(e.message,true);}};
+$("disableMfaBtn").onclick=async()=>{if(!confirm("Turn off authenticator protection for this account?"))return;try{status("Turning off authenticator…");const {data,error}=await auth.auth.mfa.listFactors();if(error)throw error;for(const factor of (data.totp||[]).filter(f=>f.status==="verified")){const result=await auth.auth.mfa.unenroll({factorId:factor.id});if(result.error)throw result.error;}status("Authenticator protection is now off. You can sign in with your email and password.");onlyArea("enrollArea");$("enrollIntro").textContent="Authenticator protection is optional for buyers. Sellers are strongly encouraged to enable it. If you turn it on, DAVIMART will ask for a code after password sign-in.";$("optionalContinueBtn").classList.remove("hidden");}catch(e){status(e.message||"Could not turn off authenticator.",true);}};
 $("removePendingBtn").onclick=async()=>{try{status("Clearing the unfinished setup…");const {data,error}=await auth.auth.mfa.listFactors();if(error)throw error;for(const factor of (data.totp||[]).filter(f=>f.status!=="verified")){const result=await auth.auth.mfa.unenroll({factorId:factor.id});if(result.error)throw result.error;}factorId="";onlyArea("enrollArea");$("qr").removeAttribute("src");$("qr").classList.add("hidden");$("secret").textContent="";$("secret").classList.add("hidden");await beginEnrollment();}catch(e){status(e.message||"Could not restart setup.",true);}};
 async function beginEnrollment(){
  try{status("Creating authenticator setup…");const {data,error}=await auth.auth.mfa.enroll({factorType:"totp",friendlyName:"DAVIMART Authenticator "+Date.now()});if(error)throw error;
