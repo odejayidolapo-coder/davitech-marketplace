@@ -26,4 +26,6 @@ async function loadList(){
 }
 $("reviewForm").addEventListener("submit",async e=>{e.preventDefault();const {data:{user}}=await db.auth.getUser();if(!user){$("formStatus").textContent="Please sign in first.";return;}const text=$("reviewText").value.trim();if(text.length<5){$("formStatus").textContent="Please write at least 5 characters.";return;}if(user.id===product?.seller_id){$("formStatus").textContent="Sellers cannot review their own products.";return;}$("submitReview").disabled=true;$("formStatus").textContent="Saving review…";const {data:profile}=await db.from("profiles").select("full_name").eq("id",user.id).maybeSingle();const name=(profile?.full_name||user.user_metadata?.full_name||user.email?.split("@")[0]||"DAVIMART customer").slice(0,80);let result;if(existing){result=await db.from("listing_reviews").update({rating:chosen,review_text:text,reviewer_name:name,updated_at:new Date().toISOString()}).eq("id",existing.id).eq("reviewer_id",user.id)}else{result=await db.from("listing_reviews").insert({listing_id:id,reviewer_id:user.id,reviewer_name:name,rating:chosen,review_text:text})}$("submitReview").disabled=false;if(result.error){$("formStatus").textContent="Could not save your review. Please try again.";return;}$("formStatus").textContent="Your review has been saved. Thank you!";await loadList();});
 load();
-</script></body></html>
+</script>
+<script src="assets/davimart-navigation.js" defer></script>
+</body></html>
