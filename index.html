@@ -2301,14 +2301,6 @@ async function davimartRequireMfa(session) {
   if (!session || davimartMfaRedirecting || location.pathname.endsWith("/security.html") || location.pathname.endsWith("/set-password.html")) return false;
   const next = location.pathname + location.search + location.hash;
 
-  // Google-only accounts must create a DAVIMART password before entering the marketplace.
-  const hasDavimartPassword = session.user.user_metadata?.davimart_password_set === true;
-  if (!hasDavimartPassword) {
-    davimartMfaRedirecting = true;
-    location.replace("set-password.html?required=1&next=" + encodeURIComponent(next));
-    return true;
-  }
-
   try {
     const isAdmin = session.user.id === DAVIMART_ADMIN_ID;
     let isSeller = false;
@@ -2482,7 +2474,8 @@ window.showMessage = function(type) {
   async function startGoogleSignIn(statusId, intent) {
     const status = document.getElementById(statusId);
     status.textContent = intent === "signup" ? "Creating your account with Google..." : "Redirecting to Google...";
-    const redirectPath = "/set-password.html?source=google";
+    // Keep Google authentication separate; Google users return directly to DAVIMART.
+    const redirectPath = "/index.html";
     const { error } = await db.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -2574,7 +2567,7 @@ window.showMessage = function(type) {
     const { data, error } = await db.auth.signInWithPassword({ email, password });
     status.textContent = error
       ? (error.message === "Invalid login credentials"
-          ? "This email/password combination did not work. If you originally registered with Google and never created a DAVIMART password, tap “Continue with Google” using the same Gmail. DAVIMART will then guide you to create a password."
+          ? "This email/password combination did not work. If you registered with Google, choose “Continue with Google” instead."
           : error.message)
       : "Signed in successfully!";
     if (!error) {
