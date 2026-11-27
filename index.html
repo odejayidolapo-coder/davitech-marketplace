@@ -2458,7 +2458,7 @@ window.showMessage = function(type) {
         <h4>Create Account</h4>
         <input id="fullName" placeholder="Full name" autocomplete="name" style="width:100%;padding:12px;margin:8px 0">
         <input id="registerEmail" type="email" autocomplete="email" inputmode="email" placeholder="Email address" style="width:100%;padding:12px;margin:8px 0" required>
-        <input id="registerPassword" type="password" autocomplete="new-password" placeholder="Create password (minimum 8 characters)" style="width:100%;padding:12px;margin:8px 0">
+        <div style="position:relative;width:100%;margin:8px 0"><input id="registerPassword" type="password" autocomplete="new-password" placeholder="Create password (minimum 8 characters)" style="width:100%;padding:12px;padding-right:44px;box-sizing:border-box"><button type="button" id="toggleRegisterPasswordBtn" aria-label="Show password" aria-pressed="false" style="position:absolute;right:9px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;color:#64748b;cursor:pointer;z-index:2"><svg id="registerPasswordEyeIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div>
         <p id="registerStatus" aria-live="polite"></p>
         <button class="btn primary" id="registerBtn">Create account with email</button>
         <button type="button" class="btn outline" id="googleRegisterBtn" style="width:100%;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:10px">
@@ -2494,6 +2494,18 @@ window.showMessage = function(type) {
     document.getElementById("passwordEyeIcon").innerHTML = showing ? '<path d="M3 3l18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a15.8 15.8 0 0 1-3 3.8"></path><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4-.8"></path>' : '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle>';
     togglePasswordBtn.setAttribute("aria-label", showing ? "Hide password" : "Show password");
     togglePasswordBtn.setAttribute("aria-pressed", String(showing));
+  };
+
+  const registerPasswordInput = document.getElementById("registerPassword");
+  const toggleRegisterPasswordBtn = document.getElementById("toggleRegisterPasswordBtn");
+  toggleRegisterPasswordBtn.onclick = () => {
+    const showing = registerPasswordInput.type === "password";
+    registerPasswordInput.type = showing ? "text" : "password";
+    document.getElementById("registerPasswordEyeIcon").innerHTML = showing
+      ? '<path d="M3 3l18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a15.8 15.8 0 0 1-3 3.8"></path><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4-.8"></path>'
+      : '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle>';
+    toggleRegisterPasswordBtn.setAttribute("aria-label", showing ? "Hide password" : "Show password");
+    toggleRegisterPasswordBtn.setAttribute("aria-pressed", String(showing));
   };
 
   document.getElementById("forgotPasswordBtn").onclick = async function() {
