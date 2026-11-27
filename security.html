@@ -18,13 +18,17 @@
 <div id="status" class="status">Checking your account…</div>
 <div id="authArea" class="hidden">
 <div id="enrollArea" class="hidden">
-<h2>Set up authenticator</h2>
+<h2>Authenticator protection</h2>
+<p id="enrollIntro">Authenticator protection is optional for buyers. Sellers are encouraged to enable it to protect their marketplace account. Once enabled, a code will be required when signing in.</p>
+<button class="btn gold" id="startEnrollBtn">Set up authenticator</button>
+<div id="enrollDetails" class="hidden">
 <p>Open your authenticator app, choose add account, then scan this QR code. If scanning isn't possible, enter the setup key manually.</p>
 <img id="qr" alt="Authenticator setup QR code">
 <p class="muted">Manual setup key</p><div id="secret"></div>
 <label for="setupCode">Enter the 6-digit code from the app</label>
 <input id="setupCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
 <button class="btn gold" id="enableBtn">Verify and enable</button>
+</div>
 </div>
 <div id="challengeArea" class="hidden">
 <h2>Verify your identity</h2>
@@ -73,8 +77,14 @@ async function refresh(){
  }else if(pending.length){
    factorId=pending[0].id;status("Unfinished authenticator setup found.");onlyArea("pendingArea");
  }else{
-   status("Set up your authenticator to protect your account.");onlyArea("enrollArea");hide("qr");hide("secret");
-   $("qr").classList.add("hidden");$("secret").classList.add("hidden");
+   const required=new URLSearchParams(location.search).get("required")==="1";
+   status(required ? "Authenticator verification is required for the DAVIMART administrator account." : "No authenticator is enabled. You can continue using email and password, or add extra protection.");
+   onlyArea("enrollArea");
+   $("enrollIntro").textContent=required
+     ? "For account security, the DAVIMART administrator must enable an authenticator before continuing."
+     : "Authenticator protection is optional for buyers. Sellers are strongly encouraged to enable it. If you turn it on, DAVIMART will ask for a code after password sign-in.";
+   hide("enrollDetails");
+   $("qr").removeAttribute("src");$("secret").textContent="";
  }
 }
 $("enableBtn").onclick=async()=>{
@@ -99,7 +109,8 @@ async function beginEnrollment(){
  factorId=data.id;$("qr").src=data.totp.qr_code;$("qr").classList.remove("hidden");$("secret").textContent=data.totp.secret;$("secret").classList.remove("hidden");status("Scan the QR code, then enter a code to enable it.");}
  catch(e){status(e.message||"Could not start authenticator setup.",true);}
 }
-(async()=>{await refresh();if(!$("enrollArea").classList.contains("hidden")&&!$("qr").getAttribute("src"))await beginEnrollment();})();
+$("startEnrollBtn").onclick=async()=>{show("enrollDetails");$("startEnrollBtn").disabled=true;await beginEnrollment();$("startEnrollBtn").disabled=false;};
+(async()=>{await refresh();})();
 </script>
 
 <script src="assets/davimart-navigation.js" defer></script>
