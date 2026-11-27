@@ -81,7 +81,7 @@ $("enableBtn").onclick=async()=>{
  if(!/^\d{6}$/.test(code)){status("Enter the 6-digit code from your authenticator app.",true);return;}
  try{status("Verifying authenticator…");const c=await auth.auth.mfa.challenge({factorId});if(c.error)throw c.error;
  const v=await auth.auth.mfa.verify({factorId,challengeId:c.data.id,code});if(v.error)throw v.error;
- status("Authenticator enabled successfully. Your account is now verified.");location.href="index.html";
+ status("Authenticator enabled successfully. Your account is now verified.");const next=new URLSearchParams(location.search).get("next");location.href=next&&next.startsWith("/")&&!next.startsWith("//")?next:"index.html";
  }catch(e){status(e.message||"Could not verify code. Try the latest code.",true);}
 };
 $("verifyBtn").onclick=async()=>{
