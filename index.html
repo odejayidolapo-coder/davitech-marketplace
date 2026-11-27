@@ -2282,7 +2282,12 @@ function updateHeaderAvatar(user) {
   else{image.removeAttribute("src");image.hidden=true;fallback.hidden=false;}
 }
 async function updateAccountButtons() {
-  const { data: { session } } = await db.auth.getSession();
+  const { data: { session }, error: sessionError } = await db.auth.getSession();
+  if (sessionError) console.warn("DAVIMART session check failed", sessionError);
+  if (session) {
+    const redirected = await davimartRequireMfa(session);
+    if (redirected) return;
+  }
   updateHeaderAvatar(session?.user);
 
   document.getElementById("menuSignInBtn").hidden = !!session;
@@ -2296,24 +2301,32 @@ async function updateAccountButtons() {
 let davimartMfaRedirecting = false;
 async function davimartRequireMfa(session) {
   if (!session || davimartMfaRedirecting || location.pathname.endsWith("/security.html")) return false;
+  const next = location.pathname + location.search + location.hash;
   try {
+    // Check the assurance level first so an enrolled factor is challenged after OAuth returns.
+    const { data: aal, error: aalError } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aalError) throw aalError;
     const { data: factors, error: factorsError } = await db.auth.mfa.listFactors();
-    if (factorsError) return false;
+    if (factorsError) throw factorsError;
     const verified = (factors.totp || []).some(f => f.status === "verified");
-    const next = location.pathname + location.search + location.hash;
     davimartMfaRedirecting = true;
     if (!verified) {
       location.replace("security.html?setup=1&next=" + encodeURIComponent(next));
       return true;
     }
-    const { data: aal, error: aalError } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (aalError || aal.currentLevel !== "aal1" || aal.nextLevel !== "aal2") {
-      davimartMfaRedirecting = false;
-      return false;
+    if (aal.currentLevel === "aal1" && aal.nextLevel === "aal2") {
+      location.replace("security.html?next=" + encodeURIComponent(next));
+      return true;
     }
+    davimartMfaRedirecting = false;
+    return false;
+  } catch (e) {
+    console.error("DAVIMART authenticator check failed", e);
+    // Send the signed-in user to the security page so it can display the actual Supabase error.
+    davimartMfaRedirecting = true;
     location.replace("security.html?next=" + encodeURIComponent(next));
     return true;
-  } catch (e) { console.warn("MFA check could not complete", e); return false; }
+  }
 }
 db.auth.onAuthStateChange((event, session) => {
   if (event === "PASSWORD_RECOVERY") {
