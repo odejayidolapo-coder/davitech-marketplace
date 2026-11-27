@@ -2300,11 +2300,17 @@ async function davimartRequireMfa(session) {
     const { data: factors, error: factorsError } = await db.auth.mfa.listFactors();
     if (factorsError) return false;
     const verified = (factors.totp || []).some(f => f.status === "verified");
-    if (!verified) return false;
-    const { data: aal, error: aalError } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (aalError || aal.currentLevel !== "aal1" || aal.nextLevel !== "aal2") return false;
-    davimartMfaRedirecting = true;
     const next = location.pathname + location.search + location.hash;
+    davimartMfaRedirecting = true;
+    if (!verified) {
+      location.replace("security.html?setup=1&next=" + encodeURIComponent(next));
+      return true;
+    }
+    const { data: aal, error: aalError } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aalError || aal.currentLevel !== "aal1" || aal.nextLevel !== "aal2") {
+      davimartMfaRedirecting = false;
+      return false;
+    }
     location.replace("security.html?next=" + encodeURIComponent(next));
     return true;
   } catch (e) { console.warn("MFA check could not complete", e); return false; }
