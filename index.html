@@ -2473,7 +2473,7 @@ window.showMessage = function(type) {
   async function startGoogleSignIn(statusId, intent) {
     const status = document.getElementById(statusId);
     status.textContent = intent === "signup" ? "Creating your account with Google..." : "Redirecting to Google...";
-    const redirectPath = intent === "signup" ? "/set-password.html" : "/index.html?refresh=a5366c90";
+    const redirectPath = "/set-password.html?source=google";
     const { error } = await db.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -2563,8 +2563,15 @@ window.showMessage = function(type) {
 
     status.textContent = "Signing in...";
     const { data, error } = await db.auth.signInWithPassword({ email, password });
-    status.textContent = error ? error.message : "Signed in successfully!";
+    status.textContent = error
+      ? (error.message === "Invalid login credentials"
+          ? "This email/password combination did not work. If you originally registered with Google and never created a DAVIMART password, tap “Continue with Google” using the same Gmail. DAVIMART will then guide you to create a password."
+          : error.message)
+      : "Signed in successfully!";
     if (!error) {
+      // Remember that this account has successfully used email/password sign-in.
+      try { await db.auth.updateUser({ data: { davimart_password_set: true } }); }
+      catch (metadataError) { console.warn("Could not save password setup status:", metadataError); }
       if (await davimartRequireMfa(data.session)) return;
       await showDashboard();
       startLoginSuccessCountdown();
