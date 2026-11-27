@@ -2518,7 +2518,15 @@ window.showMessage = function(type) {
   };
 
   document.getElementById("forgotPasswordBtn").onclick = async function() {
-    const email = document.getElementById("email").value.trim();
+    // Normalize autofilled/copied addresses and remove invisible Unicode characters
+    // that can make a visibly valid Gmail address fail Supabase email validation.
+    const emailInput = document.getElementById("email");
+    const email = emailInput.value
+      .normalize("NFKC")
+      .replace(/[\\u200B-\\u200D\\uFEFF\\u00A0]/g, "")
+      .trim()
+      .toLowerCase();
+    emailInput.value = email;
     const status = document.getElementById("forgotPasswordStatus");
     if (!email) {
       status.textContent = "Enter the email address registered to your DAVIMART account first.";
@@ -2530,9 +2538,18 @@ window.showMessage = function(type) {
     const redirectTo = window.location.origin + "/recovery.html";
     const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo });
     button.disabled = false;
-    status.textContent = error
-      ? "We could not send the recovery email: " + error.message
-      : "If an account exists for that email, a password recovery link has been sent. Check your inbox and spam folder.";
+    if (error) {
+      console.error("DAVIMART password recovery request failed:", {
+        message: error.message,
+        emailLength: email.length,
+        emailChars: Array.from(email).map(char => char.codePointAt(0))
+      });
+      status.textContent = error.message.toLowerCase().includes("email") && error.message.toLowerCase().includes("invalid")
+        ? "Supabase rejected this email address. Check that it is the exact Gmail linked to your DAVIMART account, with no extra characters. If it still fails, DAVIMART support must correct the Auth email configuration."
+        : "We could not send the recovery email: " + error.message;
+      return;
+    }
+    status.textContent = "If an account exists for that email, a password recovery link has been sent. Check your inbox and spam folder.";
   };
 
   document.getElementById("showRegisterBtn").onclick = () => {
