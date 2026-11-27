@@ -139,5 +139,7 @@ el("signOut").onclick=async()=>{const {error}=await db.auth.signOut();if(error)e
 db.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT")location.href="account.html";});
 loadProfile();
 </script>
+
+<script src="assets/davimart-navigation.js" defer></script>
 </body>
 </html>
