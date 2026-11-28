@@ -2347,7 +2347,10 @@ async function davimartRequireMfa(session) {
     return true;
   }
 }
+let davimartBuyerConfirmInProgress = false;
+
 async function confirmGoogleBuyerAccount(session) {
+  if (davimartBuyerConfirmInProgress) return true;
   let shouldConfirm = false;
   try {
     shouldConfirm = sessionStorage.getItem("davimart_google_buyer_confirm") === "1";
@@ -2368,6 +2371,7 @@ async function confirmGoogleBuyerAccount(session) {
     return false;
   }
 
+  davimartBuyerConfirmInProgress = true;
   const veil = document.createElement("div");
   veil.style.cssText = "position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;padding:20px;z-index:10000";
   const panel = document.createElement("div");
@@ -2419,6 +2423,7 @@ async function confirmGoogleBuyerAccount(session) {
       resolve();
     };
   });
+  davimartBuyerConfirmInProgress = false;
   return true;
 }
 
