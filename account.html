@@ -56,6 +56,7 @@ body.camera-open{overflow:hidden}
 @media(max-width:450px){.features{grid-template-columns:1fr}}
 
 .order-card{border:1px solid #dce3ed;border-radius:11px;padding:15px;margin:12px 0;background:#fff}.order-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}.order-badge{display:inline-block;padding:5px 9px;border-radius:20px;background:#edf2fa;color:#102b55;font-size:12px;font-weight:bold}.order-meta{font-size:13px;color:#667085;line-height:1.6;overflow-wrap:anywhere}.order-item{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #edf0f4}.order-item img{width:58px;height:58px;object-fit:cover;border-radius:8px;background:#f1f4f8}.order-item-info{min-width:0;flex:1}.tracking-steps{display:flex;gap:5px;margin:12px 0}.tracking-step{flex:1;height:6px;border-radius:8px;background:#e6eaf0}.tracking-step.done{background:#1d8a55}.tracking-labels{display:flex;justify-content:space-between;gap:4px;font-size:10px;color:#667085}.order-empty{padding:20px;text-align:center;color:#667085;background:#f8fafc;border-radius:9px}
+.order-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.order-actions button{flex:1;min-width:135px}.order-actions .continue-payment{background:#102b55;color:#fff}.order-actions .cancel-order{background:#c62828!important;color:#fff!important}.order-actions .cancel-order:hover{background:#a61b1b!important}.order-action-status{font-size:13px;line-height:1.5;margin:7px 0;color:#475467}
 </style>
 </head>
 <body>
@@ -431,7 +432,29 @@ function renderBuyerOrderCard(order){
  });
  if(order.delivery_address){const address=document.createElement("p");address.className="order-meta";address.textContent="Delivery address: "+order.delivery_address;card.appendChild(address);}
  if(order.paystack_reference){const ref=document.createElement("p");ref.className="order-meta";ref.textContent="Payment reference: "+order.paystack_reference;card.appendChild(ref);}
- if(order.cancellationRequest){
+ if(order.status==="pending_payment"&&["pending","failed","abandoned"].includes(order.payment_status)&&order.inventory_status==="pending"&&!order.paystack_transaction_id){
+  const actions=document.createElement("div");actions.className="order-actions";
+  const continueBtn=document.createElement("button");continueBtn.type="button";continueBtn.className="continue-payment";continueBtn.textContent="Continue Payment";
+  const cancelBtn=document.createElement("button");cancelBtn.type="button";cancelBtn.className="cancel-order";cancelBtn.textContent="Cancel Order";
+  const actionStatus=document.createElement("p");actionStatus.className="order-action-status";actionStatus.setAttribute("aria-live","polite");
+  continueBtn.addEventListener("click",async()=>{
+   continueBtn.disabled=true;cancelBtn.disabled=true;continueBtn.textContent="Opening Paystack…";actionStatus.textContent="Checking order and available stock…";
+   const {data:{session}}=await db.auth.getSession();
+   if(!session){actionStatus.textContent="Please sign in again to continue payment.";continueBtn.disabled=false;cancelBtn.disabled=false;continueBtn.textContent="Continue Payment";return;}
+   const callbackUrl=window.location.origin+window.location.pathname+"?payment=return";
+   const {data,error}=await db.functions.invoke("paystack-resume-order",{body:{order_id:order.id,callback_url:callbackUrl}});
+   if(error||!data?.authorization_url){actionStatus.textContent=data?.error||error?.message||"Could not continue payment. Please refresh and try again.";continueBtn.disabled=false;cancelBtn.disabled=false;continueBtn.textContent="Continue Payment";return;}
+   window.location.href=data.authorization_url;
+  });
+  cancelBtn.addEventListener("click",async()=>{
+   if(!confirm("Cancel this unpaid order? It will not charge you or deduct stock."))return;
+   continueBtn.disabled=true;cancelBtn.disabled=true;cancelBtn.textContent="Cancelling…";actionStatus.textContent="Cancelling unpaid order…";
+   const {data,error}=await db.rpc("cancel_unpaid_order",{p_order_id:order.id});
+   if(error||!data?.ok){actionStatus.textContent=error?.message||"Could not cancel order. Refresh and try again.";continueBtn.disabled=false;cancelBtn.disabled=false;cancelBtn.textContent="Cancel Order";return;}
+   await loadBuyerOrders(order.buyer_id);
+  });
+  actions.append(continueBtn,cancelBtn);card.appendChild(actions);card.appendChild(actionStatus);
+ } else if(order.cancellationRequest){
   const req=order.cancellationRequest, requestStatus=document.createElement("p");
   requestStatus.className="order-meta";
   requestStatus.textContent=req.status==="pending"?"Cancellation request: Awaiting admin review":req.status==="approved"?"Cancellation approved — refund processing is required":"Cancellation request rejected"+(req.admin_note?": "+req.admin_note:"");
@@ -473,6 +496,20 @@ async function loadBuyerOrders(userId){
  uniqueOrders.forEach(order=>{order.items=order.order_items||[];order.cancellationRequest=requestByOrder.get(order.id)||null;host.appendChild(renderBuyerOrderCard(order));});
 }
 document.getElementById("refreshBuyerOrders").addEventListener("click",async()=>{const {data:{user}}=await db.auth.getUser();if(user)await loadBuyerOrders(user.id);});
+async function handlePaystackReturn(){
+ const params=new URLSearchParams(window.location.search);
+ if(params.get("payment")!=="return")return;
+ const reference=params.get("reference")||params.get("trxref");
+ const status=document.getElementById("buyerOrdersStatus");
+ if(!reference){status.textContent="Returned from Paystack, but no payment reference was provided. Refresh orders and check payment status.";return;}
+ status.textContent="Verifying your Paystack payment…";
+ const {data,error}=await db.functions.invoke("paystack-verify",{body:{reference}});
+ if(error||!data?.paid){status.textContent=data?.error||"Payment is not confirmed yet. Use Continue Payment to try again.";return;}
+ status.textContent=data.inventory_status==="refund_required"?"Payment received, but stock needs review. Please contact DAVIMART support.":"Payment confirmed! Your order is now being processed.";
+ const cleanUrl=window.location.pathname;window.history.replaceState({},document.title,cleanUrl);
+ const {data:{user}}=await db.auth.getUser();if(user)await loadBuyerOrders(user.id);
+}
+
 
 async function loadAccount(){
  if(isPasswordRecovery){showPasswordRecovery();return;}
@@ -865,7 +902,7 @@ db.auth.onAuthStateChange(function(event){
  setTimeout(loadAccount,0);
 });
 
-loadAccount().finally(function(){
+loadAccount().then(handlePaystackReturn).finally(function(){
   document.getElementById("loader").style.display = "none";
 
   if(new URLSearchParams(window.location.search).get("section") === "Wishlist"){
