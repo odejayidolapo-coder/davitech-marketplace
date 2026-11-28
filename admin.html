@@ -391,11 +391,11 @@ document.getElementById("adminProductForm").onsubmit=async(e)=>{
 async function loadPayoutManagement(){
  const status=document.getElementById("payoutAdminStatus");
  status.textContent="Loading payout settings and seller orders…";
- const {data:settings,error:settingsError}=await db.from("marketplace_payout_settings").select("commission_rate").eq("id",true).single();
+ const {data:settings,error:settingsError}=await db.from("marketplace_payout_settings").select("commission_rate,is_configured").eq("id",true).single();
  if(settingsError){status.textContent="Could not load commission settings: "+settingsError.message;return;}
  document.getElementById("payoutCommissionRate").value=settings.commission_rate;
  await Promise.all([loadEligiblePayoutItems(),loadCompletedPayouts()]);
- status.textContent="Commission rate: "+settings.commission_rate+"%. Eligible orders are checked against successful payment and delivery status.";
+ status.textContent=settings.is_configured?"Commission rate: "+settings.commission_rate+"%. Eligible orders are checked against successful payment and delivery status.":"Set and save the agreed commission rate before recording any seller payout.";
 }
 document.getElementById("savePayoutCommission").onclick=async()=>{
  const rate=Number(document.getElementById("payoutCommissionRate").value),status=document.getElementById("payoutAdminStatus");
@@ -403,7 +403,7 @@ document.getElementById("savePayoutCommission").onclick=async()=>{
  if(!confirm("Save DAVIMART commission at "+rate+"% for future seller payouts?"))return;
  const {data:{user}}=await db.auth.getUser();
  if(!user||user.id!==ADMIN_ID){status.textContent="Access denied.";return;}
- const {error}=await db.from("marketplace_payout_settings").upsert({id:true,commission_rate:rate,updated_at:new Date().toISOString(),updated_by:user.id},{onConflict:"id"});
+ const {error}=await db.from("marketplace_payout_settings").upsert({id:true,commission_rate:rate,is_configured:true,updated_at:new Date().toISOString(),updated_by:user.id},{onConflict:"id"});
  status.textContent=error?"Could not save commission: "+error.message:"Commission rate saved. This rate will be used for payouts recorded from now on.";
 };
 document.getElementById("refreshPayouts").onclick=loadPayoutManagement;
@@ -454,9 +454,7 @@ async function recordSellerPayout(item,bank,profile){
   transfer_reference:reference.trim(),approved_by:user.id,status:"paid"
  });
  if(error){alert("Payout record was not saved: "+error.message);return;}
- const message="DAVIMART has recorded a seller payout of ₦"+net.toLocaleString("en-NG",{minimumFractionDigits:2})+" for order "+item.order_id+". Transfer reference: "+reference.trim()+".";
- const notify=await db.from("notifications").insert({user_id:item.seller_id,title:"Seller payout sent",message,notification_type:"seller_payout"});
- if(notify.error)alert("Payout was recorded, but the in-app seller notification failed: "+notify.error.message);
+ // Seller email notification is not activated yet; payout is visible in the seller dashboard history.
  await loadEligiblePayoutItems();await loadCompletedPayouts();
 }
 async function loadCompletedPayouts(){
