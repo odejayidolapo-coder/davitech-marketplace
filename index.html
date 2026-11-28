@@ -2910,28 +2910,34 @@ async function showDashboard() {
  <div class="dm-ai-head"><div><strong>✨ DAVIMART AI</strong><small>Your shopping and discovery assistant</small></div><div style="display:flex;align-items:center;gap:7px"><button type="button" id="dmAiFeedbackToggle" style="padding:8px 9px;border:0;border-radius:8px;background:#e4b449;color:#102b55;font-size:11px;font-weight:800;white-space:nowrap">💬 Feedback / Survey</button><button class="dm-ai-close" id="dmAiClose" type="button" aria-label="Close assistant">×</button></div></div>
  <div class="dm-ai-messages" id="dmAiMessages" aria-live="polite"><div class="dm-ai-bubble bot">Hi! I can help you find products, discover services or properties, compare listed prices, and explain details sellers have provided. What are you looking for?</div><div class="dm-ai-chips"><button class="dm-ai-chip" data-prompt="Find me a phone">Find a phone</button><button class="dm-ai-chip" data-prompt="Show me services">Find services</button><button class="dm-ai-chip" data-prompt="Show me properties">Find properties</button><button class="dm-ai-chip" data-prompt="Compare prices for laptops">Compare prices</button><button class="dm-ai-chip" data-prompt="Guide me through navigating DAVIMART">Guide me around</button></div><div style="margin:12px;padding:12px;border:1px solid #d8e0ec;border-radius:12px;background:#fff">
  
- <form id="dmAiFeedbackForm" hidden style="margin-top:12px">
-  <p style="margin:0;color:#526176;font-size:13px">Help us improve DAVIMART. Your feedback is shared with the DAVIMART admin team. Please don't include passwords, PINs, OTPs or payment details.</p>
-  <label style="font-weight:700">What would you like to share?
-   <select id="dmAiFeedbackType" required style="display:block;width:100%;padding:10px;margin-top:4px;border:1px solid #cbd5e1;border-radius:8px">
-    <option value="feedback">General feedback</option><option value="survey">Quick survey</option><option value="suggestion">Suggestion</option><option value="complaint">Report a problem</option>
-   </select>
-  </label>
-  <label style="font-weight:700">Which area?
-   <select id="dmAiFeedbackTopic" required style="display:block;width:100%;padding:10px;margin-top:4px;border:1px solid #cbd5e1;border-radius:8px">
-    <option value="overall">Overall experience</option><option value="shopping">Shopping and checkout</option><option value="products">Products and listings</option><option value="sellers">Sellers</option><option value="delivery">Delivery</option><option value="payments">Payments</option><option value="app_experience">Website/app experience</option><option value="davimart_ai">DAVIMART AI</option><option value="other">Other</option>
-   </select>
-  </label>
-  <label style="font-weight:700">Your rating
-   <select id="dmAiFeedbackRating" required style="display:block;width:100%;padding:10px;margin-top:4px;border:1px solid #cbd5e1;border-radius:8px"><option value="">Choose 1–5 stars</option><option value="5">★★★★★ Excellent</option><option value="4">★★★★ Good</option><option value="3">★★★ Average</option><option value="2">★★ Poor</option><option value="1">★ Very poor</option></select>
-  </label>
-  <label style="font-weight:700">Would you recommend DAVIMART?
-   <select id="dmAiFeedbackRecommend" style="display:block;width:100%;padding:10px;margin-top:4px;border:1px solid #cbd5e1;border-radius:8px"><option value="">Skip this question</option><option value="true">Yes</option><option value="false">Not yet</option></select>
-  </label>
-  <label style="font-weight:700">Tell us more
-   <textarea id="dmAiFeedbackMessage" required minlength="5" maxlength="2000" rows="3" placeholder="What worked well? What should we improve?" style="display:block;width:100%;box-sizing:border-box;padding:10px;margin-top:4px;border:1px solid #cbd5e1;border-radius:8px"></textarea>
-  </label>
-  <button id="dmAiFeedbackSubmit" type="submit" style="padding:11px;border:0;border-radius:8px;background:#102b55;color:#fff;font-weight:800">Send feedback</button>
+ <form id="dmAiFeedbackForm" hidden style="margin-top:12px;gap:10px">
+  <p style="margin:0;color:#526176;font-size:13px">Quick buyer survey. Choose A, B or C for each question. Your answers are shared with the DAVIMART admin team. Please don't include passwords, PINs, OTPs or payment details.</p>
+  <fieldset style="border:0;padding:0;margin:0"><legend style="font-weight:700;margin-bottom:6px">1. How would you rate DAVIMART?</legend>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ1" value="5" required> A. Excellent</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ1" value="3"> B. Fair</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ1" value="1"> C. Poor</label>
+  </fieldset>
+  <fieldset style="border:0;padding:0;margin:0"><legend style="font-weight:700;margin-bottom:6px">2. How easy is it to find products or services?</legend>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ2" value="A" required> A. Very easy</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ2" value="B"> B. Somehow easy</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ2" value="C"> C. Difficult</label>
+  </fieldset>
+  <fieldset style="border:0;padding:0;margin:0"><legend style="font-weight:700;margin-bottom:6px">3. What do you think about our prices?</legend>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ3" value="A" required> A. Affordable</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ3" value="B"> B. Average</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ3" value="C"> C. Expensive</label>
+  </fieldset>
+  <fieldset style="border:0;padding:0;margin:0"><legend style="font-weight:700;margin-bottom:6px">4. How was your experience using the app?</legend>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ4" value="A" required> A. Smooth</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ4" value="B"> B. Okay</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ4" value="C"> C. Difficult</label>
+  </fieldset>
+  <fieldset style="border:0;padding:0;margin:0"><legend style="font-weight:700;margin-bottom:6px">5. Would you recommend DAVIMART to others?</legend>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ5" value="A" required> A. Yes</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ5" value="B"> B. Maybe</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ5" value="C"> C. No</label>
+  </fieldset>
+  <button id="dmAiFeedbackSubmit" type="submit" style="padding:11px;border:0;border-radius:8px;background:#102b55;color:#fff;font-weight:800">Submit answers</button>
   <p id="dmAiFeedbackStatus" role="status" aria-live="polite" style="margin:0;font-size:13px"></p>
  </form>
 </div>
@@ -2988,8 +2994,15 @@ async function showDashboard() {
     const {data:{user},error:authError}=await aiDb.auth.getUser();if(authError||!user)throw new Error("Please sign in to your DAVIMART buyer account before sending feedback.");
     const {data:profile,error:profileError}=await aiDb.from("profiles").select("role").eq("id",user.id).maybeSingle();
     if(profileError)throw profileError;if(profile?.role!=="buyer")throw new Error("This feedback survey is currently for buyer accounts.");
-    const recommendation=document.getElementById("dmAiFeedbackRecommend").value;
-    const payload={user_id:user.id,feedback_type:document.getElementById("dmAiFeedbackType").value,topic:document.getElementById("dmAiFeedbackTopic").value,rating:Number(document.getElementById("dmAiFeedbackRating").value),would_recommend:recommendation===""?null:recommendation==="true",message:document.getElementById("dmAiFeedbackMessage").value.trim()};
+    const q1=feedbackForm.querySelector('input[name="dmSurveyQ1"]:checked')?.value;
+    const q2=feedbackForm.querySelector('input[name="dmSurveyQ2"]:checked')?.value;
+    const q3=feedbackForm.querySelector('input[name="dmSurveyQ3"]:checked')?.value;
+    const q4=feedbackForm.querySelector('input[name="dmSurveyQ4"]:checked')?.value;
+    const q5=feedbackForm.querySelector('input[name="dmSurveyQ5"]:checked')?.value;
+    if(!q1||!q2||!q3||!q4||!q5)throw new Error("Please answer all five questions before submitting.");
+    const recommendation=q5==="A"?true:q5==="C"?false:null;
+    const answers="1. DAVIMART rating: "+({5:"A. Excellent",3:"B. Fair",1:"C. Poor"}[q1])+"\n2. Finding items: "+q2+"\n3. Prices: "+q3+"\n4. App experience: "+q4+"\n5. Recommend DAVIMART: "+q5;
+    const payload={user_id:user.id,feedback_type:"survey",topic:"overall",rating:Number(q1),would_recommend:recommendation,message:answers};
     const {error}=await aiDb.from("buyer_feedback").insert(payload);if(error)throw error;
     feedbackForm.reset();feedbackStatus.textContent="Thank you! Your feedback has been sent to the DAVIMART team.";bubble("Thank you for sharing your thoughts. Your feedback has been received by the DAVIMART team.","bot");
    }catch(error){feedbackStatus.textContent=error?.message||"Could not send feedback. Please try again.";}
