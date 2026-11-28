@@ -1611,6 +1611,30 @@ body{padding-bottom:78px!important}
 .dm-cart-button span{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 5px;display:grid;place-items:center;border-radius:999px;background:#ffc400;color:#071f50;font-size:11px;font-weight:900;border:2px solid #071f50}
 .dm-bottom-nav a b{display:inline-grid;place-items:center;min-width:15px;height:15px;margin-left:2px;border-radius:9px;background:#ffc400;color:#071f50;font-size:9px}
 </style>
+
+<style id="davimart-ai-style">
+#dmAiLauncher{position:fixed;right:16px;bottom:88px;z-index:9998;border:0;border-radius:999px;background:#102b55;color:#fff;padding:13px 17px;font-weight:800;box-shadow:0 8px 24px #071f5040;cursor:pointer}
+#dmAiLauncher span{color:#e4b449}
+#dmAiPanel{position:fixed;right:12px;bottom:145px;z-index:9999;width:min(390px,calc(100vw - 24px));height:min(570px,calc(100dvh - 175px));background:#fff;border:1px solid #dce3ee;border-radius:18px;box-shadow:0 18px 55px #071f5040;display:none;overflow:hidden;flex-direction:column}
+#dmAiPanel.dm-ai-open{display:flex}
+.dm-ai-head{background:#102b55;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dm-ai-head strong{font-size:16px}.dm-ai-head small{display:block;color:#dce7f8;font-size:11px;margin-top:3px}
+.dm-ai-close{background:transparent;color:#fff;border:0;font-size:24px;padding:0 5px;cursor:pointer}
+.dm-ai-messages{padding:14px;overflow:auto;flex:1;background:#f6f8fc}
+.dm-ai-bubble{max-width:94%;padding:10px 12px;border-radius:13px;margin:0 0 10px;font-size:13px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.dm-ai-bubble.bot{background:#fff;border:1px solid #e5eaf2;color:#26364e}
+.dm-ai-bubble.user{background:#102b55;color:#fff;margin-left:auto}
+.dm-ai-chips{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0 12px}
+.dm-ai-chip{border:1px solid #d7dfeb;background:#fff;color:#102b55;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer}
+.dm-ai-result{display:flex;gap:10px;padding:9px;background:#fff;border:1px solid #e5eaf2;border-radius:11px;margin:8px 0;color:#25344b;text-decoration:none}
+.dm-ai-result img{width:58px;height:58px;object-fit:contain;background:#f5f7fa;border-radius:8px}
+.dm-ai-result strong{display:block;font-size:12px}.dm-ai-result small{display:block;color:#64748b;font-size:11px;margin-top:3px}
+.dm-ai-inputrow{display:flex;gap:7px;padding:10px;border-top:1px solid #e5eaf2;background:#fff}
+#dmAiInput{min-width:0;flex:1;border:1px solid #d5deea;border-radius:10px;padding:11px;font:inherit;font-size:13px}
+#dmAiSend{border:0;border-radius:10px;background:#102b55;color:#fff;padding:0 15px;font-weight:800}
+.dm-ai-note{font-size:10px;color:#718096;padding:0 12px 9px;background:#fff}
+@media(max-width:700px){#dmAiLauncher{bottom:82px;right:12px;padding:12px 14px}#dmAiPanel{bottom:137px;height:min(590px,calc(100dvh - 155px))}}
+</style>
 </head>
 <body>
 
@@ -2874,5 +2898,53 @@ async function showDashboard() {
 </style>
 
 <script src="assets/davimart-navigation.js" defer></script>
+
+<button id="dmAiLauncher" type="button" aria-label="Open DAVIMART AI shopping assistant">✨ <span>Ask DAVIMART AI</span></button>
+<section id="dmAiPanel" aria-label="DAVIMART AI shopping assistant" aria-hidden="true">
+ <div class="dm-ai-head"><div><strong>✨ DAVIMART AI</strong><small>Your shopping and discovery assistant</small></div><button class="dm-ai-close" id="dmAiClose" type="button" aria-label="Close assistant">×</button></div>
+ <div class="dm-ai-messages" id="dmAiMessages" aria-live="polite"><div class="dm-ai-bubble bot">Hi! I can help you find products, discover services or properties, compare listed prices, and explain details sellers have provided. What are you looking for?</div><div class="dm-ai-chips"><button class="dm-ai-chip" data-prompt="Find me a phone">Find a phone</button><button class="dm-ai-chip" data-prompt="Show me services">Find services</button><button class="dm-ai-chip" data-prompt="Show me properties">Find properties</button><button class="dm-ai-chip" data-prompt="Compare prices for laptops">Compare prices</button></div></div>
+ <form class="dm-ai-inputrow" id="dmAiForm"><input id="dmAiInput" autocomplete="off" placeholder="Ask about a product or service…" aria-label="Ask DAVIMART AI"><button id="dmAiSend" type="submit">Send</button></form>
+ <div class="dm-ai-note">Suggestions use approved DAVIMART listings. Prices and availability should be confirmed with the seller.</div>
+</section>
+
+<script id="davimart-ai-assistant">
+(function(){
+ const panel=document.getElementById("dmAiPanel"),launcher=document.getElementById("dmAiLauncher"),messages=document.getElementById("dmAiMessages"),input=document.getElementById("dmAiInput"),form=document.getElementById("dmAiForm");
+ if(!panel||!launcher||!messages||!input||!form||!window.supabase)return;
+ const aiDb=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
+ const money=n=>new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",maximumFractionDigits:0}).format(Number(n)||0);
+ function open(){panel.classList.add("dm-ai-open");panel.setAttribute("aria-hidden","false");input.focus()}
+ function close(){panel.classList.remove("dm-ai-open");panel.setAttribute("aria-hidden","true")}
+ launcher.addEventListener("click",open);document.getElementById("dmAiClose").addEventListener("click",close);
+ function bubble(text,who){const el=document.createElement("div");el.className="dm-ai-bubble "+who;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;return el}
+ function resultCard(item,type){const a=document.createElement("a");a.className="dm-ai-result";const routes={product:"product.html?id=",service:"service-provider.html?id=",property:"property.html?id="};a.href=(routes[type]||"product.html?id=")+encodeURIComponent(item.id);
+ if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt="";img.loading="lazy";a.appendChild(img)}
+ const info=document.createElement("span"),name=document.createElement("strong"),price=document.createElement("small"),meta=document.createElement("small");name.textContent=item.title||"Untitled listing";price.textContent=money(item.price);meta.textContent=[item.category,item.location].filter(Boolean).join(" · ");info.append(name,price,meta);a.appendChild(info);return a}
+ function intentType(q){if(/\b(service|repair|clean|plumb|electrician|salon|delivery|lesson|tutor|event|photograph|tailor)\b/i.test(q))return"service";if(/\b(property|house|home|flat|apartment|land|rent|lease|buy a house)\b/i.test(q))return"property";return"product"}
+ function budgetFrom(q){const m=q.match(/(?:under|below|less than|max(?:imum)?|budget(?: of)?)\s*₦?\s*([\d,]+(?:\.\d+)?)(\s*[kKmM])?/i);if(!m)return null;let n=Number(m[1].replace(/,/g,""));if(/[kK]/.test(m[2]||""))n*=1000;if(/[mM]/.test(m[2]||""))n*=1000000;return n}
+ async function answer(q){
+  const clean=q.trim();if(!clean)return;
+  bubble(clean,"user");input.value="";
+  const thinking=bubble("Let me check approved DAVIMART listings…","bot");
+  const type=intentType(clean),budget=budgetFrom(clean),terms=clean.replace(/\b(find|show|me|please|i want|i need|looking for|compare|prices?|price|under|below|less than|my budget is|budget of|services?|products?|properties?)\b/gi," ").replace(/[₦,]/g," ").trim();
+  let req=aiDb.from("listings").select("id,title,description,price,category,location,image_url,listing_type").eq("status","approved").eq("listing_type",type).order("created_at",{ascending:false}).limit(40);
+  const keywords=terms.split(/\s+/).filter(w=>w.length>2).slice(0,5);
+  if(keywords.length){const safe=keywords.join(" ");req=req.or("title.ilike.%"+safe+"%,description.ilike.%"+safe+"%,category.ilike.%"+safe+"%")}
+  if(budget!==null)req=req.lte("price",budget);
+  const {data,error}=await req;
+  thinking.remove();
+  if(error){bubble("I couldn't reach the marketplace listings just now. Please try again in a moment or use the main search bar.","bot");return}
+  let rows=data||[];
+  if(!rows.length){bubble("I couldn't find an approved "+(type==="product"?"product":type==="service"?"service":"property")+" matching that request. Try a shorter description or remove the budget limit.","bot");return}
+  rows.sort((a,b)=>Number(a.price||0)-Number(b.price||0));
+  if(/\b(compare|cheapest|lowest|price|prices|budget|under|below)\b/i.test(clean)){bubble("Here are matching listings ordered from lowest to highest listed price:","bot")}
+  else{bubble("I found these approved listings that may fit what you're looking for:","bot")}
+  rows.slice(0,5).forEach(item=>messages.appendChild(resultCard(item,type)));
+  const tail=document.createElement("div");tail.className="dm-ai-bubble bot";tail.textContent=rows.length>5?"Showing 5 matches. Tell me if you want a different category or budget.":"These are the current matching listings. Open one to view its details and contact the seller.";messages.appendChild(tail);messages.scrollTop=messages.scrollHeight;
+ }
+ form.addEventListener("submit",e=>{e.preventDefault();answer(input.value)});
+ messages.addEventListener("click",e=>{const b=e.target.closest("[data-prompt]");if(b)answer(b.dataset.prompt)});
+})();
+</script>
 </body>
 </html>
