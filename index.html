@@ -1633,6 +1633,12 @@ body{padding-bottom:78px!important}
 #dmAiInput{min-width:0;flex:1;border:1px solid #d5deea;border-radius:10px;padding:11px;font:inherit;font-size:13px}
 #dmAiSend{border:0;border-radius:10px;background:#102b55;color:#fff;padding:0 15px;font-weight:800}
 .dm-ai-note{font-size:10px;color:#718096;padding:0 12px 9px;background:#fff}
+.dm-ai-voice-btn,.dm-ai-voice-tools button{border:1px solid #d5deea;border-radius:10px;background:#f5f7fb;color:#102b55;padding:8px 11px;font-weight:800;cursor:pointer}
+.dm-ai-voice-btn[aria-pressed="true"]{background:#fff2d3;border-color:#e4b449}
+.dm-ai-voice-tools{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:0 10px 8px;background:#fff}
+#dmAiVoiceStatus{font-size:10px;color:#64748b;line-height:1.4}
+.dm-ai-voice-tools button{font-size:10px;padding:6px 9px;white-space:nowrap}
+.dm-ai-voice-tools button:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:700px){#dmAiLauncher{bottom:82px;right:12px;padding:12px 14px}#dmAiPanel{bottom:137px;height:min(590px,calc(100dvh - 155px))}}
 </style>
 </head>
@@ -2903,18 +2909,33 @@ async function showDashboard() {
 <section id="dmAiPanel" aria-label="DAVIMART AI shopping assistant" aria-hidden="true">
  <div class="dm-ai-head"><div><strong>✨ DAVIMART AI</strong><small>Your shopping and discovery assistant</small></div><button class="dm-ai-close" id="dmAiClose" type="button" aria-label="Close assistant">×</button></div>
  <div class="dm-ai-messages" id="dmAiMessages" aria-live="polite"><div class="dm-ai-bubble bot">Hi! I can help you find products, discover services or properties, compare listed prices, and explain details sellers have provided. What are you looking for?</div><div class="dm-ai-chips"><button class="dm-ai-chip" data-prompt="Find me a phone">Find a phone</button><button class="dm-ai-chip" data-prompt="Show me services">Find services</button><button class="dm-ai-chip" data-prompt="Show me properties">Find properties</button><button class="dm-ai-chip" data-prompt="Compare prices for laptops">Compare prices</button></div></div>
- <form class="dm-ai-inputrow" id="dmAiForm"><input id="dmAiInput" autocomplete="off" placeholder="Ask about a product or service…" aria-label="Ask DAVIMART AI"><button id="dmAiSend" type="submit">Send</button></form>
- <div class="dm-ai-note">Suggestions use approved DAVIMART listings. Prices and availability should be confirmed with the seller.</div>
+ <form class="dm-ai-inputrow" id="dmAiForm"><button class="dm-ai-voice-btn" id="dmAiMic" type="button" aria-label="Start voice search" title="Speak your request">🎙️</button><input id="dmAiInput" autocomplete="off" placeholder="Type or use the microphone…" aria-label="Ask DAVIMART AI"><button id="dmAiSend" type="submit">Send</button></form>
+ <div class="dm-ai-voice-tools"><span id="dmAiVoiceStatus" role="status" aria-live="polite">Voice starts only when you tap the microphone.</span><button id="dmAiStopVoice" type="button">Stop voice</button></div>
+ <div class="dm-ai-note">Suggestions use approved DAVIMART listings. Voice uses your browser; microphone access starts only after you tap it. Prices and availability should be confirmed with the seller.</div>
 </section>
 
 <script id="davimart-ai-assistant">
 (function(){
- const panel=document.getElementById("dmAiPanel"),launcher=document.getElementById("dmAiLauncher"),messages=document.getElementById("dmAiMessages"),input=document.getElementById("dmAiInput"),form=document.getElementById("dmAiForm");
+ const panel=document.getElementById("dmAiPanel"),launcher=document.getElementById("dmAiLauncher"),messages=document.getElementById("dmAiMessages"),input=document.getElementById("dmAiInput"),form=document.getElementById("dmAiForm"),mic=document.getElementById("dmAiMic"),voiceStatus=document.getElementById("dmAiVoiceStatus"),stopVoice=document.getElementById("dmAiStopVoice");
  if(!panel||!launcher||!messages||!input||!form||!window.supabase)return;
  const aiDb=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
  const money=n=>new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",maximumFractionDigits:0}).format(Number(n)||0);
+ const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ let recognition=null,listening=false;
+ function status(text){if(voiceStatus)voiceStatus.textContent=text}
+ function speak(text){
+  if(!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window)){status("Voice replies are not supported by this browser.");return}
+  window.speechSynthesis.cancel();
+  const utterance=new SpeechSynthesisUtterance(text);
+  utterance.lang="en-NG";utterance.rate=1;utterance.pitch=1;
+  utterance.onstart=()=>status("DAVIMART AI is speaking…");
+  utterance.onend=()=>status("You can type or tap the microphone to speak.");
+  utterance.onerror=()=>status("Could not play the voice reply. You can still read the answer.");
+  window.speechSynthesis.speak(utterance);
+ }
+ function stopSpeaking(){if("speechSynthesis" in window)window.speechSynthesis.cancel();status("Voice reply stopped.")}
  function open(){panel.classList.add("dm-ai-open");panel.setAttribute("aria-hidden","false");input.focus()}
- function close(){panel.classList.remove("dm-ai-open");panel.setAttribute("aria-hidden","true")}
+ function close(){panel.classList.remove("dm-ai-open");panel.setAttribute("aria-hidden","true");if(listening&&recognition)recognition.stop();stopSpeaking()}
  launcher.addEventListener("click",open);document.getElementById("dmAiClose").addEventListener("click",close);
  function bubble(text,who){const el=document.createElement("div");el.className="dm-ai-bubble "+who;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;return el}
  function resultCard(item,type){const a=document.createElement("a");a.className="dm-ai-result";const routes={product:"product.html?id=",service:"service-provider.html?id=",property:"property.html?id="};a.href=(routes[type]||"product.html?id=")+encodeURIComponent(item.id);
@@ -2933,17 +2954,34 @@ async function showDashboard() {
   if(budget!==null)req=req.lte("price",budget);
   const {data,error}=await req;
   thinking.remove();
-  if(error){bubble("I couldn't reach the marketplace listings just now. Please try again in a moment or use the main search bar.","bot");return}
+  if(error){const msg="I couldn't reach the marketplace listings just now. Please try again in a moment or use the main search bar.";bubble(msg,"bot");speak(msg);return}
   let rows=data||[];
-  if(!rows.length){bubble("I couldn't find an approved "+(type==="product"?"product":type==="service"?"service":"property")+" matching that request. Try a shorter description or remove the budget limit.","bot");return}
+  if(!rows.length){const msg="I couldn't find an approved "+(type==="product"?"product":type==="service"?"service":"property")+" matching that request. Try a shorter description or remove the budget limit.";bubble(msg,"bot");speak(msg);return}
   rows.sort((a,b)=>Number(a.price||0)-Number(b.price||0));
-  if(/\b(compare|cheapest|lowest|price|prices|budget|under|below)\b/i.test(clean)){bubble("Here are matching listings ordered from lowest to highest listed price:","bot")}
-  else{bubble("I found these approved listings that may fit what you're looking for:","bot")}
+  const intro=/\b(compare|cheapest|lowest|price|prices|budget|under|below)\b/i.test(clean)?"Here are matching listings ordered from lowest to highest listed price:":"I found these approved listings that may fit what you're looking for:";
+  bubble(intro,"bot");
   rows.slice(0,5).forEach(item=>messages.appendChild(resultCard(item,type)));
-  const tail=document.createElement("div");tail.className="dm-ai-bubble bot";tail.textContent=rows.length>5?"Showing 5 matches. Tell me if you want a different category or budget.":"These are the current matching listings. Open one to view its details and contact the seller.";messages.appendChild(tail);messages.scrollTop=messages.scrollHeight;
+  const tail=rows.length>5?"Showing 5 matches. Tell me if you want a different category or budget.":"These are the current matching listings. Open one to view its details and contact the seller.";
+  bubble(tail,"bot");messages.scrollTop=messages.scrollHeight;
+  const lowest=rows[0],spoken="I found "+rows.length+" matching approved "+(type==="product"?"products":type==="service"?"services":"properties")+". The lowest listed price is "+money(lowest.price)+" for "+(lowest.title||"the first listing")+". Open the listing in the chat to see its details.";
+  speak(spoken);
  }
+ function startListening(){
+  if(!SpeechRecognition){status("Voice input is not supported here. Please type your request.");return}
+  if(listening){recognition.stop();return}
+  recognition=new SpeechRecognition();recognition.lang="en-NG";recognition.interimResults=false;recognition.maxAlternatives=1;
+  recognition.onstart=()=>{listening=true;mic.setAttribute("aria-pressed","true");mic.textContent="⏹️";status("Listening… speak your request now.")};
+  recognition.onresult=event=>{const transcript=event.results&&event.results[0]&&event.results[0][0]?event.results[0][0].transcript:"";if(transcript){input.value=transcript;status("I heard: "+transcript);answer(transcript)}else status("I couldn't hear that clearly. Please try again.")};
+  recognition.onerror=event=>{const messages={not-allowed:"Microphone permission was blocked. Allow it in your browser settings or type instead.",audio-capture:"No microphone was detected on this device.",no-speech:"I didn't hear anything. Tap the microphone and try again.",network:"Voice recognition needs an internet connection."};status(messages[event.error]||"Voice input stopped. You can type your request.")};
+  recognition.onend=()=>{listening=false;mic.setAttribute("aria-pressed","false");mic.textContent="🎙️"};
+  try{recognition.start()}catch(error){status("Couldn't start the microphone. Please try again or type instead.")}
+ }
+ mic.addEventListener("click",startListening);
+ stopVoice.addEventListener("click",()=>{if(listening&&recognition)recognition.stop();stopSpeaking();if(listening)status("Microphone stopped.")});
  form.addEventListener("submit",e=>{e.preventDefault();answer(input.value)});
  messages.addEventListener("click",e=>{const b=e.target.closest("[data-prompt]");if(b)answer(b.dataset.prompt)});
+ if(!SpeechRecognition)status("Voice input isn't available in this browser; typing still works.");
+ if(!("speechSynthesis" in window))status("Voice replies aren't available in this browser; answers appear as text.");
 })();
 </script>
 </body>
