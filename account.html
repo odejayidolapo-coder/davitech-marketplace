@@ -54,6 +54,8 @@ body.camera-open{overflow:hidden}
 #loader{position:fixed;inset:0;background:white;display:grid;place-items:center;z-index:100;color:#102b55;font-weight:bold}
 [hidden]{display:none!important}
 @media(max-width:450px){.features{grid-template-columns:1fr}}
+
+.order-card{border:1px solid #dce3ed;border-radius:11px;padding:15px;margin:12px 0;background:#fff}.order-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}.order-badge{display:inline-block;padding:5px 9px;border-radius:20px;background:#edf2fa;color:#102b55;font-size:12px;font-weight:bold}.order-meta{font-size:13px;color:#667085;line-height:1.6;overflow-wrap:anywhere}.order-item{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #edf0f4}.order-item img{width:58px;height:58px;object-fit:cover;border-radius:8px;background:#f1f4f8}.order-item-info{min-width:0;flex:1}.tracking-steps{display:flex;gap:5px;margin:12px 0}.tracking-step{flex:1;height:6px;border-radius:8px;background:#e6eaf0}.tracking-step.done{background:#1d8a55}.tracking-labels{display:flex;justify-content:space-between;gap:4px;font-size:10px;color:#667085}.order-empty{padding:20px;text-align:center;color:#667085;background:#f8fafc;border-radius:9px}
 </style>
 </head>
 <body>
@@ -209,6 +211,16 @@ body.camera-open{overflow:hidden}
 </div>
 </div>
 </section>
+
+<section class="panel" id="buyerOrdersPanel">
+<h2>📦 My Orders &amp; Delivery Tracking</h2>
+<p>Follow each purchase from payment to delivery. Only you can see orders placed from your account.</p>
+<div class="actions"><button type="button" class="secondary" id="refreshBuyerOrders">Refresh orders</button></div>
+<p id="buyerOrdersStatus" class="form-help" aria-live="polite">Loading your orders…</p>
+<div id="buyerOrdersList"></div>
+<p class="form-help">Tracking updates are based on DAVIMART order and seller status updates. Live courier GPS or external tracking numbers will appear when a delivery partner integration is available.</p>
+</section>
+
 <section class="panel">
 <h2>My DAVIMART Account</h2>
 <div class="features">
@@ -383,6 +395,56 @@ function renderSellerVerificationTracker(application,error){
  if(status==="rejected") note.hidden=false;
 }
 
+
+function buyerOrderStage(order,item){
+ const itemStatus=item?.seller_fulfillment_status;
+ if(order.status==="cancelled"||order.status==="refunded")return order.status;
+ if(order.status==="delivered"||itemStatus==="delivered")return "delivered";
+ if(order.status==="shipped"||itemStatus==="shipped")return "shipped";
+ if(order.status==="processing"||itemStatus==="processing"||itemStatus==="accepted")return "processing";
+ if(order.payment_status==="success"||order.status==="paid")return "paid";
+ return "pending_payment";
+}
+function buyerStageLabel(stage){return ({pending_payment:"Awaiting payment",paid:"Payment confirmed",processing:"Being prepared",shipped:"Shipped",delivered:"Delivered",cancelled:"Cancelled",refunded:"Refunded"})[stage]||stage.replaceAll("_"," ");}
+function renderBuyerOrderCard(order){
+ const card=document.createElement("article");card.className="order-card";
+ const top=document.createElement("div");top.className="order-top";
+ const title=document.createElement("strong");title.textContent="Order "+String(order.id).slice(0,8).toUpperCase();
+ const badge=document.createElement("span");badge.className="order-badge";badge.textContent=buyerStageLabel(order.status==="cancelled"||order.status==="refunded"?order.status:order.items?.length?order.items.reduce((best,item)=>{const s=buyerOrderStage(order,item);const rank={pending_payment:0,paid:1,processing:2,shipped:3,delivered:4,cancelled:5,refunded:5};return (rank[s]??0)>(rank[best]??0)?s:best;},buyerOrderStage(order,order.items[0])):buyerStageLabel(order.status));
+ top.append(title,badge);card.appendChild(top);
+ const meta=document.createElement("p");meta.className="order-meta";meta.textContent="Placed: "+new Date(order.created_at).toLocaleString()+" · Payment: "+(order.payment_status||"pending")+" · Total: "+new Intl.NumberFormat("en-NG",{style:"currency",currency:order.currency||"NGN",maximumFractionDigits:2}).format(Number(order.total||0));card.appendChild(meta);
+ const items=order.items||[];
+ items.forEach(item=>{
+  const row=document.createElement("div");row.className="order-item";
+  if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt=item.title||"Ordered product";img.loading="lazy";row.appendChild(img);}
+  const info=document.createElement("div");info.className="order-item-info";
+  const name=document.createElement("strong");name.textContent=item.title||"Marketplace item";
+  const detail=document.createElement("p");detail.className="order-meta";detail.textContent="Qty: "+item.quantity+" · "+new Intl.NumberFormat("en-NG",{style:"currency",currency:order.currency||"NGN",maximumFractionDigits:2}).format(Number(item.unit_price||0))+" each";
+  const state=document.createElement("span");state.className="order-badge";state.textContent=buyerStageLabel(buyerOrderStage(order,item));
+  info.append(name,detail,state);row.appendChild(info);card.appendChild(row);
+  const stage=buyerOrderStage(order,item);
+  if(!["cancelled","refunded"].includes(stage)){
+   const stages=["pending_payment","paid","processing","shipped","delivered"],rank=stages.indexOf(stage);
+   const progress=document.createElement("div");progress.className="tracking-steps";stages.forEach((s,i)=>{const bar=document.createElement("span");bar.className="tracking-step"+(i<=rank?" done":"");bar.title=buyerStageLabel(s);progress.appendChild(bar);});card.appendChild(progress);
+   const labels=document.createElement("div");labels.className="tracking-labels";["Payment","Confirmed","Preparing","Shipped","Delivered"].forEach(t=>{const span=document.createElement("span");span.textContent=t;labels.appendChild(span);});card.appendChild(labels);
+  }
+ });
+ if(order.delivery_address){const address=document.createElement("p");address.className="order-meta";address.textContent="Delivery address: "+order.delivery_address;card.appendChild(address);}
+ if(order.paystack_reference){const ref=document.createElement("p");ref.className="order-meta";ref.textContent="Payment reference: "+order.paystack_reference;card.appendChild(ref);}
+ return card;
+}
+async function loadBuyerOrders(userId){
+ const host=document.getElementById("buyerOrdersList"),status=document.getElementById("buyerOrdersStatus");
+ if(!host||!status)return;
+ host.replaceChildren();status.textContent="Loading your orders…";
+ const {data:orders,error}=await db.from("orders").select("id,status,payment_status,currency,subtotal,delivery_fee,total,paystack_reference,paid_at,created_at,delivery_address,order_items(id,title,image_url,unit_price,quantity,line_total,seller_fulfillment_status,created_at)").eq("buyer_id",userId).order("created_at",{ascending:false}).limit(50);
+ if(error){status.textContent="We could not load your orders. Please refresh and try again. "+error.message;return;}
+ if(!orders?.length){status.textContent="No purchases yet.";const empty=document.createElement("div");empty.className="order-empty";empty.textContent="Your orders will appear here after you place a purchase on DAVIMART.";host.appendChild(empty);return;}
+ status.textContent=orders.length+" order"+(orders.length===1?"":"s")+" found.";
+ orders.forEach(order=>{order.items=order.order_items||[];host.appendChild(renderBuyerOrderCard(order));});
+}
+document.getElementById("refreshBuyerOrders").addEventListener("click",async()=>{const {data:{user}}=await db.auth.getUser();if(user)await loadBuyerOrders(user.id);});
+
 async function loadAccount(){
  if(isPasswordRecovery){showPasswordRecovery();return;}
  const {data:{user},error} = await db.auth.getUser();
@@ -440,6 +502,8 @@ user.email || "";
  const applyButton = document.getElementById("applySellerBtn");
  applyButton.hidden = profile?.seller_status === "approved" ||
   (latestApplication && ["pending","reviewing"].includes(latestApplication.status));
+
+ await loadBuyerOrders(user.id);
 
  if(profileError){
   document.getElementById("accountStatus").textContent =
@@ -787,6 +851,11 @@ function openAccountSection(section){
  if(section === "Close Account"){
   alert("To request account closure, please contact DAVIMART support on WhatsApp: +2349068847614");
   window.open("https://wa.me/2349068847614","_blank");
+  return;
+ }
+
+ if(section === "Orders"){
+  document.getElementById("buyerOrdersPanel").scrollIntoView({behavior:"smooth",block:"start"});
   return;
  }
 
