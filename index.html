@@ -2301,14 +2301,6 @@ async function davimartRequireMfa(session) {
   if (!session || davimartMfaRedirecting || location.pathname.endsWith("/security.html") || location.pathname.endsWith("/set-password.html")) return false;
   const next = location.pathname + location.search + location.hash;
 
-  // Google-only accounts must create a DAVIMART password before entering the marketplace.
-  const hasDavimartPassword = session.user.user_metadata?.davimart_password_set === true;
-  if (!hasDavimartPassword) {
-    davimartMfaRedirecting = true;
-    location.replace("set-password.html?required=1&next=" + encodeURIComponent(next));
-    return true;
-  }
-
   try {
     const isAdmin = session.user.id === DAVIMART_ADMIN_ID;
     let isSeller = false;
@@ -2355,13 +2347,96 @@ async function davimartRequireMfa(session) {
     return true;
   }
 }
+let davimartBuyerConfirmInProgress = false;
+
+async function confirmGoogleBuyerAccount(session) {
+  if (davimartBuyerConfirmInProgress) return true;
+  let shouldConfirm = false;
+  try {
+    shouldConfirm = sessionStorage.getItem("davimart_google_buyer_confirm") === "1";
+  } catch (_) {}
+  if (!shouldConfirm || !session?.user || session.user.id === DAVIMART_ADMIN_ID) return false;
+
+  let profile = null;
+  try {
+    const { data } = await db.from("profiles")
+      .select("role,seller_status")
+      .eq("id", session.user.id)
+      .maybeSingle();
+    profile = data;
+  } catch (_) {}
+  // Only ordinary buyer profiles get this confirmation; seller/admin flows remain unchanged.
+  if (profile?.role !== "buyer" || ["pending", "approved"].includes(profile?.seller_status)) {
+    try { sessionStorage.removeItem("davimart_google_buyer_confirm"); } catch (_) {}
+    return false;
+  }
+
+  davimartBuyerConfirmInProgress = true;
+  const veil = document.createElement("div");
+  veil.style.cssText = "position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;padding:20px;z-index:10000";
+  const panel = document.createElement("div");
+  panel.style.cssText = "width:100%;max-width:390px;background:#fff;border-radius:16px;padding:24px;color:#102b55;box-shadow:0 12px 40px #0003";
+  const heading = document.createElement("h3");
+  heading.textContent = "Confirm account";
+  const copy = document.createElement("p");
+  copy.textContent = "Continue with this Google account?";
+  const email = document.createElement("p");
+  email.style.cssText = "font-weight:700;overflow-wrap:anywhere";
+  email.textContent = session.user.email || "Selected Google account";
+  const continueBtn = document.createElement("button");
+  continueBtn.className = "btn primary";
+  continueBtn.textContent = "Continue";
+  continueBtn.style.cssText = "width:100%;margin-top:10px";
+  const cancelBtn = document.createElement("button");
+  cancelBtn.className = "btn outline";
+  cancelBtn.textContent = "Cancel";
+  cancelBtn.style.cssText = "width:100%;margin-top:8px";
+  panel.append(heading, copy, email, continueBtn, cancelBtn);
+  veil.appendChild(panel);
+  document.body.appendChild(veil);
+
+  updateHeaderAvatar(null);
+  document.getElementById("menuSignInBtn").hidden = false;
+  document.getElementById("menuSetPasswordBtn").hidden = true;
+  document.getElementById("signoutBtn").hidden = true;
+  document.getElementById("menuAdminBtn").hidden = true;
+  document.getElementById("sellerDashboardBtn").hidden = true;
+
+  await new Promise(resolve => {
+    continueBtn.onclick = async () => {
+      continueBtn.disabled = true;
+      cancelBtn.disabled = true;
+      try { sessionStorage.removeItem("davimart_google_buyer_confirm"); } catch (_) {}
+      veil.remove();
+      await updateAccountButtons();
+      await showDashboard();
+      startLoginSuccessCountdown();
+      resolve();
+    };
+    cancelBtn.onclick = async () => {
+      continueBtn.disabled = true;
+      cancelBtn.disabled = true;
+      try { sessionStorage.removeItem("davimart_google_buyer_confirm"); } catch (_) {}
+      veil.remove();
+      await db.auth.signOut();
+      await updateAccountButtons();
+      resolve();
+    };
+  });
+  davimartBuyerConfirmInProgress = false;
+  return true;
+}
+
 db.auth.onAuthStateChange((event, session) => {
   if (event === "PASSWORD_RECOVERY") {
     setTimeout(showHomepagePasswordRecovery, 0);
     return;
   }
   if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
-    setTimeout(() => davimartRequireMfa(session), 0);
+    setTimeout(async () => {
+      if (await confirmGoogleBuyerAccount(session)) return;
+      await davimartRequireMfa(session);
+    }, 0);
   }
   updateHeaderAvatar(session?.user);
   document.getElementById("menuSignInBtn").hidden = !!session;
@@ -2482,7 +2557,12 @@ window.showMessage = function(type) {
   async function startGoogleSignIn(statusId, intent) {
     const status = document.getElementById(statusId);
     status.textContent = intent === "signup" ? "Creating your account with Google..." : "Redirecting to Google...";
-    const redirectPath = "/set-password.html?source=google";
+    // Ordinary buyer sign-ins get a DAVIMART account confirmation after Google returns.
+    if (role === "buyer" && intent === "login") {
+      try { sessionStorage.setItem("davimart_google_buyer_confirm", "1"); } catch (_) {}
+    }
+    // Keep Google authentication separate; Google users return directly to DAVIMART.
+    const redirectPath = "/index.html";
     const { error } = await db.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -2574,7 +2654,7 @@ window.showMessage = function(type) {
     const { data, error } = await db.auth.signInWithPassword({ email, password });
     status.textContent = error
       ? (error.message === "Invalid login credentials"
-          ? "This email/password combination did not work. If you originally registered with Google and never created a DAVIMART password, tap “Continue with Google” using the same Gmail. DAVIMART will then guide you to create a password."
+          ? "This email/password combination did not work. If you registered with Google, choose “Continue with Google” instead."
           : error.message)
       : "Signed in successfully!";
     if (!error) {
