@@ -71,6 +71,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <button class="active" type="button" data-panel="overview">▣ Overview</button>
 <button type="button" data-panel="usersPanel">👥 Users & sellers</button>
 <button type="button" data-panel="listingsPanel">▤ Listings review</button>
+<button type="button" data-panel="payoutsPanel">₦ Seller payouts</button>
 <button type="button" data-panel="notifyPanel">🔔 Notifications</button>
 <a href="admin-conversations.html" style="display:block;padding:12px 10px;margin:3px 0;border-radius:9px;background:#edf3ff;color:#0b56c5;text-decoration:none;font-weight:700">🔒 All Conversations</a>
 <button type="button" data-panel="productUploadPanel">🛍️ Add product</button>
@@ -99,6 +100,17 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <p>Review product, service and property listings before they appear publicly. You can approve or reject each submission.</p>
 <div class="actions"><button class="btn btn-light" id="refreshListings">Refresh listings</button></div>
 <div id="listingsTable">Loading listings…</div>
+</section>
+<section class="panel admin-feature" id="payoutsPanel" hidden>
+<h2>Seller bank accounts & manual payouts</h2>
+<p>Set the commission rate, review paid and delivered seller order items, then transfer the net amount manually from your Access Bank account. Record the bank transfer reference only after the transfer succeeds.</p>
+<div class="notice">Payout eligibility requires a successful payment, a delivered order and a delivered seller order item. Disputed or undelivered orders must not be paid. Commission starts at 0% until you set the agreed rate.</div>
+<label for="payoutCommissionRate">DAVIMART commission (%)</label>
+<input id="payoutCommissionRate" type="number" min="0" max="100" step="0.01" style="max-width:260px" placeholder="0">
+<div class="actions"><button class="btn btn-gold" id="savePayoutCommission" type="button">Save commission rate</button><button class="btn btn-light" id="refreshPayouts" type="button">Refresh payout records</button></div>
+<p id="payoutAdminStatus" role="status"></p>
+<h3>Eligible seller order items</h3><div id="eligiblePayouts">Loading eligible orders…</div>
+<h3 style="margin-top:25px">Completed bank transfers</h3><div id="completedPayouts">Loading payout history…</div>
 </section>
 <section class="panel admin-feature" id="notifyPanel" hidden>
 <h2>Send a user notification</h2>
@@ -371,6 +383,7 @@ function showAdminPanel(id){
  document.querySelectorAll("aside button[data-panel]").forEach(b=>b.classList.toggle("active",b.dataset.panel===id));
  if(id==="usersPanel") loadUsers();
  if(id==="listingsPanel") loadListings();
+ if(id==="payoutsPanel") loadPayoutManagement();
  if(id==="notifyPanel") loadNotificationRecipients();
  if(id==="flashSalePanel") loadFlashSaleGallery();
  if(id==="davitechBannerPanel") loadDavitechBannerGallery();
@@ -428,6 +441,94 @@ document.getElementById("adminProductForm").onsubmit=async(e)=>{
  status.textContent=error?"Could not publish product: "+error.message:"Product published successfully and is now live on DAVIMART.";
  if(!error){document.getElementById("adminProductForm").reset();document.getElementById("adminProductPreview").innerHTML="";}
 };
+async function loadPayoutManagement(){
+ const status=document.getElementById("payoutAdminStatus");
+ status.textContent="Loading payout settings and seller orders…";
+ const {data:settings,error:settingsError}=await db.from("marketplace_payout_settings").select("commission_rate,is_configured").eq("id",true).single();
+ if(settingsError){status.textContent="Could not load commission settings: "+settingsError.message;return;}
+ document.getElementById("payoutCommissionRate").value=settings.commission_rate;
+ await Promise.all([loadEligiblePayoutItems(),loadCompletedPayouts()]);
+ status.textContent=settings.is_configured?"Commission rate: "+settings.commission_rate+"%. Eligible orders are checked against successful payment and delivery status.":"Set and save the agreed commission rate before recording any seller payout.";
+}
+document.getElementById("savePayoutCommission").onclick=async()=>{
+ const rate=Number(document.getElementById("payoutCommissionRate").value),status=document.getElementById("payoutAdminStatus");
+ if(!Number.isFinite(rate)||rate<0||rate>100){status.textContent="Enter a commission rate from 0 to 100.";return;}
+ if(!confirm("Save DAVIMART commission at "+rate+"% for future seller payouts?"))return;
+ const {data:{user}}=await db.auth.getUser();
+ if(!user||user.id!==ADMIN_ID){status.textContent="Access denied.";return;}
+ const {error}=await db.from("marketplace_payout_settings").upsert({id:true,commission_rate:rate,is_configured:true,updated_at:new Date().toISOString(),updated_by:user.id},{onConflict:"id"});
+ status.textContent=error?"Could not save commission: "+error.message:"Commission rate saved. This rate will be used for payouts recorded from now on.";
+};
+document.getElementById("refreshPayouts").onclick=loadPayoutManagement;
+async function loadEligiblePayoutItems(){
+ const host=document.getElementById("eligiblePayouts");host.textContent="Loading eligible order items…";
+ const {data:items,error}=await db.from("order_items").select("id,order_id,seller_id,title,unit_price,quantity,line_total,seller_fulfillment_status").eq("seller_fulfillment_status","delivered").order("created_at",{ascending:false}).limit(300);
+ if(error){host.textContent="Could not load order items: "+error.message;return;}
+ const [ordersResult,banksResult,profilesResult,paidResult]=await Promise.all([
+  db.from("orders").select("id,status,payment_status,paid_at,customer_name").eq("status","delivered").eq("payment_status","success").limit(500),
+  db.from("seller_payout_accounts").select("seller_id,bank_name,account_name,account_number"),
+  db.from("profiles").select("id,full_name,email"),
+  db.from("seller_payouts").select("order_item_id")
+ ]);
+ if(ordersResult.error||banksResult.error||profilesResult.error||paidResult.error){host.textContent="Could not load payout details: "+[ordersResult.error,banksResult.error,profilesResult.error,paidResult.error].filter(Boolean).map(x=>x.message).join("; ");return;}
+ const orderMap=new Map((ordersResult.data||[]).map(x=>[x.id,x]));
+ const bankMap=new Map((banksResult.data||[]).map(x=>[x.seller_id,x]));
+ const profileMap=new Map((profilesResult.data||[]).map(x=>[x.id,x]));
+ const paidSet=new Set((paidResult.data||[]).map(x=>x.order_item_id));
+ const eligible=(items||[]).filter(x=>orderMap.has(x.order_id)&&!paidSet.has(x.id));
+ if(!eligible.length){host.textContent="No unpaid, successfully paid and delivered seller order items are currently eligible.";return;}
+ const rows=eligible.map(item=>{
+  const tr=document.createElement("tr"),order=orderMap.get(item.order_id),bank=bankMap.get(item.seller_id),profile=profileMap.get(item.seller_id);
+  cellText(tr,item.title);cellText(tr,profile?.full_name||profile?.email||item.seller_id);cellText(tr,"₦"+Number(item.line_total).toLocaleString("en-NG",{minimumFractionDigits:2}));
+  const bankCell=document.createElement("td");bankCell.textContent=bank?bank.bank_name+" · "+bank.account_name+" · "+bank.account_number:"Bank details not saved";tr.appendChild(bankCell);
+  cellText(tr,order.customer_name||"—");
+  const action=document.createElement("td");
+  if(bank){
+   const button=document.createElement("button");button.className="action-approve";button.textContent="Record bank transfer";button.onclick=()=>recordSellerPayout(item,bank,profile);action.appendChild(button);
+  }else action.textContent="Seller must add bank details";
+  tr.appendChild(action);return tr;
+ });
+ makeTable("eligiblePayouts",["Order item","Seller","Gross amount","Seller bank account","Buyer","Admin action"],rows);
+}
+async function recordSellerPayout(item,bank,profile){
+ const rate=Number(document.getElementById("payoutCommissionRate").value);
+ if(!Number.isFinite(rate)||rate<0||rate>100){alert("Set a valid commission rate first.");return;}
+ const commission=Math.round(Number(item.line_total)*rate)/100;
+ const roundedCommission=Math.round(commission*100)/100;
+ const net=Math.round((Number(item.line_total)-roundedCommission)*100)/100;
+ const reference=prompt("After transferring ₦"+net.toLocaleString("en-NG",{minimumFractionDigits:2})+" to "+bank.bank_name+" account "+bank.account_number+" ("+bank.account_name+"), enter the bank transfer reference. Cancel if you have not transferred the money.");
+ if(!reference||reference.trim().length<3){alert("No payout was recorded. Enter a valid transfer reference after the transfer succeeds.");return;}
+ if(!confirm("Confirm that you have successfully transferred ₦"+net.toLocaleString("en-NG",{minimumFractionDigits:2})+" to "+bank.account_name+"? This creates a permanent payout record."))return;
+ const {data:{user}}=await db.auth.getUser();
+ if(!user||user.id!==ADMIN_ID){alert("Access denied.");return;}
+ const {error}=await db.from("seller_payouts").insert({
+  seller_id:item.seller_id,order_item_id:item.id,order_id:item.order_id,
+  gross_amount:Number(item.line_total),commission_rate:rate,commission_amount:roundedCommission,net_amount:net,
+  transfer_reference:reference.trim(),approved_by:user.id,status:"paid"
+ });
+ if(error){alert("Payout record was not saved: "+error.message);return;}
+ // Seller email notification is not activated yet; payout is visible in the seller dashboard history.
+ await loadEligiblePayoutItems();await loadCompletedPayouts();
+}
+async function loadCompletedPayouts(){
+ const host=document.getElementById("completedPayouts");host.textContent="Loading payout history…";
+ const {data:rows,error}=await db.from("seller_payouts").select("id,seller_id,order_id,gross_amount,commission_rate,commission_amount,net_amount,bank_name,account_name,account_number,transfer_reference,paid_at").order("paid_at",{ascending:false}).limit(300);
+ if(error){host.textContent="Could not load payout history: "+error.message;return;}
+ if(!rows?.length){host.textContent="No seller payouts have been recorded yet.";return;}
+ const profileIds=[...new Set(rows.map(x=>x.seller_id))];
+ const {data:profiles,error:profileError}=await db.from("profiles").select("id,full_name,email").in("id",profileIds);
+ if(profileError){host.textContent="Could not load seller names: "+profileError.message;return;}
+ const names=new Map((profiles||[]).map(x=>[x.id,x.full_name||x.email||x.id]));
+ const tableRows=rows.map(p=>{
+  const tr=document.createElement("tr");cellText(tr,names.get(p.seller_id));cellText(tr,p.order_id);
+  cellText(tr,"₦"+Number(p.gross_amount).toLocaleString("en-NG",{minimumFractionDigits:2}));
+  cellText(tr,p.commission_rate+"% · ₦"+Number(p.commission_amount).toLocaleString("en-NG",{minimumFractionDigits:2}));
+  cellText(tr,"₦"+Number(p.net_amount).toLocaleString("en-NG",{minimumFractionDigits:2}));
+  cellText(tr,p.bank_name+" · "+p.account_name+" · "+p.account_number);
+  cellText(tr,p.transfer_reference);cellText(tr,new Date(p.paid_at).toLocaleString());return tr;
+ });
+ makeTable("completedPayouts",["Seller","Order","Gross","Commission","Paid to seller","Bank account","Transfer reference","Date"],tableRows);
+}
 async function loadUsers(){
  const host=document.getElementById("usersTable");host.textContent="Loading users…";
  const {data,error}=await db.from("profiles").select("id,full_name,email,role,approval_status,seller_status,created_at").order("created_at",{ascending:false}).limit(200);
