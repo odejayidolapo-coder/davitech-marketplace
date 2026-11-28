@@ -482,7 +482,7 @@ async function loadBuyerOrders(userId){
  if(!host||!status)return;
  const loadVersion=++buyerOrdersLoadVersion;
  host.replaceChildren();status.textContent="Loading your orders…";
- const {data:orders,error}=await db.from("orders").select("id,buyer_id,status,payment_status,inventory_status,currency,subtotal,delivery_fee,total,paystack_reference,paid_at,created_at,delivery_address,order_items(id,title,image_url,unit_price,quantity,line_total,seller_fulfillment_status,created_at)").eq("buyer_id",userId).order("created_at",{ascending:false}).limit(50);
+ const {data:orders,error}=await db.from("orders").select("id,buyer_id,status,payment_status,inventory_status,paystack_transaction_id,currency,subtotal,delivery_fee,total,paystack_reference,paid_at,created_at,delivery_address,order_items(id,title,image_url,unit_price,quantity,line_total,seller_fulfillment_status,created_at)").eq("buyer_id",userId).order("created_at",{ascending:false}).limit(50);
  if(loadVersion!==buyerOrdersLoadVersion)return;
  if(error){status.textContent="We could not load your orders. Please refresh and try again. "+error.message;return;}
  const uniqueOrders=[...new Map((orders||[]).map(order=>[order.id,order])).values()];
