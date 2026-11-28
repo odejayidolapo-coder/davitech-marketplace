@@ -185,7 +185,7 @@ body.camera-open{overflow:hidden}
 <div class="feature">
 <strong>📦 My Orders</strong>
 <p>View and track your marketplace purchases.</p>
-<div class="status">Order tracking is coming soon.</div>
+<div class="status">Your purchases and delivery progress are shown in the My Orders &amp; Delivery Tracking section below.</div>
 </div>
 <div class="feature" id="wishlistSection">
 <strong>❤️ My Wishlist</strong>
@@ -453,19 +453,24 @@ function renderBuyerOrderCard(order){
  }
  return card;
 }
+let buyerOrdersLoadVersion=0;
 async function loadBuyerOrders(userId){
  const host=document.getElementById("buyerOrdersList"),status=document.getElementById("buyerOrdersStatus");
  if(!host||!status)return;
+ const loadVersion=++buyerOrdersLoadVersion;
  host.replaceChildren();status.textContent="Loading your orders…";
  const {data:orders,error}=await db.from("orders").select("id,buyer_id,status,payment_status,inventory_status,currency,subtotal,delivery_fee,total,paystack_reference,paid_at,created_at,delivery_address,order_items(id,title,image_url,unit_price,quantity,line_total,seller_fulfillment_status,created_at)").eq("buyer_id",userId).order("created_at",{ascending:false}).limit(50);
+ if(loadVersion!==buyerOrdersLoadVersion)return;
  if(error){status.textContent="We could not load your orders. Please refresh and try again. "+error.message;return;}
- if(!orders?.length){status.textContent="No purchases yet.";const empty=document.createElement("div");empty.className="order-empty";empty.textContent="Your orders will appear here after you place a purchase on DAVIMART.";host.appendChild(empty);return;}
- const orderIds=orders.map(o=>o.id);
- const {data:requests, error:requestError}=await db.from("order_cancellation_requests").select("id,order_id,status,reason,admin_note,created_at").in("order_id",orderIds);
+ const uniqueOrders=[...new Map((orders||[]).map(order=>[order.id,order])).values()];
+ if(!uniqueOrders.length){status.textContent="No purchases yet.";const empty=document.createElement("div");empty.className="order-empty";empty.textContent="Your orders will appear here after you place a purchase on DAVIMART.";host.appendChild(empty);return;}
+ const orderIds=uniqueOrders.map(o=>o.id);
+ const {data:requests,error:requestError}=await db.from("order_cancellation_requests").select("id,order_id,status,reason,admin_note,created_at").in("order_id",orderIds);
+ if(loadVersion!==buyerOrdersLoadVersion)return;
  if(requestError){status.textContent="Orders loaded, but cancellation request status could not be checked: "+requestError.message;return;}
  const requestByOrder=new Map((requests||[]).map(r=>[r.order_id,r]));
- status.textContent=orders.length+" order"+(orders.length===1?"":"s")+" found.";
- orders.forEach(order=>{order.items=order.order_items||[];order.cancellationRequest=requestByOrder.get(order.id)||null;host.appendChild(renderBuyerOrderCard(order));});
+ status.textContent=uniqueOrders.length+" order"+(uniqueOrders.length===1?"":"s")+" found.";
+ uniqueOrders.forEach(order=>{order.items=order.order_items||[];order.cancellationRequest=requestByOrder.get(order.id)||null;host.appendChild(renderBuyerOrderCard(order));});
 }
 document.getElementById("refreshBuyerOrders").addEventListener("click",async()=>{const {data:{user}}=await db.auth.getUser();if(user)await loadBuyerOrders(user.id);});
 
