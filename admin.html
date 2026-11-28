@@ -57,6 +57,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <button type="button" data-panel="listingsPanel">▤ Listings review</button>
 <button type="button" data-panel="payoutsPanel">₦ Seller payouts</button>
 <button type="button" data-panel="notifyPanel">🔔 Notifications</button>
+<button type="button" data-panel="cancellationsPanel">↩️ Order cancellations</button>
 <button type="button" data-panel="productUploadPanel">🛍️ Add product</button>
 <button type="button" id="bannerNav" data-panel="bannerPanel">▧ Homepage banner</button>
 <button type="button" data-panel="flashSalePanel">⚡ Flash sale images</button>
@@ -145,6 +146,13 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <div class="actions"><button class="btn btn-gold" id="saveFlashSaleCountdown" type="button">Save countdown</button><button class="btn btn-light" id="clearFlashSaleCountdown" type="button">Clear countdown</button></div>
 <p id="flashSaleCountdownStatus" role="status">Loading countdown settings…</p>
 <h2 style="margin-top:24px">Published flash sale images</h2><div id="flashSaleGallery">Loading images…</div>
+</section>
+<section class="panel" id="cancellationsPanel" hidden>
+<h2>Order cancellation requests</h2>
+<p>Review buyer requests for paid orders that have not shipped. Approval marks the order cancelled and flags it for a Paystack refund; the refund must still be processed and verified separately.</p>
+<div class="actions"><button class="btn btn-light" type="button" id="refreshCancellationRequests">Refresh requests</button></div>
+<p id="cancellationAdminStatus" role="status">Open this section to load requests.</p>
+<div id="cancellationRequestsTable"></div>
 </section>
 </div></div></div>
 </main>
@@ -336,6 +344,7 @@ function showAdminPanel(id){
  if(id==="listingsPanel") loadListings();
  if(id==="payoutsPanel") loadPayoutManagement();
  if(id==="notifyPanel") loadNotificationRecipients();
+ if(id==="cancellationsPanel") loadCancellationRequests();
  if(id==="flashSalePanel") loadFlashSaleGallery();
  if(id==="davitechBannerPanel") loadDavitechBannerGallery();
 }
@@ -344,6 +353,53 @@ document.getElementById("openBanner").onclick=()=>showAdminPanel("bannerPanel");
 document.getElementById("bannerNav").onclick=()=>showAdminPanel("bannerPanel");
 document.getElementById("refreshUsers").onclick=loadUsers;
 document.getElementById("refreshListings").onclick=loadListings;
+
+async function loadCancellationRequests(){
+ const host=document.getElementById("cancellationRequestsTable"),status=document.getElementById("cancellationAdminStatus");
+ status.textContent="Loading cancellation requests…";host.textContent="";
+ const {data:requests,error}=await db.from("order_cancellation_requests").select("id,order_id,buyer_id,reason,status,admin_note,created_at,reviewed_at").order("created_at",{ascending:false}).limit(100);
+ if(error){status.textContent="Could not load cancellation requests: "+error.message;return;}
+ if(!requests?.length){status.textContent="No cancellation requests yet.";return;}
+ const ids=[...new Set(requests.map(r=>r.order_id))];
+ const {data:orders,error:orderError}=await db.from("orders").select("id,status,payment_status,total,inventory_status,created_at,customer_name,customer_email,paystack_reference").in("id",ids);
+ if(orderError){status.textContent="Requests loaded, but order details failed: "+orderError.message;return;}
+ const orderMap=new Map((orders||[]).map(o=>[o.id,o]));
+ const rows=requests.map(req=>{
+  const order=orderMap.get(req.order_id),tr=document.createElement("tr");
+  cellText(tr,String(req.id).slice(0,8).toUpperCase());
+  cellText(tr,order?.customer_name||order?.customer_email||req.buyer_id);
+  cellText(tr,String(req.order_id).slice(0,8).toUpperCase());
+  cellText(tr,order?"₦"+Number(order.total||0).toLocaleString("en-NG"):"Order unavailable");
+  cellText(tr,order?.status||"—");
+  cellText(tr,order?.payment_status||"—");
+  cellText(tr,req.reason);
+  cellText(tr,new Date(req.created_at).toLocaleString());
+  cellText(tr,req.status+(req.admin_note?" — "+req.admin_note:""));
+  const td=document.createElement("td");
+  if(req.status==="pending"){
+   const approve=document.createElement("button");approve.className="action-approve";approve.textContent="Approve";
+   approve.onclick=()=>reviewCancellation(req.id,"approved");
+   const reject=document.createElement("button");reject.className="action-reject";reject.textContent="Reject";
+   reject.onclick=()=>reviewCancellation(req.id,"rejected");td.append(approve,reject);
+  }else td.textContent="Reviewed";
+  tr.appendChild(td);return tr;
+ });
+ makeTable("cancellationRequestsTable",["Request","Buyer","Order","Total","Order status","Payment","Reason","Requested","Decision","Action"],rows);
+ status.textContent=requests.length+" cancellation request(s) found.";
+}
+async function reviewCancellation(requestId,decision){
+ const promptText=decision==="approved"?"Optional admin note (refund will still need separate Paystack processing):":"Reason for rejecting this request:";
+ const note=prompt(promptText,"");
+ if(note===null)return;
+ if(decision==="rejected"&&!note.trim()){alert("Please provide a reason when rejecting a request.");return;}
+ if(!confirm("Are you sure you want to "+decision+" this cancellation request?"))return;
+ const status=document.getElementById("cancellationAdminStatus");status.textContent="Saving admin decision…";
+ const {data,error}=await db.rpc("review_order_cancellation",{p_request_id:requestId,p_decision:decision,p_note:note.trim()||null});
+ if(error){status.textContent="Could not save decision: "+error.message;return;}
+ status.textContent=decision==="approved"?"Cancellation approved. The order is marked cancelled and flagged for refund processing.":"Cancellation request rejected.";
+ await loadCancellationRequests();
+}
+document.getElementById("refreshCancellationRequests").addEventListener("click",loadCancellationRequests);
 
 function cellText(row,value){const td=document.createElement("td");td.textContent=value??"—";row.appendChild(td);return td;}
 function makeTable(target,headers,rows){
