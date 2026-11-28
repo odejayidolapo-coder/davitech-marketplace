@@ -2952,7 +2952,7 @@ async function showDashboard() {
   raw=raw.replace(/\b(what is|calculate|work out|solve|equals|equal to)\b/g," ")
    .replace(/multiplied by|times|x/g,"*").replace(/divided by|divided|over/g,"/")
    .replace(/\bplus\b/g,"+").replace(/\bminus\b/g,"-")
-   .replace(/to the power of|power of/g,"^").replace(/square root of/g,"sqrt(")
+   .replace(/to the power of|power of/g,"^").replace(/square root of\s*(\d+(?:\.\d+)?)/g,"sqrt($1)")
    .replace(/(\d+(?:\.\d+)?)\s*percent\s+of\s+/g,"($1/100)*")
    .replace(/(\d+(?:\.\d+)?)\s*%?\s+of\s+/g,"($1/100)*");
   raw=raw.replace(/\s+/g,"").replace(/(\d+(?:\.\d+)?)%/g,"($1/100)");
