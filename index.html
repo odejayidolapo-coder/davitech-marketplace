@@ -2930,8 +2930,9 @@ async function showDashboard() {
 <script id="davimart-ai-assistant">
 (function(){
  const panel=document.getElementById("dmAiPanel"),launcher=document.getElementById("dmAiLauncher"),messages=document.getElementById("dmAiMessages"),input=document.getElementById("dmAiInput"),form=document.getElementById("dmAiForm"),mic=document.getElementById("dmAiMic"),voiceStatus=document.getElementById("dmAiVoiceStatus"),stopVoice=document.getElementById("dmAiStopVoice");
- if(!panel||!launcher||!messages||!input||!form||!window.supabase)return;
- const aiDb=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
+ if(!panel||!launcher||!messages||!input||!form)return;
+ // Keep the assistant launcher available even if Supabase is slow or offline.
+ const aiDb=window.supabase?.createClient?window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p"):null;
  const money=n=>new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",maximumFractionDigits:0}).format(Number(n)||0);
  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
  let recognition=null,listening=false,history=[];
@@ -3027,6 +3028,7 @@ async function showDashboard() {
   const type=intentType(q),budget=budgetFrom(q);
   const stop=new Set(["find","show","me","please","want","need","looking","for","compare","price","prices","under","below","less","than","budget","products","product","services","service","properties","property","buy","sell","the","and","with","from","some","any"]);
   const words=q.toLowerCase().replace(/[₦,!?]/g," ").split(/\s+/).filter(w=>w.length>2&&!stop.has(w)).slice(0,6);
+  if(!aiDb)throw new Error("Marketplace connection is unavailable.");
   let query=aiDb.from("listings").select("id,title,description,price,category,location,image_url,listing_type").eq("status","approved").order("created_at",{ascending:false}).limit(60);
   if(type)query=query.eq("listing_type",type);
   if(budget!==null)query=query.lte("price",budget);
@@ -3109,6 +3111,7 @@ async function showDashboard() {
   bubble(clean,"user");input.value="";
   const thinking=bubble("DAVIMART AI is thinking…","bot");
   try{
+   if(!aiDb)throw new Error("AI service is unavailable.");
    const {data,error}=await aiDb.functions.invoke("davimart-ai",{body:{message:clean,history:history.slice(-6)}});
    if(error||!data?.answer)throw new Error(data?.code||error?.message||"AI_UNAVAILABLE");
    thinking.remove();bubble(data.answer,"bot");speak(data.answer);
