@@ -2480,7 +2480,7 @@ window.showMessage = function(type) {
       provider: "google",
       options: {
         redirectTo: window.location.origin + redirectPath,
-        queryParams: { prompt: "select_account" }
+        queryParams: { prompt: role === "buyer" ? "select_account consent" : "select_account" }
       }
     });
     if (error) status.textContent = "Google sign-in is not configured yet: " + error.message;
