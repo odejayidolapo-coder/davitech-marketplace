@@ -457,7 +457,7 @@ async function loadBuyerOrders(userId){
  const host=document.getElementById("buyerOrdersList"),status=document.getElementById("buyerOrdersStatus");
  if(!host||!status)return;
  host.replaceChildren();status.textContent="Loading your orders…";
- const {data:orders,error}=await db.from("orders").select("id,status,payment_status,currency,subtotal,delivery_fee,total,paystack_reference,paid_at,created_at,delivery_address,order_items(id,title,image_url,unit_price,quantity,line_total,seller_fulfillment_status,created_at)").eq("buyer_id",userId).order("created_at",{ascending:false}).limit(50);
+ const {data:orders,error}=await db.from("orders").select("id,status,payment_status,inventory_status,currency,subtotal,delivery_fee,total,paystack_reference,paid_at,created_at,delivery_address,order_items(id,title,image_url,unit_price,quantity,line_total,seller_fulfillment_status,created_at)").eq("buyer_id",userId).order("created_at",{ascending:false}).limit(50);
  if(error){status.textContent="We could not load your orders. Please refresh and try again. "+error.message;return;}
  if(!orders?.length){status.textContent="No purchases yet.";const empty=document.createElement("div");empty.className="order-empty";empty.textContent="Your orders will appear here after you place a purchase on DAVIMART.";host.appendChild(empty);return;}
  const orderIds=orders.map(o=>o.id);
