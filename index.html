@@ -2911,6 +2911,19 @@ async function showDashboard() {
  <div class="dm-ai-messages" id="dmAiMessages" aria-live="polite"><div class="dm-ai-bubble bot">Hi! I can help you find products, discover services or properties, compare listed prices, and explain details sellers have provided. What are you looking for?</div><div class="dm-ai-chips"><button class="dm-ai-chip" data-prompt="Find me a phone">Find a phone</button><button class="dm-ai-chip" data-prompt="Show me services">Find services</button><button class="dm-ai-chip" data-prompt="Show me properties">Find properties</button><button class="dm-ai-chip" data-prompt="Compare prices for laptops">Compare prices</button></div></div>
  <form class="dm-ai-inputrow" id="dmAiForm"><button class="dm-ai-voice-btn" id="dmAiMic" type="button" aria-label="Start voice search" title="Speak your request">🎙️</button><input id="dmAiInput" autocomplete="off" placeholder="Type or use the microphone…" aria-label="Ask DAVIMART AI"><button id="dmAiSend" type="submit">Send</button></form>
  <div class="dm-ai-voice-tools"><span id="dmAiVoiceStatus" role="status" aria-live="polite">Voice starts only when you tap the microphone.</span><button id="dmAiStopVoice" type="button">Stop voice</button></div>
+ <div class="dm-ai-calculator" style="margin:10px 12px;padding:12px;border:1px solid #d8e0ec;border-radius:12px;background:#f7f9fc;color:#102b55">
+  <button type="button" id="dmAiCalcToggle" aria-expanded="false" style="width:100%;padding:10px;border:0;border-radius:8px;background:#102b55;color:white;font-weight:700">🧮 Open AI Calculator</button>
+  <div id="dmAiCalcBody" hidden style="padding-top:12px">
+   <label for="dmAiCalcMode" style="display:block;font-weight:700;margin-bottom:5px">Calculator type</label>
+   <select id="dmAiCalcMode" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;margin-bottom:10px">
+    <option value="math">Basic & advanced maths</option><option value="discount">Discount & savings</option><option value="profit">Seller profit & margin</option><option value="percent">Percentage calculator</option>
+   </select>
+   <div id="dmAiCalcFields"></div>
+   <button type="button" id="dmAiCalcRun" style="width:100%;padding:11px;margin-top:9px;border:0;border-radius:8px;background:#e4b449;color:#102b55;font-weight:800">Calculate</button>
+   <div id="dmAiCalcResult" role="status" aria-live="polite" style="margin-top:10px;font-weight:700;white-space:pre-wrap"></div>
+   <small style="display:block;margin-top:8px;color:#526176">Calculations run on your device; no Gemini quota is needed. Check important business figures before making decisions.</small>
+  </div>
+ </div>
  <label class="dm-ai-note" style="display:flex;gap:8px;align-items:flex-start"><input id="dmAiGeminiConsent" type="checkbox" style="margin-top:3px"><span>Optional full AI uses Google Gemini. If enabled, your message and recent chat context are sent to Google. Do not enter passwords, PINs, OTPs, NIN/BVN, payment details or private contact information. Leave unchecked to use DAVIMART search and built-in help.</span></label><div class="dm-ai-note">Search uses approved public listings. Voice starts only when you tap the microphone. Confirm prices and availability with the seller.</div>
 </section>
 
@@ -2934,6 +2947,59 @@ async function showDashboard() {
  function close(){panel.classList.remove("dm-ai-open");panel.setAttribute("aria-hidden","true");if(listening&&recognition)recognition.stop();stopSpeaking()}
  launcher.addEventListener("click",open);document.getElementById("dmAiClose").addEventListener("click",close);
  function bubble(text,who){const el=document.createElement("div");el.className="dm-ai-bubble "+who;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;return el}
+ function safeCalculate(expression){
+  let raw=String(expression||"").toLowerCase().replace(/,/g,"").replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-");
+  raw=raw.replace(/\b(what is|calculate|work out|solve|equals|equal to)\b/g," ")
+   .replace(/multiplied by|times|x/g,"*").replace(/divided by|divided|over/g,"/")
+   .replace(/\bplus\b/g,"+").replace(/\bminus\b/g,"-")
+   .replace(/to the power of|power of/g,"^").replace(/square root of/g,"sqrt(")
+   .replace(/(\d+(?:\.\d+)?)\s*percent\s+of\s+/g,"($1/100)*")
+   .replace(/(\d+(?:\.\d+)?)\s*%?\s+of\s+/g,"($1/100)*");
+  raw=raw.replace(/\s+/g,"").replace(/(\d+(?:\.\d+)?)%/g,"($1/100)");
+  if(!raw||raw.length>160)throw new Error("Enter a valid calculation.");
+  const tokens=raw.match(/sqrt|abs|round|\d+(?:\.\d+)?|[()+\-*/^]/g)||[];
+  if(tokens.join("")!==raw)throw new Error("Use numbers and +, −, ×, ÷, %, ^, parentheses or sqrt().");
+  let pos=0;
+  function expr(){let v=term();while(tokens[pos]==="+"||tokens[pos]==="-"){const op=tokens[pos++],r=term();v=op==="+"?v+r:v-r;}return v;}
+  function term(){let v=power();while(tokens[pos]==="*"||tokens[pos]==="/"){const op=tokens[pos++],r=power();if(op==="/"&&r===0)throw new Error("You cannot divide by zero.");v=op==="*"?v*r:v/r;}return v;}
+  function power(){let v=unary();if(tokens[pos]==="^"){pos++;v=Math.pow(v,power());}return v;}
+  function unary(){if(tokens[pos]==="+"){pos++;return unary();}if(tokens[pos]==="-"){pos++;return -unary();}return atom();}
+  function atom(){
+   const t=tokens[pos++];
+   if(t==="("){const v=expr();if(tokens[pos++]!==")")throw new Error("Check your brackets.");return v;}
+   if(t==="sqrt"||t==="abs"||t==="round"){if(tokens[pos++]!=="(")throw new Error("Use "+t+"(number).");const v=expr();if(tokens[pos++]!==")")throw new Error("Check your brackets.");if(t==="sqrt"){if(v<0)throw new Error("Square root of a negative number is not a real result.");return Math.sqrt(v);}return t==="abs"?Math.abs(v):Math.round(v);}
+   if(t===undefined||!/^(\d+\.?\d*|\.\d+)$/.test(t))throw new Error("Enter a valid maths expression.");return Number(t);
+  }
+  const result=expr();if(pos!==tokens.length||!Number.isFinite(result))throw new Error("That calculation is not valid.");
+  return result;
+ }
+ function calcField(id,label,placeholder){return '<label style="display:block;font-weight:600;margin:8px 0 4px" for="'+id+'">'+label+'</label><input id="'+id+'" inputmode="decimal" type="number" step="any" placeholder="'+placeholder+'" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px">';}
+ const calcMode=document.getElementById("dmAiCalcMode"),calcFields=document.getElementById("dmAiCalcFields"),calcResult=document.getElementById("dmAiCalcResult");
+ function renderCalcFields(){
+  const mode=calcMode.value;
+  if(mode==="math")calcFields.innerHTML='<label style="display:block;font-weight:600;margin:8px 0 4px" for="dmAiCalcExpression">Maths expression</label><input id="dmAiCalcExpression" type="text" inputmode="text" placeholder="e.g. (2500 × 3) - 10%" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px"><small>Supports + − × ÷, %, powers (^), brackets and sqrt(number).</small>';
+  if(mode==="discount")calcFields.innerHTML=calcField("dmAiCalcOriginal","Original price (₦)","e.g. 25000")+calcField("dmAiCalcDiscount","Discount (%)","e.g. 15");
+  if(mode==="profit")calcFields.innerHTML=calcField("dmAiCalcCost","Cost price per item (₦)","e.g. 8000")+calcField("dmAiCalcSale","Selling price per item (₦)","e.g. 11000")+calcField("dmAiCalcQuantity","Quantity","e.g. 5");
+  if(mode==="percent")calcFields.innerHTML=calcField("dmAiCalcAmount","Amount","e.g. 50000")+calcField("dmAiCalcRate","Percentage (%)","e.g. 7.5");
+  calcResult.textContent="";
+ }
+ calcMode.addEventListener("change",renderCalcFields);renderCalcFields();
+ document.getElementById("dmAiCalcToggle").addEventListener("click",()=>{
+  const body=document.getElementById("dmAiCalcBody"),btn=document.getElementById("dmAiCalcToggle"),show=body.hidden;
+  body.hidden=!show;btn.setAttribute("aria-expanded",String(show));btn.textContent=show?"🧮 Close AI Calculator":"🧮 Open AI Calculator";
+ });
+ function numericField(id){const el=document.getElementById(id),v=el?Number(el.value):NaN;if(!el||el.value.trim()===""||!Number.isFinite(v))throw new Error("Please enter all the required numbers.");return v;}
+ document.getElementById("dmAiCalcRun").addEventListener("click",()=>{
+  try{
+   let result,spoken;
+   if(calcMode.value==="math"){const expr=document.getElementById("dmAiCalcExpression").value;result=safeCalculate(expr);spoken=expr+" equals "+result;}
+   if(calcMode.value==="discount"){const original=numericField("dmAiCalcOriginal"),rate=numericField("dmAiCalcDiscount");if(original<0||rate<0||rate>100)throw new Error("Price must be positive and discount must be between 0 and 100.");const saving=original*rate/100,final=original-saving;result="You save "+money(saving)+".\nNew price: "+money(final);spoken="You save "+money(saving)+". The discounted price is "+money(final);}
+   if(calcMode.value==="profit"){const cost=numericField("dmAiCalcCost"),sale=numericField("dmAiCalcSale"),qty=numericField("dmAiCalcQuantity");if(cost<0||sale<0||qty<=0)throw new Error("Costs and selling prices cannot be negative; quantity must be above zero.");const per=sale-cost,total=per*qty,revenue=sale*qty,margin=sale>0?per/sale*100:0;result="Profit per item: "+money(per)+"\nTotal profit: "+money(total)+"\nTotal sales: "+money(revenue)+"\nProfit margin: "+margin.toFixed(2)+"%";spoken="Profit per item "+money(per)+". Total profit "+money(total)+". Profit margin "+margin.toFixed(2)+" percent.";}
+   if(calcMode.value==="percent"){const amount=numericField("dmAiCalcAmount"),rate=numericField("dmAiCalcRate");result=rate+"% of "+amount+" = "+(amount*rate/100);spoken=result;}
+   calcResult.textContent=result;speak(spoken);
+  }catch(e){calcResult.textContent=e.message||"Please check the numbers and try again."}
+ });
+
  function resultCard(item){
   const type=item.listing_type||"product",a=document.createElement("a");a.className="dm-ai-result";
   const routes={product:"product.html?id=",service:"service-provider.html?id=",property:"property.html?id="};a.href=(routes[type]||routes.product)+encodeURIComponent(item.id);
@@ -2998,6 +3064,9 @@ async function showDashboard() {
  }
  async function answer(q){
   const clean=q.trim().slice(0,1800);if(!clean)return;
+  if(/^(?:what is|calculate|work out|solve)\\b/i.test(clean)||/\\b(?:plus|minus|multiplied by|divided by|percent of|square root of)\\b/i.test(clean)||/[0-9][+*/^%()\\-][0-9]/.test(clean)){
+   try{const result=safeCalculate(clean);bubble(clean,"user");input.value="";const msg="The answer is "+result.toLocaleString("en-NG",{maximumFractionDigits:8})+".";bubble(msg,"bot");speak(msg);return;}catch(_){}
+  }
   const consent=document.getElementById("dmAiGeminiConsent");
   if(!consent?.checked){bubble(clean,"user");input.value="";bubble("Full AI is off until you opt in. I'll use DAVIMART built-in help and marketplace search instead.","bot");await localAnswer(clean);return;}
   bubble(clean,"user");input.value="";
