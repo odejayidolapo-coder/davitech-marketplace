@@ -2908,24 +2908,7 @@ async function showDashboard() {
 <button id="dmAiLauncher" type="button" aria-label="Open DAVIMART AI shopping assistant" onclick="var p=document.getElementById('dmAiPanel');if(p){p.classList.add('dm-ai-open');p.setAttribute('aria-hidden','false');var i=document.getElementById('dmAiInput');if(i)setTimeout(function(){i.focus()},80)}" style="pointer-events:auto;touch-action:manipulation;z-index:2147483000">✨ <span>Ask DAVIMART AI</span></button>
 <section id="dmAiPanel" aria-label="DAVIMART AI shopping assistant" aria-hidden="true">
  <div class="dm-ai-head"><div><strong>✨ DAVIMART AI</strong><small>Your shopping and discovery assistant</small></div><button class="dm-ai-close" id="dmAiClose" type="button" aria-label="Close assistant">×</button></div>
- <div class="dm-ai-messages" id="dmAiMessages" aria-live="polite"><div class="dm-ai-bubble bot">Hi! I can help you find products, discover services or properties, compare listed prices, and explain details sellers have provided. What are you looking for?</div><div class="dm-ai-chips"><button class="dm-ai-chip" data-prompt="Find me a phone">Find a phone</button><button class="dm-ai-chip" data-prompt="Show me services">Find services</button><button class="dm-ai-chip" data-prompt="Show me properties">Find properties</button><button class="dm-ai-chip" data-prompt="Compare prices for laptops">Compare prices</button><button class="dm-ai-chip" data-prompt="Guide me through navigating DAVIMART">Guide me around</button></div></div>
- <form class="dm-ai-inputrow" id="dmAiForm"><button class="dm-ai-voice-btn" id="dmAiMic" type="button" aria-label="Start voice search" title="Speak your request">🎙️</button><input id="dmAiInput" autocomplete="off" placeholder="Type or use the microphone…" aria-label="Ask DAVIMART AI"><button id="dmAiSend" type="submit">Send</button></form>
- <div class="dm-ai-voice-tools"><span id="dmAiVoiceStatus" role="status" aria-live="polite">Voice starts only when you tap the microphone.</span><button id="dmAiStopVoice" type="button">Stop voice</button></div>
- <div class="dm-ai-calculator" style="margin:10px 12px;padding:12px;border:1px solid #d8e0ec;border-radius:12px;background:#f7f9fc;color:#102b55">
-  <button type="button" id="dmAiCalcToggle" aria-expanded="false" style="width:100%;padding:10px;border:0;border-radius:8px;background:#102b55;color:white;font-weight:700">🧮 Open AI Calculator</button>
-  <div id="dmAiCalcBody" hidden style="padding-top:12px">
-   <label for="dmAiCalcMode" style="display:block;font-weight:700;margin-bottom:5px">Calculator type</label>
-   <select id="dmAiCalcMode" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;margin-bottom:10px">
-    <option value="math">Basic & advanced maths</option><option value="discount">Discount & savings</option><option value="profit">Seller profit & margin</option><option value="percent">Percentage calculator</option>
-   </select>
-   <div id="dmAiCalcFields"></div>
-   <button type="button" id="dmAiCalcRun" style="width:100%;padding:11px;margin-top:9px;border:0;border-radius:8px;background:#e4b449;color:#102b55;font-weight:800">Calculate</button>
-   <div id="dmAiCalcResult" role="status" aria-live="polite" style="margin-top:10px;font-weight:700;white-space:pre-wrap"></div>
-   <small style="display:block;margin-top:8px;color:#526176">Calculations run on your device; no Gemini quota is needed. Check important business figures before making decisions.</small>
-  </div>
- </div>
- <label class="dm-ai-note" style="display:flex;gap:8px;align-items:flex-start"><input id="dmAiGeminiConsent" type="checkbox" style="margin-top:3px"><span>Optional full AI uses Google Gemini. If enabled, your message and recent chat context are sent to Google. Do not enter passwords, PINs, OTPs, NIN/BVN, payment details or private contact information. Leave unchecked to use DAVIMART search and built-in help.</span></label><div class="dm-ai-note">Search uses approved public listings. Voice starts only when you tap the microphone. Confirm prices and availability with the seller.</div>
- <div style="margin:12px;padding:12px;border:1px solid #d8e0ec;border-radius:12px;background:#fff">
+ <div class="dm-ai-messages" id="dmAiMessages" aria-live="polite"><div class="dm-ai-bubble bot">Hi! I can help you find products, discover services or properties, compare listed prices, and explain details sellers have provided. What are you looking for?</div><div class="dm-ai-chips"><button class="dm-ai-chip" data-prompt="Find me a phone">Find a phone</button><button class="dm-ai-chip" data-prompt="Show me services">Find services</button><button class="dm-ai-chip" data-prompt="Show me properties">Find properties</button><button class="dm-ai-chip" data-prompt="Compare prices for laptops">Compare prices</button><button class="dm-ai-chip" data-prompt="Guide me through navigating DAVIMART">Guide me around</button></div><div style="margin:12px;padding:12px;border:1px solid #d8e0ec;border-radius:12px;background:#fff">
  <button type="button" id="dmAiFeedbackToggle" style="width:100%;padding:10px;border:0;border-radius:8px;background:#e4b449;color:#102b55;font-weight:800">💬 Share feedback or take a survey</button>
  <form id="dmAiFeedbackForm" hidden style="margin-top:12px">
   <p style="margin:0;color:#526176;font-size:13px">Help us improve DAVIMART. Your feedback is shared with the DAVIMART admin team. Please don't include passwords, PINs, OTPs or payment details.</p>
@@ -2952,6 +2935,24 @@ async function showDashboard() {
   <p id="dmAiFeedbackStatus" role="status" aria-live="polite" style="margin:0;font-size:13px"></p>
  </form>
 </div>
+</div>
+ <form class="dm-ai-inputrow" id="dmAiForm"><button class="dm-ai-voice-btn" id="dmAiMic" type="button" aria-label="Start voice search" title="Speak your request">🎙️</button><input id="dmAiInput" autocomplete="off" placeholder="Type or use the microphone…" aria-label="Ask DAVIMART AI"><button id="dmAiSend" type="submit">Send</button></form>
+ <div class="dm-ai-voice-tools"><span id="dmAiVoiceStatus" role="status" aria-live="polite">Voice starts only when you tap the microphone.</span><button id="dmAiStopVoice" type="button">Stop voice</button></div>
+ <div class="dm-ai-calculator" style="margin:10px 12px;padding:12px;border:1px solid #d8e0ec;border-radius:12px;background:#f7f9fc;color:#102b55">
+  <button type="button" id="dmAiCalcToggle" aria-expanded="false" style="width:100%;padding:10px;border:0;border-radius:8px;background:#102b55;color:white;font-weight:700">🧮 Open AI Calculator</button>
+  <div id="dmAiCalcBody" hidden style="padding-top:12px">
+   <label for="dmAiCalcMode" style="display:block;font-weight:700;margin-bottom:5px">Calculator type</label>
+   <select id="dmAiCalcMode" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;margin-bottom:10px">
+    <option value="math">Basic & advanced maths</option><option value="discount">Discount & savings</option><option value="profit">Seller profit & margin</option><option value="percent">Percentage calculator</option>
+   </select>
+   <div id="dmAiCalcFields"></div>
+   <button type="button" id="dmAiCalcRun" style="width:100%;padding:11px;margin-top:9px;border:0;border-radius:8px;background:#e4b449;color:#102b55;font-weight:800">Calculate</button>
+   <div id="dmAiCalcResult" role="status" aria-live="polite" style="margin-top:10px;font-weight:700;white-space:pre-wrap"></div>
+   <small style="display:block;margin-top:8px;color:#526176">Calculations run on your device; no Gemini quota is needed. Check important business figures before making decisions.</small>
+  </div>
+ </div>
+ <label class="dm-ai-note" style="display:flex;gap:8px;align-items:flex-start"><input id="dmAiGeminiConsent" type="checkbox" style="margin-top:3px"><span>Optional full AI uses Google Gemini. If enabled, your message and recent chat context are sent to Google. Do not enter passwords, PINs, OTPs, NIN/BVN, payment details or private contact information. Leave unchecked to use DAVIMART search and built-in help.</span></label><div class="dm-ai-note">Search uses approved public listings. Voice starts only when you tap the microphone. Confirm prices and availability with the seller.</div>
+ 
 </section>
 
 <script id="davimart-ai-assistant">
