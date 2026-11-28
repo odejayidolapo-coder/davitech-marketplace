@@ -3009,8 +3009,7 @@ async function showDashboard() {
  }catch(calcInitError){status("The calculator could not initialise. Reload DAVIMART and try again.");}
 
  function resultCard(item){
-  const type=item.listing_type||"product",a=document.createElement("a");a.className="dm-ai-result";
-  const routes={product:"product.html?id=",service:"service-provider.html?id=",property:"property.html?id="};a.href=(routes[type]||routes.product)+encodeURIComponent(item.id);
+  const type=item.listing_type||"product",a=document.createElement("div");a.className="dm-ai-result";
   if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt="";img.loading="lazy";a.appendChild(img)}
   const info=document.createElement("span"),name=document.createElement("strong"),price=document.createElement("small"),meta=document.createElement("small");
   name.textContent=item.title||"Untitled listing";price.textContent=money(item.price);
