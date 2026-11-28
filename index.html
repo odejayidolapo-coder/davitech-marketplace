@@ -2978,7 +2978,8 @@ async function showDashboard() {
  // Optional buyer feedback and quick survey; only signed-in buyer accounts can submit.
  const feedbackToggle=document.getElementById("dmAiFeedbackToggle"),feedbackForm=document.getElementById("dmAiFeedbackForm"),feedbackStatus=document.getElementById("dmAiFeedbackStatus");
  if(feedbackToggle&&feedbackForm){
-  feedbackToggle.addEventListener("click",()=>{feedbackForm.hidden=!feedbackForm.hidden;feedbackToggle.textContent=feedbackForm.hidden?"💬 Share feedback or take a survey":"Close feedback form";});
+  feedbackForm.style.display="none";
+  feedbackToggle.addEventListener("click",()=>{const isOpen=feedbackForm.style.display!=="none";feedbackForm.style.display=isOpen?"none":"grid";feedbackForm.style.gap="9px";feedbackForm.hidden=false;feedbackToggle.textContent=isOpen?"💬 Share feedback or take a survey":"Close feedback form";});
   feedbackForm.addEventListener("submit",async e=>{
    e.preventDefault();const submit=document.getElementById("dmAiFeedbackSubmit");submit.disabled=true;feedbackStatus.textContent="Checking your account…";
    try{
