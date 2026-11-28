@@ -3062,8 +3062,39 @@ async function showDashboard() {
    thinking.remove();const msg="I couldn't reach DAVIMART listings just now. Please try again or use the main marketplace search bar.";bubble(msg,"bot");speak(msg);
   }
  }
+
+ function navigationTarget(q){
+  const t=String(q||"").toLowerCase().replace(/[?!.,]/g," ").replace(/\s+/g," ").trim();
+  const command=/\b(open|go to|take me to|show me|navigate to|visit|bring me to|let me see|i want to see)\b/.test(t);
+  if(!command)return null;
+  if(/\b(cart|basket|my cart)\b/.test(t))return {label:"Cart",href:"cart.html"};
+  if(/\b(properties|property|real estate|houses|land|rentals)\b/.test(t))return {label:"Properties",href:"real-estate.html"};
+  if(/\b(services|service marketplace|service providers)\b/.test(t))return {label:"Services",href:"services-marketplace.html"};
+  if(/\b(account|profile|my profile|settings)\b/.test(t))return {label:"Account",href:"account.html"};
+  if(/\b(seller dashboard|my shop|manage listings)\b/.test(t))return {label:"Seller Dashboard",href:"seller-dashboard.html"};
+  if(/\b(categories|all categories)\b/.test(t))return {label:"Categories",href:"categories.html"};
+  if(/\b(shop|products|product marketplace|browse products)\b/.test(t))return {label:"Shop",href:"shop.html"};
+  if(/\b(home|homepage|main page)\b/.test(t))return {label:"Home",href:"index.html"};
+  return null;
+ }
+ function navigateInsideApp(target){
+  const destination=new URL(target.href,window.location.href);
+  if(destination.origin!==window.location.origin)return false;
+  const link=Array.from(document.querySelectorAll('a[href]')).find(a=>{
+   try{return new URL(a.getAttribute("href"),window.location.href).href===destination.href}catch(_){return false}
+  });
+  if(link){link.click();return true;}
+  window.location.assign(destination.href);return true;
+ }
  async function answer(q){
   const clean=q.trim().slice(0,1800);if(!clean)return;
+  const destination=navigationTarget(clean);
+  if(destination){
+   bubble(clean,"user");input.value="";
+   const confirmation="Taking you to "+destination.label+" now.";
+   bubble(confirmation,"bot");speak(confirmation);
+   navigateInsideApp(destination);return;
+  }
   if(/^(?:what is|calculate|work out|solve)\\b/i.test(clean)||/\\b(?:plus|minus|multiplied by|divided by|percent of|square root of)\\b/i.test(clean)||/[0-9][+*/^%()\\-][0-9]/.test(clean)){
    try{const result=safeCalculate(clean);bubble(clean,"user");input.value="";const msg="The answer is "+result.toLocaleString("en-NG",{maximumFractionDigits:8})+".";bubble(msg,"bot");speak(msg);return;}catch(_){}
   }
