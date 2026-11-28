@@ -58,6 +58,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 
 .admin-brand{display:flex;align-items:center;gap:11px;text-decoration:none}
 </style>
+<script src="assets/davimart-ai-sitewide.js" defer></script>
 </head>
 <body><div style="padding:12px 4%;background:#071f50;display:flex;gap:18px;flex-wrap:wrap"><a href="messages.html" style="color:#fff;font-weight:800;text-decoration:none">✉ Open DAVIMART Messages</a><a href="admin-conversations.html" style="color:#ffc400;font-weight:800;text-decoration:none">🔒 All Buyer–Seller Conversations (Admin only)</a></div>
 <header><a class="dm-brand admin-brand" href="index.html" aria-label="DAVIMART home"><span class="dm-brand-mark" aria-hidden="true"><svg viewBox="0 0 64 64" role="img" aria-label="DAVIMART shopping cart"><path d="M7 10h7l6.5 31.5a4 4 0 0 0 3.9 3.2h25.8a4 4 0 0 0 3.8-2.8L60 23H18" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 28h32M24 36h27" fill="none" stroke="#9a6b00" stroke-width="3.2" stroke-linecap="round"/><path d="M25 49h24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle cx="27" cy="55" r="4.2" fill="#071f50" stroke="#071f50" stroke-width="1.5"/><circle cx="48" cy="55" r="4.2" fill="#071f50" stroke="#071f50" stroke-width="1.5"/></svg></span><span class="dm-brand-word"><span class="dm-brand-name">DAVI<span>MART</span></span><small>PRIVATE ADMIN CONSOLE</small></span></a><a class="btn btn-light" href="index.html">← Back to shop</a></header>
@@ -72,6 +73,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <button type="button" data-panel="usersPanel">👥 Users & sellers</button>
 <button type="button" data-panel="listingsPanel">▤ Listings review</button>
 <button type="button" data-panel="notifyPanel">🔔 Notifications</button>
+<button type="button" data-panel="feedbackPanel">💬 Buyer feedback & surveys</button>
 <a href="admin-conversations.html" style="display:block;padding:12px 10px;margin:3px 0;border-radius:9px;background:#edf3ff;color:#0b56c5;text-decoration:none;font-weight:700">🔒 All Conversations</a>
 <button type="button" data-panel="productUploadPanel">🛍️ Add product</button>
 <button type="button" id="bannerNav" data-panel="bannerPanel">▧ Homepage banner</button>
@@ -108,6 +110,13 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <textarea id="notifyMessage" maxlength="1000" placeholder="Write your message" style="width:100%;min-height:100px;padding:12px;border:1px solid #dbe2ed;border-radius:8px"></textarea>
 <div class="actions"><button class="btn btn-gold" id="sendNotification">Send notification</button></div>
 <p id="notifyStatus" role="status"></p>
+</section>
+<section class="panel admin-feature" id="feedbackPanel" hidden>
+ <h2>Buyer feedback & surveys</h2>
+ <p>Read buyer feedback and survey responses. Only the authorized DAVIMART administrator can view these submissions.</p>
+ <div class="actions"><button class="btn btn-light" id="refreshBuyerFeedback" type="button">Refresh feedback</button></div>
+ <p id="buyerFeedbackSummary" role="status">Loading feedback…</p>
+ <div id="buyerFeedbackTable">Loading feedback…</div>
 </section>
 <section class="panel admin-feature" id="productUploadPanel" hidden>
 <h2>Add a product to DAVIMART</h2>
@@ -372,6 +381,7 @@ function showAdminPanel(id){
  if(id==="usersPanel") loadUsers();
  if(id==="listingsPanel") loadListings();
  if(id==="notifyPanel") loadNotificationRecipients();
+ if(id==="feedbackPanel") loadBuyerFeedback();
  if(id==="flashSalePanel") loadFlashSaleGallery();
  if(id==="davitechBannerPanel") loadDavitechBannerGallery();
  if(id==="logoPanel") loadStoreLogo();
@@ -478,6 +488,40 @@ async function loadNotificationRecipients(){
  if(error){document.getElementById("notifyStatus").textContent="Could not load recipients: "+error.message;return;}
  (data||[]).forEach(u=>{const o=document.createElement("option");o.value=u.id;o.textContent=(u.full_name||u.email||u.id)+" — "+(u.email||"");select.appendChild(o);});
 }
+
+async function loadBuyerFeedback(){
+ const host=document.getElementById("buyerFeedbackTable"),summary=document.getElementById("buyerFeedbackSummary");
+ host.textContent="Loading buyer feedback…";summary.textContent="";
+ const {data:{user},error:authError}=await db.auth.getUser();
+ if(authError||!user||user.id!==ADMIN_ID){host.textContent="Access denied.";return;}
+ const {data,error}=await db.from("buyer_feedback").select("id,user_id,feedback_type,topic,rating,would_recommend,message,status,created_at").order("created_at",{ascending:false}).limit(200);
+ if(error){host.textContent="Could not load feedback: "+error.message;return;}
+ const rows=data||[],counts={new:0,reviewed:0,actioned:0};
+ rows.forEach(x=>{if(counts[x.status]!==undefined)counts[x.status]++;});
+ summary.textContent=rows.length+" submissions · "+counts.new+" new · "+counts.reviewed+" reviewed · "+counts.actioned+" actioned";
+ const rendered=rows.map(item=>{
+  const tr=document.createElement("tr");
+  cellText(tr,new Date(item.created_at).toLocaleString("en-NG"));
+  cellText(tr,item.feedback_type);cellText(tr,item.topic.replaceAll("_"," "));
+  cellText(tr,item.rating?("★".repeat(item.rating)+" ("+item.rating+"/5)"):"—");
+  cellText(tr,item.would_recommend===null?"Skipped":item.would_recommend?"Yes":"Not yet");
+  cellText(tr,item.message);cellText(tr,item.status);
+  const td=document.createElement("td");
+  if(item.status!=="reviewed"){const b=document.createElement("button");b.type="button";b.textContent="Mark reviewed";b.onclick=()=>updateBuyerFeedbackStatus(item.id,"reviewed");td.appendChild(b);}
+  if(item.status!=="actioned"){const b=document.createElement("button");b.type="button";b.textContent="Mark actioned";b.onclick=()=>updateBuyerFeedbackStatus(item.id,"actioned");td.appendChild(b);}
+  tr.appendChild(td);return tr;
+ });
+ makeTable("buyerFeedbackTable",["Date","Type","Topic","Rating","Recommend?","Buyer message","Status","Action"],rendered);
+}
+async function updateBuyerFeedbackStatus(id,statusValue){
+ const {data:{user},error:authError}=await db.auth.getUser();
+ if(authError||!user||user.id!==ADMIN_ID){alert("Access denied.");return;}
+ const {error}=await db.from("buyer_feedback").update({status:statusValue}).eq("id",id);
+ if(error){alert("Could not update feedback: "+error.message);return;}
+ await loadBuyerFeedback();
+}
+document.getElementById("refreshBuyerFeedback").onclick=loadBuyerFeedback;
+
 document.getElementById("sendNotification").onclick=async()=>{
  const userId=document.getElementById("notifyUser").value,title=document.getElementById("notifyTitle").value.trim(),message=document.getElementById("notifyMessage").value.trim(),status=document.getElementById("notifyStatus");
  if(!userId||!title||!message){status.textContent="Choose a recipient and enter both a title and message.";return;}
