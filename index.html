@@ -1611,6 +1611,48 @@ body{padding-bottom:78px!important}
 .dm-cart-button span{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 5px;display:grid;place-items:center;border-radius:999px;background:#ffc400;color:#071f50;font-size:11px;font-weight:900;border:2px solid #071f50}
 .dm-bottom-nav a b{display:inline-grid;place-items:center;min-width:15px;height:15px;margin-left:2px;border-radius:9px;background:#ffc400;color:#071f50;font-size:9px}
 </style>
+<style id="davimart-ai-style">
+#dmAiLauncher{position:fixed;right:16px;bottom:88px;z-index:2147483000;pointer-events:auto;touch-action:manipulation;border:0;border-radius:999px;background:#102b55;color:#fff;padding:13px 17px;font-weight:800;box-shadow:0 8px 24px #071f5040;cursor:pointer}
+#dmAiLauncher span{color:#e4b449}
+#dmAiPanel{position:fixed;right:12px;bottom:125px;z-index:2147483001;pointer-events:auto;width:min(420px,calc(100vw - 20px));height:min(700px,calc(100dvh - 140px));min-height:420px;background:#fff;border:1px solid #dce3ee;border-radius:18px;box-shadow:0 18px 55px #071f5040;display:none;overflow:hidden;flex-direction:column}
+#dmAiPanel.dm-ai-open{display:flex}
+.dm-ai-head{background:#102b55;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dm-ai-head strong{font-size:16px}.dm-ai-head small{display:block;color:#dce7f8;font-size:11px;margin-top:3px}
+.dm-ai-close{background:transparent;color:#fff;border:0;font-size:24px;padding:0 5px;cursor:pointer}
+.dm-ai-messages{padding:14px;overflow:auto;flex:1;min-height:0;background:#f6f8fc}
+.dm-ai-messages{touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.dm-ai-calculator{flex:0 0 auto;max-height:58%;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+#dmAiCalcBody:not([hidden]){max-height:min(48vh,420px);overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;padding-bottom:12px}
+#dmAiPanel{overscroll-behavior:contain;touch-action:pan-y}
+.dm-ai-bubble{max-width:94%;padding:10px 12px;border-radius:13px;margin:0 0 10px;font-size:13px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.dm-ai-bubble.bot{background:#fff;border:1px solid #e5eaf2;color:#26364e}
+.dm-ai-bubble.user{background:#102b55;color:#fff;margin-left:auto}
+.dm-ai-chips{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0 12px}
+.dm-ai-chip{border:1px solid #d7dfeb;background:#fff;color:#102b55;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer}
+.dm-ai-result{display:flex;gap:10px;padding:9px;background:#fff;border:1px solid #e5eaf2;border-radius:11px;margin:8px 0;color:#25344b;text-decoration:none}
+.dm-ai-result img{width:58px;height:58px;object-fit:contain;background:#f5f7fa;border-radius:8px}
+.dm-ai-result strong{display:block;font-size:12px}.dm-ai-result small{display:block;color:#64748b;font-size:11px;margin-top:3px}
+.dm-ai-inputrow{display:flex;gap:7px;padding:10px;border-top:1px solid #e5eaf2;background:#fff}
+#dmAiInput{min-width:0;flex:1;border:1px solid #d5deea;border-radius:10px;padding:11px;font:inherit;font-size:13px}
+#dmAiSend{border:0;border-radius:10px;background:#102b55;color:#fff;padding:0 15px;font-weight:800}
+.dm-ai-note{font-size:10px;color:#718096;padding:0 12px 9px;background:#fff}
+.dm-ai-voice-btn,.dm-ai-voice-tools button{border:1px solid #d5deea;border-radius:10px;background:#f5f7fb;color:#102b55;padding:8px 11px;font-weight:800;cursor:pointer}
+.dm-ai-voice-btn[aria-pressed="true"]{background:#fff2d3;border-color:#e4b449}
+.dm-ai-voice-tools{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:0 10px 8px;background:#fff}
+#dmAiVoiceStatus{font-size:10px;color:#64748b;line-height:1.4}
+.dm-ai-voice-tools button{font-size:10px;padding:6px 9px;white-space:nowrap}
+.dm-ai-voice-tools button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:700px){#dmAiLauncher{bottom:82px;right:12px;padding:12px 14px}#dmAiPanel{right:8px;bottom:105px;width:calc(100vw - 16px);height:min(720px,calc(100dvh - 120px));min-height:380px}}
+</style>
+
+<style id="davimart-ai-widget-embed-style">
+html.davimart-ai-widget-mode,html.davimart-ai-widget-mode body{margin:0!important;padding:0!important;width:100%!important;height:100%!important;min-height:0!important;background:transparent!important;overflow:hidden!important}
+html.davimart-ai-widget-mode body>*:not(#dmAiLauncher):not(#dmAiPanel){display:none!important}
+html.davimart-ai-widget-mode #dmAiLauncher{position:fixed!important;right:0!important;bottom:0!important;z-index:2147483647!important;max-width:100%!important;white-space:nowrap!important}
+html.davimart-ai-widget-mode #dmAiPanel{position:fixed!important;right:0!important;bottom:70px!important;width:100%!important;height:calc(100% - 78px)!important;max-height:none!important;min-height:0!important;z-index:2147483647!important;border-radius:16px!important}
+</style>
+<script>if(new URLSearchParams(location.search).get("davimartAiWidget")==="1")document.documentElement.classList.add("davimart-ai-widget-mode");</script>
+
 </head>
 <body>
 
@@ -2874,5 +2916,363 @@ async function showDashboard() {
 </style>
 
 <script src="assets/davimart-navigation.js" defer></script>
+<button id="dmAiLauncher" type="button" aria-label="Open DAVIMART AI shopping assistant" onclick="var p=document.getElementById('dmAiPanel');if(p){p.classList.add('dm-ai-open');p.setAttribute('aria-hidden','false');try{parent.postMessage({type:'davimart-ai-open'},location.origin)}catch(e){}var i=document.getElementById('dmAiInput');if(i)setTimeout(function(){i.focus()},80)}" style="pointer-events:auto;touch-action:manipulation;z-index:2147483000">✨ <span>Ask DAVIMART AI</span></button>
+<section id="dmAiPanel" aria-label="DAVIMART AI shopping assistant" aria-hidden="true">
+ <div class="dm-ai-head"><div><strong>✨ DAVIMART AI</strong><small>Your shopping and discovery assistant</small></div><div style="display:flex;align-items:center;gap:7px"><button type="button" id="dmAiFeedbackToggle" style="padding:8px 9px;border:0;border-radius:8px;background:#e4b449;color:#102b55;font-size:11px;font-weight:800;white-space:nowrap">💬 Feedback / Survey</button><button class="dm-ai-close" id="dmAiClose" type="button" aria-label="Close assistant">×</button></div></div>
+ <div class="dm-ai-messages" id="dmAiMessages" aria-live="polite"><div class="dm-ai-bubble bot">Hi! I can help you find products, discover services or properties, compare listed prices, and explain details sellers have provided. What are you looking for?</div><div class="dm-ai-chips"><button class="dm-ai-chip" data-prompt="Find me a phone">Find a phone</button><button class="dm-ai-chip" data-prompt="Show me services">Find services</button><button class="dm-ai-chip" data-prompt="Show me properties">Find properties</button><button class="dm-ai-chip" data-prompt="Compare prices for laptops">Compare prices</button><button class="dm-ai-chip" data-prompt="Guide me through navigating DAVIMART">Guide me around</button></div><div style="margin:12px;padding:12px;border:1px solid #d8e0ec;border-radius:12px;background:#fff">
+ 
+ <form id="dmAiFeedbackForm" hidden style="margin-top:12px;gap:10px">
+  <p style="margin:0;color:#526176;font-size:13px">Quick buyer survey. Choose A, B or C for each question. Your answers are shared with the DAVIMART admin team. Please don't include passwords, PINs, OTPs or payment details.</p>
+  <fieldset style="border:0;padding:0;margin:0"><legend style="font-weight:700;margin-bottom:6px">1. How would you rate DAVIMART?</legend>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ1" value="5" required> A. Excellent</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ1" value="3"> B. Fair</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ1" value="1"> C. Poor</label>
+  </fieldset>
+  <fieldset style="border:0;padding:0;margin:0"><legend style="font-weight:700;margin-bottom:6px">2. How easy is it to find products or services?</legend>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ2" value="A" required> A. Very easy</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ2" value="B"> B. Somehow easy</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ2" value="C"> C. Difficult</label>
+  </fieldset>
+  <fieldset style="border:0;padding:0;margin:0"><legend style="font-weight:700;margin-bottom:6px">3. What do you think about our prices?</legend>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ3" value="A" required> A. Affordable</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ3" value="B"> B. Average</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ3" value="C"> C. Expensive</label>
+  </fieldset>
+  <fieldset style="border:0;padding:0;margin:0"><legend style="font-weight:700;margin-bottom:6px">4. How was your experience using the app?</legend>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ4" value="A" required> A. Smooth</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ4" value="B"> B. Okay</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ4" value="C"> C. Difficult</label>
+  </fieldset>
+  <fieldset style="border:0;padding:0;margin:0"><legend style="font-weight:700;margin-bottom:6px">5. Would you recommend DAVIMART to others?</legend>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ5" value="A" required> A. Yes</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ5" value="B"> B. Maybe</label>
+   <label style="display:block;padding:8px;border:1px solid #d8e0ec;border-radius:8px;margin:4px 0"><input type="radio" name="dmSurveyQ5" value="C"> C. No</label>
+  </fieldset>
+  <button id="dmAiFeedbackSubmit" type="submit" style="padding:11px;border:0;border-radius:8px;background:#102b55;color:#fff;font-weight:800">Submit answers</button>
+  <p id="dmAiFeedbackStatus" role="status" aria-live="polite" style="margin:0;font-size:13px"></p>
+ </form>
+</div>
+</div>
+ <form class="dm-ai-inputrow" id="dmAiForm"><button class="dm-ai-voice-btn" id="dmAiMic" type="button" aria-label="Start voice search" title="Speak your request">🎙️</button><input id="dmAiInput" autocomplete="off" placeholder="Type or use the microphone…" aria-label="Ask DAVIMART AI"><button id="dmAiSend" type="submit">Send</button></form>
+ <div class="dm-ai-voice-tools"><span id="dmAiVoiceStatus" role="status" aria-live="polite">Voice starts only when you tap the microphone.</span><button id="dmAiStopVoice" type="button">Stop voice</button></div>
+ <div class="dm-ai-calculator" style="margin:10px 12px;padding:12px;border:1px solid #d8e0ec;border-radius:12px;background:#f7f9fc;color:#102b55">
+  <button type="button" id="dmAiCalcToggle" aria-expanded="false" style="width:100%;padding:10px;border:0;border-radius:8px;background:#102b55;color:white;font-weight:700">🧮 Open AI Calculator</button>
+  <div id="dmAiCalcBody" hidden style="padding-top:12px">
+   <label for="dmAiCalcMode" style="display:block;font-weight:700;margin-bottom:5px">Calculator type</label>
+   <select id="dmAiCalcMode" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;margin-bottom:10px">
+    <option value="math">Scientific calculator</option><option value="discount">Discount & savings</option><option value="profit">Seller profit & margin</option><option value="percent">Percentage calculator</option>
+   </select>
+   <button type="button" id="dmAiCalcRun" style="width:100%;padding:13px;margin:8px 0 12px;border:0;border-radius:8px;background:#e4b449;color:#102b55;font-weight:900;font-size:16px">Calculate</button>
+   <div id="dmAiCalcResult" role="status" aria-live="polite" style="display:none;margin:10px 0;padding:14px;border:2px solid #e4b449;border-radius:12px;background:#fff8e5;color:#102b55;font-size:17px;line-height:1.6;font-weight:800;white-space:pre-wrap;overflow-wrap:anywhere"></div>
+   <div id="dmAiCalcFields"></div>
+   <small style="display:block;margin-top:8px;color:#526176">Calculations run on your device; no Gemini quota is needed. Check important business figures before making decisions.</small>
+  </div>
+ </div>
+ <label class="dm-ai-note" style="display:flex;gap:8px;align-items:flex-start"><input id="dmAiGeminiConsent" type="checkbox" style="margin-top:3px"><span>Optional full AI uses Google Gemini. If enabled, your message and recent chat context are sent to Google. Do not enter passwords, PINs, OTPs, NIN/BVN, payment details or private contact information. Leave unchecked to use DAVIMART search and built-in help.</span></label><div class="dm-ai-note">Search uses approved public listings. Voice starts only when you tap the microphone. Confirm prices and availability with the seller.</div>
+ 
+</section>
+
+<script id="davimart-ai-assistant">
+(function(){
+ const panel=document.getElementById("dmAiPanel"),launcher=document.getElementById("dmAiLauncher"),messages=document.getElementById("dmAiMessages"),input=document.getElementById("dmAiInput"),form=document.getElementById("dmAiForm"),mic=document.getElementById("dmAiMic"),voiceStatus=document.getElementById("dmAiVoiceStatus"),stopVoice=document.getElementById("dmAiStopVoice");
+ if(!panel||!launcher||!messages||!input||!form)return;
+ // Keep the assistant launcher available even if Supabase is slow or offline.
+ const aiDb=window.supabase?.createClient?window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p"):null;
+ const money=n=>new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",maximumFractionDigits:0}).format(Number(n)||0);
+ const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ let recognition=null,listening=false,history=[];
+ function status(text){if(voiceStatus)voiceStatus.textContent=text}
+ function speak(text){
+  if(!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+  window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang="en-US";utterance.rate=1;
+  utterance.onstart=()=>status("DAVIMART AI is speaking…");utterance.onend=()=>status("You can type or tap the microphone to speak.");
+  window.speechSynthesis.speak(utterance);
+ }
+ function stopSpeaking(){if("speechSynthesis" in window)window.speechSynthesis.cancel();status("Voice reply stopped.")}
+ function open(){panel.classList.add("dm-ai-open");panel.setAttribute("aria-hidden","false");input.focus()}
+ function close(){panel.classList.remove("dm-ai-open");panel.setAttribute("aria-hidden","true");if(listening&&recognition)recognition.stop();stopSpeaking()}
+ launcher.addEventListener("click",open);document.getElementById("dmAiClose").addEventListener("click",close);
+ function bubble(text,who){const el=document.createElement("div");el.className="dm-ai-bubble "+who;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;return el}
+ // Optional buyer feedback and quick survey; only signed-in buyer accounts can submit.
+ const feedbackToggle=document.getElementById("dmAiFeedbackToggle"),feedbackForm=document.getElementById("dmAiFeedbackForm"),feedbackStatus=document.getElementById("dmAiFeedbackStatus");
+ if(feedbackToggle&&feedbackForm){
+  feedbackForm.hidden=true;
+  feedbackForm.style.display="none";
+  feedbackForm.style.gap="9px";
+  feedbackToggle.setAttribute("aria-expanded","false");
+  feedbackToggle.addEventListener("click",()=>{
+   const show=feedbackForm.hidden;
+   feedbackForm.hidden=!show;
+   feedbackForm.style.display=show?"grid":"none";
+   feedbackToggle.setAttribute("aria-expanded",String(show));
+   feedbackToggle.textContent=show?"✕ Close survey":"💬 Feedback / Survey";
+   if(show)setTimeout(()=>feedbackForm.scrollIntoView({behavior:"smooth",block:"nearest"}),50);
+  });
+  feedbackForm.addEventListener("submit",async e=>{
+   e.preventDefault();const submit=document.getElementById("dmAiFeedbackSubmit");submit.disabled=true;feedbackStatus.textContent="Checking your account…";
+   try{
+    if(!aiDb)throw new Error("DAVIMART connection is unavailable. Please try again later.");
+    const {data:{user},error:authError}=await aiDb.auth.getUser();if(authError||!user)throw new Error("Please sign in to your DAVIMART buyer account before sending feedback.");
+    const {data:profile,error:profileError}=await aiDb.from("profiles").select("role").eq("id",user.id).maybeSingle();
+    if(profileError)throw profileError;if(profile?.role!=="buyer")throw new Error("This feedback survey is currently for buyer accounts.");
+    const q1=feedbackForm.querySelector('input[name="dmSurveyQ1"]:checked')?.value;
+    const q2=feedbackForm.querySelector('input[name="dmSurveyQ2"]:checked')?.value;
+    const q3=feedbackForm.querySelector('input[name="dmSurveyQ3"]:checked')?.value;
+    const q4=feedbackForm.querySelector('input[name="dmSurveyQ4"]:checked')?.value;
+    const q5=feedbackForm.querySelector('input[name="dmSurveyQ5"]:checked')?.value;
+    if(!q1||!q2||!q3||!q4||!q5)throw new Error("Please answer all five questions before submitting.");
+    const recommendation=q5==="A"?true:q5==="C"?false:null;
+    const answers="1. DAVIMART rating: "+({5:"A. Excellent",3:"B. Fair",1:"C. Poor"}[q1])+"\n2. Finding items: "+q2+"\n3. Prices: "+q3+"\n4. App experience: "+q4+"\n5. Recommend DAVIMART: "+q5;
+    const payload={user_id:user.id,feedback_type:"survey",topic:"overall",rating:Number(q1),would_recommend:recommendation,message:answers};
+    const {error}=await aiDb.from("buyer_feedback").insert(payload);if(error)throw error;
+    feedbackForm.reset();feedbackStatus.textContent="Thank you! Your feedback has been sent to the DAVIMART team.";bubble("Thank you for sharing your thoughts. Your feedback has been received by the DAVIMART team.","bot");
+   }catch(error){feedbackStatus.textContent=error?.message||"Could not send feedback. Please try again.";}
+   finally{submit.disabled=false;}
+  });
+ }
+ // Initialise core controls before optional calculator setup, so one widget error cannot disable chat or voice.
+ if(mic)mic.addEventListener("click",startListening);
+ if(stopVoice)stopVoice.addEventListener("click",()=>{if(listening&&recognition)recognition.stop();stopSpeaking();});
+ let sending=false;
+ const sendButton=document.getElementById("dmAiSend");
+ form.addEventListener("submit",async e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  if(sending)return;
+  const message=String(input.value||"").trim();
+  if(!message)return;
+  sending=true;
+  if(sendButton){sendButton.disabled=true;sendButton.textContent="Sending…";}
+  panel.classList.add("dm-ai-open");
+  panel.setAttribute("aria-hidden","false");
+  input.value="";
+  try{
+   await answer(message);
+  }catch(error){
+   console.error("DAVIMART AI send error:",error);
+   bubble("Sorry, something went wrong. Your message is still in this chat. Please try again.","bot");
+  }finally{
+   sending=false;
+   if(sendButton){sendButton.disabled=false;sendButton.textContent="Send";}
+   messages.scrollTop=messages.scrollHeight;
+   input.focus();
+  }
+ });
+ messages.addEventListener("click",e=>{const b=e.target.closest("[data-prompt]");if(b)answer(b.dataset.prompt)});
+ function safeCalculate(expression,angleMode){
+  let raw=String(expression||"").toLowerCase().replace(/,/g,"").replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-").replace(/π/g,"pi");
+  raw=raw.replace(/\b(what is|calculate|work out|solve|equals|equal to)\b/g," ").replace(/multiplied by|times/g,"*").replace(/divided by|divided|over/g,"/").replace(/\bplus\b/g,"+").replace(/\bminus\b/g,"-").replace(/to the power of|power of/g,"^").replace(/square root of\s*/g,"sqrt(").replace(/(\d+(?:\.\d+)?)\s*percent\s+of\s+/g,"($1/100)*").replace(/(\d+(?:\.\d+)?)\s*%?\s+of\s+/g,"($1/100)*");
+  raw=raw.replace(/\s+/g,"").replace(/(\d+(?:\.\d+)?)%/g,"($1/100)");
+  if(!raw||raw.length>180)throw new Error("Enter a valid calculation.");
+  const tokens=raw.match(/(?:\d+(?:\.\d*)?|\.\d+)|[a-z]+|[()+\-*/^!,]/g)||[];
+  if(tokens.join("")!==raw)throw new Error("Use numbers, pi, e, brackets and scientific functions such as sin(), cos(), tan(), log(), ln(), sqrt() or factorial (!).");
+  let pos=0;const toRad=x=>angleMode==="deg"?x*Math.PI/180:x;
+  function peek(){return tokens[pos]} function take(t){if(peek()===t){pos++;return true}return false}
+  function expr(){let v=term();while(peek()==="+"||peek()==="-"){const op=tokens[pos++],r=term();v=op==="+"?v+r:v-r}return v}
+  function term(){let v=unary();while(peek()==="*"||peek()==="/"){const op=tokens[pos++],r=unary();if(op==="/"&&r===0)throw new Error("You cannot divide by zero.");v=op==="*"?v*r:v/r}return v}
+  function unary(){if(take("+"))return unary();if(take("-"))return -unary();return power()}
+  function power(){let v=postfix();if(take("^"))v=Math.pow(v,unary());return v}
+  function postfix(){let v=primary();while(take("!")){if(v<0||v>170||Math.floor(v)!==v)throw new Error("Factorial requires a whole number from 0 to 170.");let n=1;for(let k=2;k<=v;k++)n*=k;v=n}return v}
+  function primary(){if(take("(")){const v=expr();if(!take(")"))throw new Error("Check your brackets.");return v}const t=peek();if(t===undefined)throw new Error("Complete the expression.");pos++;if(/^\d/.test(t)||/^\.\d/.test(t))return Number(t);if(t==="pi")return Math.PI;if(t==="e")return Math.E;
+   const funcs=["sin","cos","tan","asin","acos","atan","log","ln","sqrt","abs","round","factorial"];if(funcs.includes(t)){if(!take("("))throw new Error("Use "+t+"(number).");const x=expr();if(!take(")"))throw new Error("Check your function brackets.");let v;
+    if(t==="sin")v=Math.sin(toRad(x));else if(t==="cos")v=Math.cos(toRad(x));else if(t==="tan"){const a=toRad(x);if(Math.abs(Math.cos(a))<1e-12)throw new Error("Tangent is undefined at this angle.");v=Math.tan(a)}
+    else if(t==="asin"||t==="acos"||t==="atan"){if((t==="asin"||t==="acos")&&(x< -1||x>1))throw new Error(t+" input must be between -1 and 1.");v=t==="asin"?Math.asin(x):t==="acos"?Math.acos(x):Math.atan(x);if(angleMode==="deg")v=v*180/Math.PI}
+    else if(t==="log"||t==="ln"){if(x<=0)throw new Error("Logarithms require a positive number.");v=t==="log"?Math.log10(x):Math.log(x)}else if(t==="sqrt"){if(x<0)throw new Error("Square root of a negative number is not real.");v=Math.sqrt(x)}else if(t==="abs")v=Math.abs(x);else if(t==="round")v=Math.round(x);else{if(x<0||x>170||Math.floor(x)!==x)throw new Error("Factorial requires a whole number from 0 to 170.");v=1;for(let k=2;k<=x;k++)v*=k}return v;
+   }throw new Error("Unknown value or function: "+t)}
+  const result=expr();if(pos!==tokens.length||!Number.isFinite(result))throw new Error("That calculation is not valid.");return result;
+ }
+ function calcField(id,label,placeholder){return '<label style="display:block;font-weight:600;margin:8px 0 4px" for="'+id+'">'+label+'</label><input id="'+id+'" inputmode="decimal" type="number" step="any" placeholder="'+placeholder+'" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px">';}
+ try{
+ const calcMode=document.getElementById("dmAiCalcMode"),calcFields=document.getElementById("dmAiCalcFields"),calcResult=document.getElementById("dmAiCalcResult");
+ function renderCalcFields(){
+  const mode=calcMode.value;
+  if(mode==="math")calcFields.innerHTML='<label style="display:block;font-weight:600;margin:8px 0 4px" for="dmAiAngleMode">Angle unit</label><select id="dmAiAngleMode" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px"><option value="deg">Degrees (DEG)</option><option value="rad">Radians (RAD)</option></select><label style="display:block;font-weight:600;margin:8px 0 4px" for="dmAiCalcExpression">Expression</label><input id="dmAiCalcExpression" type="text" inputmode="text" placeholder="e.g. sin(30) + log(100) + 5!" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px"><small>Functions: sin, cos, tan, asin, acos, atan, log, ln, sqrt, abs, round, factorial (!). Constants: pi, e. Operators: + − × ÷ ^ and brackets.</small>';
+  if(mode==="discount")calcFields.innerHTML=calcField("dmAiCalcOriginal","Original price (₦)","e.g. 25000")+calcField("dmAiCalcDiscount","Discount (%)","e.g. 15");
+  if(mode==="profit")calcFields.innerHTML=calcField("dmAiCalcCost","Cost price per item (₦)","e.g. 8000")+calcField("dmAiCalcSale","Selling price per item (₦)","e.g. 11000")+calcField("dmAiCalcQuantity","Quantity","e.g. 5");
+  if(mode==="percent")calcFields.innerHTML=calcField("dmAiCalcAmount","Amount","e.g. 50000")+calcField("dmAiCalcRate","Percentage (%)","e.g. 7.5");
+  calcResult.textContent="";calcResult.style.display="none";
+ }
+ calcMode.addEventListener("change",renderCalcFields);renderCalcFields();
+ document.getElementById("dmAiCalcToggle").addEventListener("click",()=>{
+  const body=document.getElementById("dmAiCalcBody"),btn=document.getElementById("dmAiCalcToggle"),show=body.hidden;
+  body.hidden=!show;btn.setAttribute("aria-expanded",String(show));btn.textContent=show?"🧮 Close AI Calculator":"🧮 Open AI Calculator";
+ });
+ function numericField(id){const el=document.getElementById(id),v=el?Number(el.value):NaN;if(!el||el.value.trim()===""||!Number.isFinite(v))throw new Error("Please enter all the required numbers.");return v;}
+ document.getElementById("dmAiCalcRun").addEventListener("click",()=>{
+  try{
+   let result,spoken;
+   if(calcMode.value==="math"){const expr=document.getElementById("dmAiCalcExpression").value;result=safeCalculate(expr,document.getElementById("dmAiAngleMode").value);spoken=expr+" equals "+result;}
+   if(calcMode.value==="discount"){const original=numericField("dmAiCalcOriginal"),rate=numericField("dmAiCalcDiscount");if(original<0||rate<0||rate>100)throw new Error("Price must be positive and discount must be between 0 and 100.");const saving=original*rate/100,final=original-saving;result="You save "+money(saving)+".\nNew price: "+money(final);spoken="You save "+money(saving)+". The discounted price is "+money(final);}
+   if(calcMode.value==="profit"){const cost=numericField("dmAiCalcCost"),sale=numericField("dmAiCalcSale"),qty=numericField("dmAiCalcQuantity");if(cost<0||sale<0||qty<=0)throw new Error("Costs and selling prices cannot be negative; quantity must be above zero.");const per=sale-cost,total=per*qty,revenue=sale*qty,margin=sale>0?per/sale*100:0;result="Profit per item: "+money(per)+"\nTotal profit: "+money(total)+"\nTotal sales: "+money(revenue)+"\nProfit margin: "+margin.toFixed(2)+"%";spoken="Profit per item "+money(per)+". Total profit "+money(total)+". Profit margin "+margin.toFixed(2)+" percent.";}
+   if(calcMode.value==="percent"){const amount=numericField("dmAiCalcAmount"),rate=numericField("dmAiCalcRate");result=rate+"% of "+amount+" = "+(amount*rate/100);spoken=result;}
+   calcResult.textContent=result;calcResult.style.display="block";calcResult.scrollIntoView({behavior:"smooth",block:"nearest"});bubble("Calculator result: "+result,"bot");speak(spoken);
+  }catch(e){const message=e.message||"Please check the numbers and try again.";calcResult.textContent=message;calcResult.style.display="block";calcResult.scrollIntoView({behavior:"smooth",block:"nearest"});bubble("Calculator: "+message,"bot");}
+ });
+ }catch(calcInitError){status("The calculator could not initialise. Reload DAVIMART and try again.");}
+
+ function resultCard(item){
+  const type=item.listing_type||"product",a=document.createElement("div");a.className="dm-ai-result";
+  if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt="";img.loading="lazy";a.appendChild(img)}
+  const info=document.createElement("span"),name=document.createElement("strong"),price=document.createElement("small"),meta=document.createElement("small");
+  name.textContent=item.title||"Untitled listing";price.textContent=money(item.price);
+  meta.textContent=[type,item.category,item.location].filter(Boolean).join(" · ");info.append(name,price,meta);a.appendChild(info);return a;
+ }
+ function intentType(q){if(/\b(service|repair|clean|plumb|electrician|salon|delivery|lesson|tutor|event|photograph|tailor)\b/i.test(q))return"service";if(/\b(property|house|home|flat|apartment|land|rent|lease|real estate)\b/i.test(q))return"property";return null}
+ function budgetFrom(q){const m=q.match(/(?:under|below|less than|max(?:imum)?|budget(?: of)?)\s*₦?\s*([\d,]+(?:\.\d+)?)(\s*[kKmM])?/i);if(!m)return null;let n=Number(m[1].replace(/,/g,""));if(/[kK]/.test(m[2]||""))n*=1000;if(/[mM]/.test(m[2]||""))n*=1000000;return n}
+ function localKnowledge(q){
+  const t=q.toLowerCase();
+  if(/\b(feedback|survey|suggestion|complaint|rate davimart|review davimart)\b/.test(t))return"Absolutely! Tap the ‘Share feedback or take a survey’ button below this chat. You can rate DAVIMART, tell us what to improve, or report a problem. Please sign in with your buyer account first.";
+  if(/\b(navigate|navigation|find my way|where can i find|how do i use|guide me|app tour|move around|use the app|browse the app)\b/.test(t))return"Sure! Here is how to move around DAVIMART:\\n\\n• Home: tap Home in the bottom menu to return to the main page.\\n• Shop: tap Shop or use the search bar to find products. You can also open All Categories or a category tile to browse.\\n• Services: tap Services to browse service providers.\\n• Properties: tap Properties to explore land, houses and rentals.\\n• Product details: open any listing to read its description, price, photos and seller-provided details.\\n• Cart: tap Cart to review items you have added and continue to checkout.\\n• Account: tap Account to sign in, manage your profile and find account options.\\n• Selling: sign in, open Account, choose Become a Seller and complete the application. After approval, use Seller Dashboard to manage listings.\\n\\nYou can ask me things like “How do I add an item to my cart?”, “Where are my orders?” or “How do I list a product?” and I’ll guide you step by step.";
+  if(/\b(sell|seller|selling|list my|upload.*product|become a seller)\b/.test(t))return"Want to sell on DAVIMART? Sign in or create an account, open Account, choose “Become a Seller”, complete the seller application and verification, then wait for admin approval. Once approved, open your Seller Dashboard and submit genuine products or services for review. Your listing becomes public after approval.";
+  if(/\b(buy|buying|purchase|order|checkout|cart)\b/.test(t))return"To buy on DAVIMART, search or ask me to find a product, service or property. Open a listing to review its details, add eligible products to your cart and continue to checkout. Use the payment options shown at checkout, then check your account for order updates. Confirm important details with the seller before paying.";
+  if(/\b(payment|paystack|opay|bank transfer|pay for)\b/.test(t))return"Use only the payment methods actually displayed in DAVIMART checkout. Never send money to a personal account based only on a chat message. If a payment is pending or unclear, check your order status and contact the seller through DAVIMART.";
+  if(/\b(delivery|shipping|dispatch|deliver)\b/.test(t))return"Delivery availability, fees and timing can depend on the listing and location. Check the listing and checkout for the available delivery details, and confirm the arrangement with the seller before completing your order.";
+  if(/\b(verify|verification|nin|cac|seller approval|approved seller)\b/.test(t))return"Seller verification helps DAVIMART review seller applications. Apply from your account, provide only the documents requested in the secure verification flow, and wait for admin review. Never share your NIN, verification documents, password or OTP in this chat.";
+  if(/\b(contact|phone|telephone|whatsapp|support|help line)\b/.test(t))return"The homepage lists DAVITECH digital/business services on WhatsApp at 09068847614 (+2349068847614). This is the DAVITECH services contact, not a confirmed general DAVIMART order-support line. For a marketplace item, use the contact/message option on its listing. I won't disclose private seller or buyer phone numbers.";
+  if(/\b(property|real estate|house|land|rent|apartment)\b/.test(t))return"DAVIMART supports property listings. Ask me to find land, houses, flats or rentals and include your location and budget. Open a result to review the details and contact the listing owner through the available listing options.";
+  if(/\b(service|services|hire|repair|plumber|electrician|tailor|salon)\b/.test(t))return"DAVIMART also lists services. Tell me the service you need and your location or budget, and I'll search approved service listings. Open a result to review the provider's details.";
+  if(/\b(davimart|what can you do|how does this work)\b/.test(t))return"I'm DAVIMART AI. I can help you discover products, services and properties, compare listed prices, explain buying and selling steps, and guide you around marketplace features. I can also answer general questions when the AI service is available.";
+  return null;
+ }
+ async function searchListings(q){
+  const type=intentType(q),budget=budgetFrom(q),compareMode=/\b(compare|cheapest|lowest price|best price)\b/i.test(q);
+  const stop=new Set(["find","show","me","please","want","need","looking","for","compare","price","prices","under","below","less","than","budget","products","product","services","service","properties","property","buy","sell","the","and","with","from","some","any"]);
+  const words=q.toLowerCase().replace(/[₦,!?]/g," ").split(/\s+/).filter(w=>w.length>2&&!stop.has(w)).slice(0,6);
+  if(!aiDb)throw new Error("Marketplace connection is unavailable.");
+  let query=aiDb.from("listings").select("id,title,description,price,category,location,image_url,listing_type").eq("status","approved").order("created_at",{ascending:false}).limit(60);
+  if(type)query=query.eq("listing_type",type);
+  if(budget!==null)query=query.lte("price",budget);
+  if(words.length){
+   const clauses=words.flatMap(w=>["title","description","category","location"].map(col=>col+".ilike.%"+w.replace(/[(),.%]/g,"")+"%"));
+   query=query.or(clauses.join(","));
+  }
+  const {data,error}=await query;if(error)throw error;
+  let rows=data||[];
+  rows.sort((a,b)=>{
+   if(compareMode)return Number(a.price||0)-Number(b.price||0);
+   const score=x=>words.reduce((n,w)=>n+((x.title||"").toLowerCase().includes(w)?4:0)+((x.category||"").toLowerCase().includes(w)?2:0)+((x.description||"").toLowerCase().includes(w)?1:0),0);
+   return score(b)-score(a)||Number(a.price||0)-Number(b.price||0);
+  });
+  return rows;
+ }
+ async function localAnswer(q){
+  const known=localKnowledge(q);
+  if(known){bubble(known,"bot");speak(known);return}
+  const thinking=bubble("Searching approved DAVIMART listings…","bot");
+  try{
+   const rows=await searchListings(q);thinking.remove();
+   if(!rows.length){
+    const msg="I couldn't find a matching approved listing yet. Try another keyword, category, location or budget. Sellers can also join DAVIMART and submit a listing for review.";
+    bubble(msg,"bot");speak(msg);return;
+   }
+   bubble(/\b(compare|cheapest|lowest price|best price)\b/i.test(q)?"Here are matching approved DAVIMART listings, sorted from lowest price to highest:":"I found these approved DAVIMART listings for you:","bot");
+   rows.slice(0,5).forEach(item=>messages.appendChild(resultCard(item)));
+   const tail=rows.length>5?"Showing 5 matches. Tell me if you'd like to narrow the category, location or budget.":"These are search previews only. Use the main DAVIMART marketplace search to open a listing and view its full details.";
+   bubble(tail,"bot");messages.scrollTop=messages.scrollHeight;
+   const types=[...new Set(rows.slice(0,5).map(x=>x.listing_type))].join(", ");
+   speak("I found "+rows.length+" matching approved listings, including "+types+". Open a result to see details and continue on DAVIMART.");
+  }catch(error){
+   thinking.remove();const msg="I couldn't reach DAVIMART listings just now. Please try again or use the main marketplace search bar.";bubble(msg,"bot");speak(msg);
+  }
+ }
+
+ async function answer(q){
+  const clean=q.trim().slice(0,1800);if(!clean)return;
+  if(/^(?:what is|calculate|work out|solve)\b/i.test(clean)||/\b(?:plus|minus|multiplied by|divided by|percent of|square root of)\b/i.test(clean)||/[0-9][+*/^%()\-][0-9]/.test(clean)){
+   try{const result=safeCalculate(clean);bubble(clean,"user");input.value="";const msg="The answer is "+result.toLocaleString("en-NG",{maximumFractionDigits:8})+".";bubble(msg,"bot");speak(msg);return;}catch(_){}
+  }
+  const consent=document.getElementById("dmAiGeminiConsent");
+  if(!consent?.checked){bubble(clean,"user");input.value="";bubble("Full AI is off until you opt in. I'll use DAVIMART built-in help and marketplace search instead.","bot");await localAnswer(clean);return;}
+  bubble(clean,"user");input.value="";
+  const thinking=bubble("DAVIMART AI is thinking…","bot");
+  try{
+   if(!aiDb)throw new Error("AI service is unavailable.");
+   const {data,error}=await aiDb.functions.invoke("davimart-ai",{body:{message:clean,history:history.slice(-6)}});
+   if(error||!data?.answer)throw new Error(data?.code||error?.message||"AI_UNAVAILABLE");
+   thinking.remove();bubble(data.answer,"bot");speak(data.answer);
+   history.push({role:"user",text:clean},{role:"model",text:data.answer});history=history.slice(-6);
+  }catch(error){
+   thinking.remove();
+   const msg=String(error?.message||"");
+   const fallback=localKnowledge(clean)?"DAVIMART AI's full-answer limit is unavailable. I'll use DAVIMART's built-in marketplace help instead.": "Full AI is temporarily unavailable. I can still search approved DAVIMART products, services and properties and answer marketplace questions.";
+   bubble(fallback,"bot");
+   await localAnswer(clean);
+  }
+ }
+ async function startListening(){
+  if(listening){if(recognition)recognition.stop();return}
+  if(!window.isSecureContext){status("Voice input needs a secure HTTPS connection. Open the DAVIMART Vercel link in Chrome.");return}
+  if(!SpeechRecognition){status("This browser does not support speech recognition. Open DAVIMART in the latest Google Chrome, allow microphone access, and try again.");return}
+  status("Preparing microphone…");
+  // Ask Android/Chrome for microphone permission before starting speech recognition.
+  // Some embedded browsers do not expose getUserMedia; in that case recognition can still request access itself.
+  if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+   try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    stream.getTracks().forEach(track=>track.stop());
+   }catch(error){
+    const reason=error&&error.name;
+    const messages={
+     NotAllowedError:"Microphone permission is blocked. In Android Settings > Apps > Chrome (or the app you opened DAVIMART in) > Permissions, allow Microphone, then reload DAVIMART.",
+     PermissionDeniedError:"Microphone permission is blocked. Allow microphone access in your browser/app settings, then try again.",
+     NotFoundError:"No microphone was detected. Check your phone microphone.",
+     NotReadableError:"Your microphone is being used by another app. Close that app and try again."
+    };
+    status(messages[reason]||"Could not access the microphone. Check browser microphone permission and try again.");
+    return;
+   }
+  }
+  try{
+   recognition=new SpeechRecognition();
+   recognition.lang="en-NG";
+   recognition.interimResults=false;
+   recognition.maxAlternatives=1;
+   recognition.continuous=false;
+  }catch(error){
+   status("Voice input could not start. Open DAVIMART in Google Chrome and check microphone permission.");
+   return;
+  }
+  recognition.onstart=()=>{
+   listening=true;
+   mic.setAttribute("aria-pressed","true");
+   mic.textContent="⏹️";
+   status("Listening… speak your request now.");
+  };
+  recognition.onresult=event=>{
+   const transcript=event.results&&event.results[0]&&event.results[0][0]?event.results[0][0].transcript:"";
+   if(transcript){
+    input.value=transcript;
+    status("I heard: "+transcript);
+    answer(transcript).catch(error=>{console.error("DAVIMART voice answer error:",error);status("I heard you, but couldn't process that request. Please try again.");});
+   }else status("I couldn't hear that clearly. Tap the microphone and try again.");
+  };
+  recognition.onerror=event=>{
+   const map={
+    "not-allowed":"Microphone permission was blocked. Allow microphone access for the browser/app in Android settings, then reload DAVIMART.",
+    "service-not-allowed":"Speech recognition is blocked in this browser. Open the DAVIMART HTTPS link in Google Chrome.",
+    "audio-capture":"No microphone was detected. Check your phone microphone.",
+    "no-speech":"I didn't hear anything. Tap the microphone and speak after the listening message appears.",
+    "network":"Voice recognition needs an internet connection. Check your data/Wi-Fi and try again.",
+    "aborted":"Voice input was stopped."
+   };
+   status(map[event.error]||"Voice input stopped ("+event.error+"). You can type instead.");
+  };
+  recognition.onend=()=>{
+   listening=false;
+   if(mic){mic.setAttribute("aria-pressed","false");mic.textContent="🎙️";}
+   if(voiceStatus&&voiceStatus.textContent==="Listening… speak your request now.")status("Voice input ended. Tap the microphone to speak again.");
+  };
+  try{recognition.start();}
+  catch(error){listening=false;status("Couldn't start speech recognition. Reload DAVIMART in Chrome and try again.");}
+ }
+ if(!SpeechRecognition)status("Voice input isn't available in this browser; typing still works.");
+ if(!("speechSynthesis" in window))status("Voice replies aren't available in this browser; answers appear as text.");
+})();
+</script>
+
+<script>
+(function(){if(!document.documentElement.classList.contains("davimart-ai-widget-mode"))return;var close=document.getElementById("dmAiClose");if(close)close.addEventListener("click",function(){try{parent.postMessage({type:"davimart-ai-close"},location.origin)}catch(e){}});window.addEventListener("resize",function(){try{parent.postMessage({type:"davimart-ai-resize"},location.origin)}catch(e){}});})();
+</script>
+
 </body>
 </html>
