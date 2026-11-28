@@ -2949,7 +2949,7 @@ async function showDashboard() {
   <div id="dmAiCalcBody" hidden style="padding-top:12px">
    <label for="dmAiCalcMode" style="display:block;font-weight:700;margin-bottom:5px">Calculator type</label>
    <select id="dmAiCalcMode" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;margin-bottom:10px">
-    <option value="math">Basic & advanced maths</option><option value="discount">Discount & savings</option><option value="profit">Seller profit & margin</option><option value="percent">Percentage calculator</option>
+    <option value="math">Scientific calculator</option><option value="discount">Discount & savings</option><option value="profit">Seller profit & margin</option><option value="percent">Percentage calculator</option>
    </select>
    <div id="dmAiCalcFields"></div>
    <button type="button" id="dmAiCalcRun" style="width:100%;padding:11px;margin-top:9px;border:0;border-radius:8px;background:#e4b449;color:#102b55;font-weight:800">Calculate</button>
@@ -3048,38 +3048,34 @@ async function showDashboard() {
   }
  });
  messages.addEventListener("click",e=>{const b=e.target.closest("[data-prompt]");if(b)answer(b.dataset.prompt)});
- function safeCalculate(expression){
-  let raw=String(expression||"").toLowerCase().replace(/,/g,"").replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-");
-  raw=raw.replace(/\b(what is|calculate|work out|solve|equals|equal to)\b/g," ")
-   .replace(/multiplied by|times|x/g,"*").replace(/divided by|divided|over/g,"/")
-   .replace(/\bplus\b/g,"+").replace(/\bminus\b/g,"-")
-   .replace(/to the power of|power of/g,"^").replace(/square root of\s*(\d+(?:\.\d+)?)/g,"sqrt($1)")
-   .replace(/(\d+(?:\.\d+)?)\s*percent\s+of\s+/g,"($1/100)*")
-   .replace(/(\d+(?:\.\d+)?)\s*%?\s+of\s+/g,"($1/100)*");
+ function safeCalculate(expression,angleMode){
+  let raw=String(expression||"").toLowerCase().replace(/,/g,"").replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-").replace(/π/g,"pi");
+  raw=raw.replace(/\b(what is|calculate|work out|solve|equals|equal to)\b/g," ").replace(/multiplied by|times/g,"*").replace(/divided by|divided|over/g,"/").replace(/\bplus\b/g,"+").replace(/\bminus\b/g,"-").replace(/to the power of|power of/g,"^").replace(/square root of\s*/g,"sqrt(").replace(/(\d+(?:\.\d+)?)\s*percent\s+of\s+/g,"($1/100)*").replace(/(\d+(?:\.\d+)?)\s*%?\s+of\s+/g,"($1/100)*");
   raw=raw.replace(/\s+/g,"").replace(/(\d+(?:\.\d+)?)%/g,"($1/100)");
-  if(!raw||raw.length>160)throw new Error("Enter a valid calculation.");
-  const tokens=raw.match(/sqrt|abs|round|\d+(?:\.\d+)?|[()+\-*/^]/g)||[];
-  if(tokens.join("")!==raw)throw new Error("Use numbers and +, −, ×, ÷, %, ^, parentheses or sqrt().");
-  let pos=0;
-  function expr(){let v=term();while(tokens[pos]==="+"||tokens[pos]==="-"){const op=tokens[pos++],r=term();v=op==="+"?v+r:v-r;}return v;}
-  function term(){let v=power();while(tokens[pos]==="*"||tokens[pos]==="/"){const op=tokens[pos++],r=power();if(op==="/"&&r===0)throw new Error("You cannot divide by zero.");v=op==="*"?v*r:v/r;}return v;}
-  function power(){let v=unary();if(tokens[pos]==="^"){pos++;v=Math.pow(v,power());}return v;}
-  function unary(){if(tokens[pos]==="+"){pos++;return unary();}if(tokens[pos]==="-"){pos++;return -unary();}return atom();}
-  function atom(){
-   const t=tokens[pos++];
-   if(t==="("){const v=expr();if(tokens[pos++]!==")")throw new Error("Check your brackets.");return v;}
-   if(t==="sqrt"||t==="abs"||t==="round"){if(tokens[pos++]!=="(")throw new Error("Use "+t+"(number).");const v=expr();if(tokens[pos++]!==")")throw new Error("Check your brackets.");if(t==="sqrt"){if(v<0)throw new Error("Square root of a negative number is not a real result.");return Math.sqrt(v);}return t==="abs"?Math.abs(v):Math.round(v);}
-   if(t===undefined||!/^(\d+\.?\d*|\.\d+)$/.test(t))throw new Error("Enter a valid maths expression.");return Number(t);
-  }
-  const result=expr();if(pos!==tokens.length||!Number.isFinite(result))throw new Error("That calculation is not valid.");
-  return result;
+  if(!raw||raw.length>180)throw new Error("Enter a valid calculation.");
+  const tokens=raw.match(/(?:\d+(?:\.\d*)?|\.\d+)|[a-z]+|[()+\-*/^!,]/g)||[];
+  if(tokens.join("")!==raw)throw new Error("Use numbers, pi, e, brackets and scientific functions such as sin(), cos(), tan(), log(), ln(), sqrt() or factorial (!).");
+  let pos=0;const toRad=x=>angleMode==="deg"?x*Math.PI/180:x;
+  function peek(){return tokens[pos]} function take(t){if(peek()===t){pos++;return true}return false}
+  function expr(){let v=term();while(peek()==="+"||peek()==="-"){const op=tokens[pos++],r=term();v=op==="+"?v+r:v-r}return v}
+  function term(){let v=unary();while(peek()==="*"||peek()==="/"){const op=tokens[pos++],r=unary();if(op==="/"&&r===0)throw new Error("You cannot divide by zero.");v=op==="*"?v*r:v/r}return v}
+  function unary(){if(take("+"))return unary();if(take("-"))return -unary();return power()}
+  function power(){let v=postfix();if(take("^"))v=Math.pow(v,unary());return v}
+  function postfix(){let v=primary();while(take("!")){if(v<0||v>170||Math.floor(v)!==v)throw new Error("Factorial requires a whole number from 0 to 170.");let n=1;for(let k=2;k<=v;k++)n*=k;v=n}return v}
+  function primary(){if(take("(")){const v=expr();if(!take(")"))throw new Error("Check your brackets.");return v}const t=peek();if(t===undefined)throw new Error("Complete the expression.");pos++;if(/^\d/.test(t)||/^\.\d/.test(t))return Number(t);if(t==="pi")return Math.PI;if(t==="e")return Math.E;
+   const funcs=["sin","cos","tan","asin","acos","atan","log","ln","sqrt","abs","round","factorial"];if(funcs.includes(t)){if(!take("("))throw new Error("Use "+t+"(number).");const x=expr();if(!take(")"))throw new Error("Check your function brackets.");let v;
+    if(t==="sin")v=Math.sin(toRad(x));else if(t==="cos")v=Math.cos(toRad(x));else if(t==="tan"){const a=toRad(x);if(Math.abs(Math.cos(a))<1e-12)throw new Error("Tangent is undefined at this angle.");v=Math.tan(a)}
+    else if(t==="asin"||t==="acos"||t==="atan"){if((t==="asin"||t==="acos")&&(x< -1||x>1))throw new Error(t+" input must be between -1 and 1.");v=t==="asin"?Math.asin(x):t==="acos"?Math.acos(x):Math.atan(x);if(angleMode==="deg")v=v*180/Math.PI}
+    else if(t==="log"||t==="ln"){if(x<=0)throw new Error("Logarithms require a positive number.");v=t==="log"?Math.log10(x):Math.log(x)}else if(t==="sqrt"){if(x<0)throw new Error("Square root of a negative number is not real.");v=Math.sqrt(x)}else if(t==="abs")v=Math.abs(x);else if(t==="round")v=Math.round(x);else{if(x<0||x>170||Math.floor(x)!==x)throw new Error("Factorial requires a whole number from 0 to 170.");v=1;for(let k=2;k<=x;k++)v*=k}return v;
+   }throw new Error("Unknown value or function: "+t)}
+  const result=expr();if(pos!==tokens.length||!Number.isFinite(result))throw new Error("That calculation is not valid.");return result;
  }
  function calcField(id,label,placeholder){return '<label style="display:block;font-weight:600;margin:8px 0 4px" for="'+id+'">'+label+'</label><input id="'+id+'" inputmode="decimal" type="number" step="any" placeholder="'+placeholder+'" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px">';}
  try{
  const calcMode=document.getElementById("dmAiCalcMode"),calcFields=document.getElementById("dmAiCalcFields"),calcResult=document.getElementById("dmAiCalcResult");
  function renderCalcFields(){
   const mode=calcMode.value;
-  if(mode==="math")calcFields.innerHTML='<label style="display:block;font-weight:600;margin:8px 0 4px" for="dmAiCalcExpression">Maths expression</label><input id="dmAiCalcExpression" type="text" inputmode="text" placeholder="e.g. (2500 × 3) - 10%" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px"><small>Supports + − × ÷, %, powers (^), brackets and sqrt(number).</small>';
+  if(mode==="math")calcFields.innerHTML='<label style="display:block;font-weight:600;margin:8px 0 4px" for="dmAiAngleMode">Angle unit</label><select id="dmAiAngleMode" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px"><option value="deg">Degrees (DEG)</option><option value="rad">Radians (RAD)</option></select><label style="display:block;font-weight:600;margin:8px 0 4px" for="dmAiCalcExpression">Expression</label><input id="dmAiCalcExpression" type="text" inputmode="text" placeholder="e.g. sin(30) + log(100) + 5!" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px"><small>Functions: sin, cos, tan, asin, acos, atan, log, ln, sqrt, abs, round, factorial (!). Constants: pi, e. Operators: + − × ÷ ^ and brackets.</small>';
   if(mode==="discount")calcFields.innerHTML=calcField("dmAiCalcOriginal","Original price (₦)","e.g. 25000")+calcField("dmAiCalcDiscount","Discount (%)","e.g. 15");
   if(mode==="profit")calcFields.innerHTML=calcField("dmAiCalcCost","Cost price per item (₦)","e.g. 8000")+calcField("dmAiCalcSale","Selling price per item (₦)","e.g. 11000")+calcField("dmAiCalcQuantity","Quantity","e.g. 5");
   if(mode==="percent")calcFields.innerHTML=calcField("dmAiCalcAmount","Amount","e.g. 50000")+calcField("dmAiCalcRate","Percentage (%)","e.g. 7.5");
@@ -3094,7 +3090,7 @@ async function showDashboard() {
  document.getElementById("dmAiCalcRun").addEventListener("click",()=>{
   try{
    let result,spoken;
-   if(calcMode.value==="math"){const expr=document.getElementById("dmAiCalcExpression").value;result=safeCalculate(expr);spoken=expr+" equals "+result;}
+   if(calcMode.value==="math"){const expr=document.getElementById("dmAiCalcExpression").value;result=safeCalculate(expr,document.getElementById("dmAiAngleMode").value);spoken=expr+" equals "+result;}
    if(calcMode.value==="discount"){const original=numericField("dmAiCalcOriginal"),rate=numericField("dmAiCalcDiscount");if(original<0||rate<0||rate>100)throw new Error("Price must be positive and discount must be between 0 and 100.");const saving=original*rate/100,final=original-saving;result="You save "+money(saving)+".\nNew price: "+money(final);spoken="You save "+money(saving)+". The discounted price is "+money(final);}
    if(calcMode.value==="profit"){const cost=numericField("dmAiCalcCost"),sale=numericField("dmAiCalcSale"),qty=numericField("dmAiCalcQuantity");if(cost<0||sale<0||qty<=0)throw new Error("Costs and selling prices cannot be negative; quantity must be above zero.");const per=sale-cost,total=per*qty,revenue=sale*qty,margin=sale>0?per/sale*100:0;result="Profit per item: "+money(per)+"\nTotal profit: "+money(total)+"\nTotal sales: "+money(revenue)+"\nProfit margin: "+margin.toFixed(2)+"%";spoken="Profit per item "+money(per)+". Total profit "+money(total)+". Profit margin "+margin.toFixed(2)+" percent.";}
    if(calcMode.value==="percent"){const amount=numericField("dmAiCalcAmount"),rate=numericField("dmAiCalcRate");result=rate+"% of "+amount+" = "+(amount*rate/100);spoken=result;}
