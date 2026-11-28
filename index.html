@@ -3169,14 +3169,69 @@ async function showDashboard() {
  }
  async function startListening(){
   if(listening){if(recognition)recognition.stop();return}
-  if(!SpeechRecognition){status("Voice typing is not supported in this app browser. Open DAVIMART in Google Chrome and tap the microphone again.");return}
-  status("Requesting microphone…");
-  try{recognition=new SpeechRecognition();recognition.lang="en-NG";recognition.interimResults=false;recognition.maxAlternatives=1;}catch(error){status("Voice input could not start. Open DAVIMART in Google Chrome and check microphone permission.");return}
-  recognition.onstart=()=>{listening=true;mic.setAttribute("aria-pressed","true");mic.textContent="⏹️";status("Listening… speak your request now.")};
-  recognition.onresult=event=>{const transcript=event.results&&event.results[0]&&event.results[0][0]?event.results[0][0].transcript:"";if(transcript){input.value=transcript;answer(transcript)}else status("I couldn't hear that clearly. Please try again.")};
-  recognition.onerror=event=>{const map={"not-allowed":"Microphone permission was blocked. Allow microphone access for DAVIMART in Android/Chrome settings, then reload.","service-not-allowed":"Speech recognition is blocked in this browser. Open DAVIMART in Google Chrome.","audio-capture":"No microphone was detected. Check your phone microphone.","no-speech":"I didn't hear anything. Tap the microphone and try again.","network":"Voice recognition needs an internet connection."};status(map[event.error]||"Voice input stopped ("+event.error+"). You can type instead.")};
-  recognition.onend=()=>{listening=false;mic.setAttribute("aria-pressed","false");mic.textContent="🎙️"};
-  try{recognition.start()}catch(_){status("Couldn't start speech recognition. Please reload DAVIMART and try again.")}
+  if(!window.isSecureContext){status("Voice input needs a secure HTTPS connection. Open the DAVIMART Vercel link in Chrome.");return}
+  if(!SpeechRecognition){status("This browser does not support speech recognition. Open DAVIMART in the latest Google Chrome, allow microphone access, and try again.");return}
+  status("Preparing microphone…");
+  // Ask Android/Chrome for microphone permission before starting speech recognition.
+  // Some embedded browsers do not expose getUserMedia; in that case recognition can still request access itself.
+  if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+   try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    stream.getTracks().forEach(track=>track.stop());
+   }catch(error){
+    const reason=error&&error.name;
+    const messages={
+     NotAllowedError:"Microphone permission is blocked. In Android Settings > Apps > Chrome (or the app you opened DAVIMART in) > Permissions, allow Microphone, then reload DAVIMART.",
+     PermissionDeniedError:"Microphone permission is blocked. Allow microphone access in your browser/app settings, then try again.",
+     NotFoundError:"No microphone was detected. Check your phone microphone.",
+     NotReadableError:"Your microphone is being used by another app. Close that app and try again."
+    };
+    status(messages[reason]||"Could not access the microphone. Check browser microphone permission and try again.");
+    return;
+   }
+  }
+  try{
+   recognition=new SpeechRecognition();
+   recognition.lang="en-NG";
+   recognition.interimResults=false;
+   recognition.maxAlternatives=1;
+   recognition.continuous=false;
+  }catch(error){
+   status("Voice input could not start. Open DAVIMART in Google Chrome and check microphone permission.");
+   return;
+  }
+  recognition.onstart=()=>{
+   listening=true;
+   mic.setAttribute("aria-pressed","true");
+   mic.textContent="⏹️";
+   status("Listening… speak your request now.");
+  };
+  recognition.onresult=event=>{
+   const transcript=event.results&&event.results[0]&&event.results[0][0]?event.results[0][0].transcript:"";
+   if(transcript){
+    input.value=transcript;
+    status("I heard: "+transcript);
+    answer(transcript).catch(error=>{console.error("DAVIMART voice answer error:",error);status("I heard you, but couldn't process that request. Please try again.");});
+   }else status("I couldn't hear that clearly. Tap the microphone and try again.");
+  };
+  recognition.onerror=event=>{
+   const map={
+    "not-allowed":"Microphone permission was blocked. Allow microphone access for the browser/app in Android settings, then reload DAVIMART.",
+    "service-not-allowed":"Speech recognition is blocked in this browser. Open the DAVIMART HTTPS link in Google Chrome.",
+    "audio-capture":"No microphone was detected. Check your phone microphone.",
+    "no-speech":"I didn't hear anything. Tap the microphone and speak after the listening message appears.",
+    "network":"Voice recognition needs an internet connection. Check your data/Wi-Fi and try again.",
+    "aborted":"Voice input was stopped."
+   };
+   status(map[event.error]||"Voice input stopped ("+event.error+"). You can type instead.");
+  };
+  recognition.onend=()=>{
+   listening=false;
+   if(mic){mic.setAttribute("aria-pressed","false");mic.textContent="🎙️";}
+   if(voiceStatus&&voiceStatus.textContent==="Listening… speak your request now.")status("Voice input ended. Tap the microphone to speak again.");
+  };
+  try{recognition.start();}
+  catch(error){listening=false;status("Couldn't start speech recognition. Reload DAVIMART in Chrome and try again.");}
  }
  if(!SpeechRecognition)status("Voice input isn't available in this browser; typing still works.");
  if(!("speechSynthesis" in window))status("Voice replies aren't available in this browser; answers appear as text.");
