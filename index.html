@@ -3094,8 +3094,8 @@ async function showDashboard() {
    if(calcMode.value==="discount"){const original=numericField("dmAiCalcOriginal"),rate=numericField("dmAiCalcDiscount");if(original<0||rate<0||rate>100)throw new Error("Price must be positive and discount must be between 0 and 100.");const saving=original*rate/100,final=original-saving;result="You save "+money(saving)+".\nNew price: "+money(final);spoken="You save "+money(saving)+". The discounted price is "+money(final);}
    if(calcMode.value==="profit"){const cost=numericField("dmAiCalcCost"),sale=numericField("dmAiCalcSale"),qty=numericField("dmAiCalcQuantity");if(cost<0||sale<0||qty<=0)throw new Error("Costs and selling prices cannot be negative; quantity must be above zero.");const per=sale-cost,total=per*qty,revenue=sale*qty,margin=sale>0?per/sale*100:0;result="Profit per item: "+money(per)+"\nTotal profit: "+money(total)+"\nTotal sales: "+money(revenue)+"\nProfit margin: "+margin.toFixed(2)+"%";spoken="Profit per item "+money(per)+". Total profit "+money(total)+". Profit margin "+margin.toFixed(2)+" percent.";}
    if(calcMode.value==="percent"){const amount=numericField("dmAiCalcAmount"),rate=numericField("dmAiCalcRate");result=rate+"% of "+amount+" = "+(amount*rate/100);spoken=result;}
-   calcResult.textContent=result;calcResult.style.display="block";calcResult.scrollIntoView({behavior:"smooth",block:"nearest"});speak(spoken);
-  }catch(e){calcResult.textContent=e.message||"Please check the numbers and try again.";calcResult.style.display="block";calcResult.scrollIntoView({behavior:"smooth",block:"nearest"});}
+   calcResult.textContent=result;calcResult.style.display="block";calcResult.scrollIntoView({behavior:"smooth",block:"nearest"});bubble("Calculator result: "+result,"bot");speak(spoken);
+  }catch(e){const message=e.message||"Please check the numbers and try again.";calcResult.textContent=message;calcResult.style.display="block";calcResult.scrollIntoView({behavior:"smooth",block:"nearest"});bubble("Calculator: "+message,"bot");}
  });
  }catch(calcInitError){status("The calculator could not initialise. Reload DAVIMART and try again.");}
 
