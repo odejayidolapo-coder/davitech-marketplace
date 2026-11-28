@@ -34,6 +34,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 .admin-table td button{padding:8px 10px;margin:2px;font-size:12px}
 .action-approve{background:#e7f7ee;color:#176b3a}.action-reject{background:#fff0f0;color:#a32929}
 .status-pill{display:inline-block;padding:4px 8px;border-radius:20px;background:#edf2fa;font-size:11px}
+#registrationDetailsDialog{width:min(560px,calc(100% - 28px));max-height:85vh;overflow:auto;border:0;border-radius:16px;padding:22px;color:var(--ink);box-shadow:0 20px 70px #071f5050}#registrationDetailsDialog::backdrop{background:#071f5080}#registrationDetailsDialog h3{margin:0 0 14px;color:var(--navy)}.registration-detail{padding:10px 0;border-bottom:1px solid #e8edf4;overflow-wrap:anywhere}.registration-detail b{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}.registration-detail span{display:block;font-size:14px}
 
 .hidden{display:none!important}
 @media(max-width:700px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}aside{display:flex;gap:6px;overflow:auto}aside button{white-space:nowrap;width:auto}.panel{padding:17px}header{align-items:flex-start;flex-direction:column}}
@@ -95,6 +96,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <div class="actions"><button class="btn btn-light" id="refreshUsers">Refresh users</button></div>
 <p id="usersActionStatus" role="status" aria-live="polite"></p>
 <div id="usersTable">Loading users…</div>
+<dialog id="registrationDetailsDialog" aria-labelledby="registrationDetailsTitle"><h3 id="registrationDetailsTitle">User registration details</h3><div id="registrationDetailsBody"></div><div class="actions"><button class="btn btn-gold" id="closeRegistrationDetails" type="button">Close</button></div></dialog>
 </section>
 <section class="panel admin-feature" id="listingsPanel" hidden>
 <h2>Product, service & property review</h2>
@@ -537,6 +539,7 @@ async function loadUsers(){
  const rows=(data||[]).map(u=>{
   const tr=document.createElement("tr");cellText(tr,u.full_name||"Unnamed");cellText(tr,u.email||"—");cellText(tr,u.role);cellText(tr,u.seller_status);
   const action= document.createElement("td");
+  const view=document.createElement("button");view.className="btn-light";view.textContent="View registration";view.onclick=()=>showRegistrationDetails(u);action.appendChild(view);
   if(u.seller_status==="pending"){
    const yes=document.createElement("button");yes.className="action-approve";yes.textContent="Approve seller";yes.onclick=()=>changeSeller(u.id,"approved");
    const no=document.createElement("button");no.className="action-reject";no.textContent="Reject";no.onclick=()=>changeSeller(u.id,"rejected");action.append(yes,no);
@@ -545,6 +548,35 @@ async function loadUsers(){
  });
  makeTable("usersTable",["Name","Email","Role","Seller status","Action"],rows);
 }
+function showRegistrationDetails(user){
+ const dialog=document.getElementById("registrationDetailsDialog");
+ const body=document.getElementById("registrationDetailsBody");
+ body.replaceChildren();
+ const details=[
+  ["Full name",user.full_name||"Not provided"],
+  ["Email address",user.email||"Not provided"],
+  ["Account type selected at registration",user.role||"Not available"],
+  ["Registration date",user.created_at?new Date(user.created_at).toLocaleString():"Not available"],
+  ["Account approval status",user.approval_status||"Not available"],
+  ["Seller application status",user.seller_status||"Not applied"]
+ ];
+ details.forEach(([label,value])=>{
+  const item=document.createElement("div");item.className="registration-detail";
+  const heading=document.createElement("b");heading.textContent=label;
+  const content=document.createElement("span");content.textContent=value;
+  item.append(heading,content);body.appendChild(item);
+ });
+ const note=document.createElement("p");
+ note.className="notice";
+ note.textContent="DAVIMART's current registration form collects full name, email address, password and account type. Passwords are never shown to administrators. Phone number and business details are not part of this registration form; seller business information should be collected separately during seller application.";
+ body.appendChild(note);
+ if(typeof dialog.showModal==="function")dialog.showModal();
+ else alert(details.map(([k,v])=>k+": "+v).join("\\n"));
+}
+document.getElementById("closeRegistrationDetails").onclick=()=>document.getElementById("registrationDetailsDialog").close();
+document.getElementById("registrationDetailsDialog").addEventListener("click",event=>{
+ if(event.target===event.currentTarget)event.currentTarget.close();
+});
 async function changeSeller(id,statusValue){
  const label=statusValue==="approved"?"approve":"reject";
  if(!confirm("Are you sure you want to "+label+" this seller application?"))return;
