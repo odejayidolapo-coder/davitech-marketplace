@@ -2911,7 +2911,7 @@ async function showDashboard() {
  <div class="dm-ai-messages" id="dmAiMessages" aria-live="polite"><div class="dm-ai-bubble bot">Hi! I can help you find products, discover services or properties, compare listed prices, and explain details sellers have provided. What are you looking for?</div><div class="dm-ai-chips"><button class="dm-ai-chip" data-prompt="Find me a phone">Find a phone</button><button class="dm-ai-chip" data-prompt="Show me services">Find services</button><button class="dm-ai-chip" data-prompt="Show me properties">Find properties</button><button class="dm-ai-chip" data-prompt="Compare prices for laptops">Compare prices</button></div></div>
  <form class="dm-ai-inputrow" id="dmAiForm"><button class="dm-ai-voice-btn" id="dmAiMic" type="button" aria-label="Start voice search" title="Speak your request">🎙️</button><input id="dmAiInput" autocomplete="off" placeholder="Type or use the microphone…" aria-label="Ask DAVIMART AI"><button id="dmAiSend" type="submit">Send</button></form>
  <div class="dm-ai-voice-tools"><span id="dmAiVoiceStatus" role="status" aria-live="polite">Voice starts only when you tap the microphone.</span><button id="dmAiStopVoice" type="button">Stop voice</button></div>
- <div class="dm-ai-note">Suggestions use approved DAVIMART listings. Voice uses your browser; microphone access starts only after you tap it. Prices and availability should be confirmed with the seller.</div>
+ <label class="dm-ai-note" style="display:flex;gap:8px;align-items:flex-start"><input id="dmAiGeminiConsent" type="checkbox" style="margin-top:3px"><span>Optional full AI uses Google Gemini. If enabled, your message and recent chat context are sent to Google. Do not enter passwords, PINs, OTPs, NIN/BVN, payment details or private contact information. Leave unchecked to use DAVIMART search and built-in help.</span></label><div class="dm-ai-note">Search uses approved public listings. Voice starts only when you tap the microphone. Confirm prices and availability with the seller.</div>
 </section>
 
 <script id="davimart-ai-assistant">
@@ -2998,6 +2998,8 @@ async function showDashboard() {
  }
  async function answer(q){
   const clean=q.trim().slice(0,1800);if(!clean)return;
+  const consent=document.getElementById("dmAiGeminiConsent");
+  if(!consent?.checked){bubble(clean,"user");input.value="";bubble("Full AI is off until you opt in. I'll use DAVIMART built-in help and marketplace search instead.","bot");await localAnswer(clean);return;}
   bubble(clean,"user");input.value="";
   const thinking=bubble("DAVIMART AI is thinking…","bot");
   try{
