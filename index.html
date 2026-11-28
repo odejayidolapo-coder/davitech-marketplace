@@ -2921,16 +2921,12 @@ async function showDashboard() {
  const aiDb=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
  const money=n=>new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",maximumFractionDigits:0}).format(Number(n)||0);
  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
- let recognition=null,listening=false;
+ let recognition=null,listening=false,history=[];
  function status(text){if(voiceStatus)voiceStatus.textContent=text}
  function speak(text){
-  if(!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window)){status("Voice replies are not supported by this browser.");return}
-  window.speechSynthesis.cancel();
-  const utterance=new SpeechSynthesisUtterance(text);
-  utterance.lang="en-NG";utterance.rate=1;utterance.pitch=1;
-  utterance.onstart=()=>status("DAVIMART AI is speaking…");
-  utterance.onend=()=>status("You can type or tap the microphone to speak.");
-  utterance.onerror=()=>status("Could not play the voice reply. You can still read the answer.");
+  if(!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+  window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang="en-NG";utterance.rate=1;
+  utterance.onstart=()=>status("DAVIMART AI is speaking…");utterance.onend=()=>status("You can type or tap the microphone to speak.");
   window.speechSynthesis.speak(utterance);
  }
  function stopSpeaking(){if("speechSynthesis" in window)window.speechSynthesis.cancel();status("Voice reply stopped.")}
@@ -2938,46 +2934,97 @@ async function showDashboard() {
  function close(){panel.classList.remove("dm-ai-open");panel.setAttribute("aria-hidden","true");if(listening&&recognition)recognition.stop();stopSpeaking()}
  launcher.addEventListener("click",open);document.getElementById("dmAiClose").addEventListener("click",close);
  function bubble(text,who){const el=document.createElement("div");el.className="dm-ai-bubble "+who;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;return el}
- function resultCard(item,type){const a=document.createElement("a");a.className="dm-ai-result";const routes={product:"product.html?id=",service:"service-provider.html?id=",property:"property.html?id="};a.href=(routes[type]||"product.html?id=")+encodeURIComponent(item.id);
- if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt="";img.loading="lazy";a.appendChild(img)}
- const info=document.createElement("span"),name=document.createElement("strong"),price=document.createElement("small"),meta=document.createElement("small");name.textContent=item.title||"Untitled listing";price.textContent=money(item.price);meta.textContent=[item.category,item.location].filter(Boolean).join(" · ");info.append(name,price,meta);a.appendChild(info);return a}
- function intentType(q){if(/\b(service|repair|clean|plumb|electrician|salon|delivery|lesson|tutor|event|photograph|tailor)\b/i.test(q))return"service";if(/\b(property|house|home|flat|apartment|land|rent|lease|buy a house)\b/i.test(q))return"property";return"product"}
+ function resultCard(item){
+  const type=item.listing_type||"product",a=document.createElement("a");a.className="dm-ai-result";
+  const routes={product:"product.html?id=",service:"service-provider.html?id=",property:"property.html?id="};a.href=(routes[type]||routes.product)+encodeURIComponent(item.id);
+  if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt="";img.loading="lazy";a.appendChild(img)}
+  const info=document.createElement("span"),name=document.createElement("strong"),price=document.createElement("small"),meta=document.createElement("small");
+  name.textContent=item.title||"Untitled listing";price.textContent=money(item.price);
+  meta.textContent=[type,item.category,item.location].filter(Boolean).join(" · ");info.append(name,price,meta);a.appendChild(info);return a;
+ }
+ function intentType(q){if(/\b(service|repair|clean|plumb|electrician|salon|delivery|lesson|tutor|event|photograph|tailor)\b/i.test(q))return"service";if(/\b(property|house|home|flat|apartment|land|rent|lease|real estate)\b/i.test(q))return"property";return null}
  function budgetFrom(q){const m=q.match(/(?:under|below|less than|max(?:imum)?|budget(?: of)?)\s*₦?\s*([\d,]+(?:\.\d+)?)(\s*[kKmM])?/i);if(!m)return null;let n=Number(m[1].replace(/,/g,""));if(/[kK]/.test(m[2]||""))n*=1000;if(/[mM]/.test(m[2]||""))n*=1000000;return n}
- async function answer(q){
-  const clean=q.trim();if(!clean)return;
-  bubble(clean,"user");input.value="";
-  const thinking=bubble("Let me check approved DAVIMART listings…","bot");
-  const type=intentType(clean),budget=budgetFrom(clean),terms=clean.replace(/\b(find|show|me|please|i want|i need|looking for|compare|prices?|price|under|below|less than|my budget is|budget of|services?|products?|properties?)\b/gi," ").replace(/[₦,]/g," ").trim();
-  let req=aiDb.from("listings").select("id,title,description,price,category,location,image_url,listing_type").eq("status","approved").eq("listing_type",type).order("created_at",{ascending:false}).limit(40);
-  const keywords=terms.split(/\s+/).filter(w=>w.length>2).slice(0,5);
-  if(keywords.length){const safe=keywords.join(" ");req=req.or("title.ilike.%"+safe+"%,description.ilike.%"+safe+"%,category.ilike.%"+safe+"%")}
-  if(budget!==null)req=req.lte("price",budget);
-  const {data,error}=await req;
-  thinking.remove();
-  if(error){const msg="I couldn't reach the marketplace listings just now. Please try again in a moment or use the main search bar.";bubble(msg,"bot");speak(msg);return}
+ function localKnowledge(q){
+  const t=q.toLowerCase();
+  if(/\b(sell|seller|selling|list my|upload.*product|become a seller)\b/.test(t))return"Want to sell on DAVIMART? Sign in or create an account, open Account, choose “Become a Seller”, complete the seller application and verification, then wait for admin approval. Once approved, open your Seller Dashboard and submit genuine products or services for review. Your listing becomes public after approval.";
+  if(/\b(buy|buying|purchase|order|checkout|cart)\b/.test(t))return"To buy on DAVIMART, search or ask me to find a product, service or property. Open a listing to review its details, add eligible products to your cart and continue to checkout. Use the payment options shown at checkout, then check your account for order updates. Confirm important details with the seller before paying.";
+  if(/\b(payment|paystack|opay|bank transfer|pay for)\b/.test(t))return"Use only the payment methods actually displayed in DAVIMART checkout. Never send money to a personal account based only on a chat message. If a payment is pending or unclear, check your order status and contact the seller through DAVIMART.";
+  if(/\b(delivery|shipping|dispatch|deliver)\b/.test(t))return"Delivery availability, fees and timing can depend on the listing and location. Check the listing and checkout for the available delivery details, and confirm the arrangement with the seller before completing your order.";
+  if(/\b(verify|verification|nin|cac|seller approval|approved seller)\b/.test(t))return"Seller verification helps DAVIMART review seller applications. Apply from your account, provide only the documents requested in the secure verification flow, and wait for admin review. Never share your NIN, verification documents, password or OTP in this chat.";
+  if(/\b(contact|phone|telephone|whatsapp|support|help line)\b/.test(t))return"The homepage lists DAVITECH digital/business services on WhatsApp at 09068847614 (+2349068847614). This is the DAVITECH services contact, not a confirmed general DAVIMART order-support line. For a marketplace item, use the contact/message option on its listing. I won't disclose private seller or buyer phone numbers.";
+  if(/\b(property|real estate|house|land|rent|apartment)\b/.test(t))return"DAVIMART supports property listings. Ask me to find land, houses, flats or rentals and include your location and budget. Open a result to review the details and contact the listing owner through the available listing options.";
+  if(/\b(service|services|hire|repair|plumber|electrician|tailor|salon)\b/.test(t))return"DAVIMART also lists services. Tell me the service you need and your location or budget, and I'll search approved service listings. Open a result to review the provider's details.";
+  if(/\b(davimart|what can you do|how does this work)\b/.test(t))return"I'm DAVIMART AI. I can help you discover products, services and properties, compare listed prices, explain buying and selling steps, and guide you around marketplace features. I can also answer general questions when the AI service is available.";
+  return null;
+ }
+ async function searchListings(q){
+  const type=intentType(q),budget=budgetFrom(q);
+  const stop=new Set(["find","show","me","please","want","need","looking","for","compare","price","prices","under","below","less","than","budget","products","product","services","service","properties","property","buy","sell","the","and","with","from","some","any"]);
+  const words=q.toLowerCase().replace(/[₦,!?]/g," ").split(/\s+/).filter(w=>w.length>2&&!stop.has(w)).slice(0,6);
+  let query=aiDb.from("listings").select("id,title,description,price,category,location,image_url,listing_type").eq("status","approved").order("created_at",{ascending:false}).limit(60);
+  if(type)query=query.eq("listing_type",type);
+  if(budget!==null)query=query.lte("price",budget);
+  if(words.length){
+   const clauses=words.flatMap(w=>["title","description","category","location"].map(col=>col+".ilike.%"+w.replace(/[(),.%]/g,"")+"%"));
+   query=query.or(clauses.join(","));
+  }
+  const {data,error}=await query;if(error)throw error;
   let rows=data||[];
-  if(!rows.length){const msg="I couldn't find an approved "+(type==="product"?"product":type==="service"?"service":"property")+" matching that request. Try a shorter description or remove the budget limit.";bubble(msg,"bot");speak(msg);return}
-  rows.sort((a,b)=>Number(a.price||0)-Number(b.price||0));
-  const intro=/\b(compare|cheapest|lowest|price|prices|budget|under|below)\b/i.test(clean)?"Here are matching listings ordered from lowest to highest listed price:":"I found these approved listings that may fit what you're looking for:";
-  bubble(intro,"bot");
-  rows.slice(0,5).forEach(item=>messages.appendChild(resultCard(item,type)));
-  const tail=rows.length>5?"Showing 5 matches. Tell me if you want a different category or budget.":"These are the current matching listings. Open one to view its details and contact the seller.";
-  bubble(tail,"bot");messages.scrollTop=messages.scrollHeight;
-  const lowest=rows[0],spoken="I found "+rows.length+" matching approved "+(type==="product"?"products":type==="service"?"services":"properties")+". The lowest listed price is "+money(lowest.price)+" for "+(lowest.title||"the first listing")+". Open the listing in the chat to see its details.";
-  speak(spoken);
+  rows.sort((a,b)=>{
+   const score=x=>words.reduce((n,w)=>n+((x.title||"").toLowerCase().includes(w)?4:0)+((x.category||"").toLowerCase().includes(w)?2:0)+((x.description||"").toLowerCase().includes(w)?1:0),0);
+   return score(b)-score(a)||Number(a.price||0)-Number(b.price||0);
+  });
+  return rows;
+ }
+ async function localAnswer(q){
+  const known=localKnowledge(q);
+  if(known){bubble(known,"bot");speak(known);return}
+  const thinking=bubble("Searching approved DAVIMART listings…","bot");
+  try{
+   const rows=await searchListings(q);thinking.remove();
+   if(!rows.length){
+    const msg="I couldn't find a matching approved listing yet. Try another keyword, category, location or budget. Sellers can also join DAVIMART and submit a listing for review.";
+    bubble(msg,"bot");speak(msg);return;
+   }
+   bubble("I found these approved DAVIMART listings for you:","bot");
+   rows.slice(0,5).forEach(item=>messages.appendChild(resultCard(item)));
+   const tail=rows.length>5?"Showing 5 matches. Tell me if you'd like to narrow the category, location or budget.":"Open a listing to see its full details and available seller contact options. Ready to buy? Continue through DAVIMART checkout.";
+   bubble(tail,"bot");messages.scrollTop=messages.scrollHeight;
+   const types=[...new Set(rows.slice(0,5).map(x=>x.listing_type))].join(", ");
+   speak("I found "+rows.length+" matching approved listings, including "+types+". Open a result to see details and continue on DAVIMART.");
+  }catch(error){
+   thinking.remove();const msg="I couldn't reach DAVIMART listings just now. Please try again or use the main marketplace search bar.";bubble(msg,"bot");speak(msg);
+  }
+ }
+ async function answer(q){
+  const clean=q.trim().slice(0,1800);if(!clean)return;
+  bubble(clean,"user");input.value="";
+  const thinking=bubble("DAVIMART AI is thinking…","bot");
+  try{
+   const {data,error}=await aiDb.functions.invoke("davimart-ai",{body:{message:clean,history:history.slice(-6)}});
+   if(error||!data?.answer)throw new Error(data?.code||error?.message||"AI_UNAVAILABLE");
+   thinking.remove();bubble(data.answer,"bot");speak(data.answer);
+   history.push({role:"user",text:clean},{role:"model",text:data.answer});history=history.slice(-6);
+  }catch(error){
+   thinking.remove();
+   const msg=String(error?.message||"");
+   const fallback=localKnowledge(clean)?"DAVIMART AI's full-answer limit is unavailable. I'll use DAVIMART's built-in marketplace help instead.": "Full AI is temporarily unavailable. I can still search approved DAVIMART products, services and properties and answer marketplace questions.";
+   bubble(fallback,"bot");
+   await localAnswer(clean);
+  }
  }
  function startListening(){
-  if(!SpeechRecognition){status("Voice input is not supported here. Please type your request.");return}
+  if(!SpeechRecognition){status("Voice input isn't supported here. Please type your request.");return}
   if(listening){recognition.stop();return}
   recognition=new SpeechRecognition();recognition.lang="en-NG";recognition.interimResults=false;recognition.maxAlternatives=1;
   recognition.onstart=()=>{listening=true;mic.setAttribute("aria-pressed","true");mic.textContent="⏹️";status("Listening… speak your request now.")};
-  recognition.onresult=event=>{const transcript=event.results&&event.results[0]&&event.results[0][0]?event.results[0][0].transcript:"";if(transcript){input.value=transcript;status("I heard: "+transcript);answer(transcript)}else status("I couldn't hear that clearly. Please try again.")};
-  recognition.onerror=event=>{const messages={not-allowed:"Microphone permission was blocked. Allow it in your browser settings or type instead.",audio-capture:"No microphone was detected on this device.",no-speech:"I didn't hear anything. Tap the microphone and try again.",network:"Voice recognition needs an internet connection."};status(messages[event.error]||"Voice input stopped. You can type your request.")};
+  recognition.onresult=event=>{const transcript=event.results&&event.results[0]&&event.results[0][0]?event.results[0][0].transcript:"";if(transcript){input.value=transcript;answer(transcript)}else status("I couldn't hear that clearly. Please try again.")};
+  recognition.onerror=event=>{const map={"not-allowed":"Microphone permission was blocked. Allow it in browser settings or type instead.","audio-capture":"No microphone was detected.","no-speech":"I didn't hear anything. Try again.","network":"Voice recognition needs an internet connection."};status(map[event.error]||"Voice input stopped. You can type instead.")};
   recognition.onend=()=>{listening=false;mic.setAttribute("aria-pressed","false");mic.textContent="🎙️"};
-  try{recognition.start()}catch(error){status("Couldn't start the microphone. Please try again or type instead.")}
+  try{recognition.start()}catch(_){status("Couldn't start the microphone. Please try again or type.")}
  }
  mic.addEventListener("click",startListening);
- stopVoice.addEventListener("click",()=>{if(listening&&recognition)recognition.stop();stopSpeaking();if(listening)status("Microphone stopped.")});
+ stopVoice.addEventListener("click",()=>{if(listening&&recognition)recognition.stop();stopSpeaking();});
  form.addEventListener("submit",e=>{e.preventDefault();answer(input.value)});
  messages.addEventListener("click",e=>{const b=e.target.closest("[data-prompt]");if(b)answer(b.dataset.prompt)});
  if(!SpeechRecognition)status("Voice input isn't available in this browser; typing still works.");
