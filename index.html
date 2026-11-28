@@ -2951,7 +2951,7 @@ async function showDashboard() {
  // Initialise core controls before optional calculator setup, so one widget error cannot disable chat or voice.
  if(mic)mic.addEventListener("click",startListening);
  if(stopVoice)stopVoice.addEventListener("click",()=>{if(listening&&recognition)recognition.stop();stopSpeaking();});
- form.addEventListener("submit",e=>{e.preventDefault();answer(input.value)});
+ form.addEventListener("submit",e=>{e.preventDefault();e.stopPropagation();panel.classList.add("dm-ai-open");panel.setAttribute("aria-hidden","false");const message=input.value;Promise.resolve().then(()=>answer(message)).catch(error=>{console.error("DAVIMART AI send error:",error);panel.classList.add("dm-ai-open");bubble("Sorry, something went wrong. Your chat is still open—please try again.","bot");});});
  messages.addEventListener("click",e=>{const b=e.target.closest("[data-prompt]");if(b)answer(b.dataset.prompt)});
  function safeCalculate(expression){
   let raw=String(expression||"").toLowerCase().replace(/,/g,"").replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-");
@@ -3096,15 +3096,12 @@ async function showDashboard() {
  }
  async function startListening(){
   if(listening){if(recognition)recognition.stop();return}
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){status("Microphone access needs a secure browser page. Open DAVIMART in Chrome and allow microphone access.");return}
-  let stream;
-  try{stream=await navigator.mediaDevices.getUserMedia({audio:true});stream.getTracks().forEach(track=>track.stop())}
-  catch(error){const denied=error&&(["NotAllowedError","PermissionDeniedError"].includes(error.name));status(denied?"Microphone permission is blocked. In Android Settings, allow microphone for Chrome, then reload DAVIMART.":"I couldn't access a microphone. Check that your device microphone is available and try again.");return}
-  if(!SpeechRecognition){status("Microphone permission is now allowed, but this browser view cannot convert speech to text. Open the DAVIMART preview in Google Chrome, then tap the microphone.");return}
-  recognition=new SpeechRecognition();recognition.lang="en-NG";recognition.interimResults=false;recognition.maxAlternatives=1;
+  if(!SpeechRecognition){status("Voice typing is not supported in this app browser. Open DAVIMART in Google Chrome and tap the microphone again.");return}
+  status("Requesting microphone…");
+  try{recognition=new SpeechRecognition();recognition.lang="en-NG";recognition.interimResults=false;recognition.maxAlternatives=1;}catch(error){status("Voice input could not start. Open DAVIMART in Google Chrome and check microphone permission.");return}
   recognition.onstart=()=>{listening=true;mic.setAttribute("aria-pressed","true");mic.textContent="⏹️";status("Listening… speak your request now.")};
   recognition.onresult=event=>{const transcript=event.results&&event.results[0]&&event.results[0][0]?event.results[0][0].transcript:"";if(transcript){input.value=transcript;answer(transcript)}else status("I couldn't hear that clearly. Please try again.")};
-  recognition.onerror=event=>{const map={"not-allowed":"Microphone permission was blocked. Allow microphone access for DAVIMART in Chrome settings.","service-not-allowed":"Speech recognition is blocked in this browser. Try opening DAVIMART in Chrome.","audio-capture":"No microphone was detected.","no-speech":"I didn't hear anything. Try again.","network":"Voice recognition needs an internet connection."};status(map[event.error]||"Voice input stopped ("+event.error+"). You can type instead.")};
+  recognition.onerror=event=>{const map={"not-allowed":"Microphone permission was blocked. Allow microphone access for DAVIMART in Android/Chrome settings, then reload.","service-not-allowed":"Speech recognition is blocked in this browser. Open DAVIMART in Google Chrome.","audio-capture":"No microphone was detected. Check your phone microphone.","no-speech":"I didn't hear anything. Tap the microphone and try again.","network":"Voice recognition needs an internet connection."};status(map[event.error]||"Voice input stopped ("+event.error+"). You can type instead.")};
   recognition.onend=()=>{listening=false;mic.setAttribute("aria-pressed","false");mic.textContent="🎙️"};
   try{recognition.start()}catch(_){status("Couldn't start speech recognition. Please reload DAVIMART and try again.")}
  }
