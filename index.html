@@ -3124,7 +3124,7 @@ async function showDashboard() {
   return null;
  }
  async function searchListings(q){
-  const type=intentType(q),budget=budgetFrom(q);
+  const type=intentType(q),budget=budgetFrom(q),compareMode=/\b(compare|cheapest|lowest price|best price)\b/i.test(q);
   const stop=new Set(["find","show","me","please","want","need","looking","for","compare","price","prices","under","below","less","than","budget","products","product","services","service","properties","property","buy","sell","the","and","with","from","some","any"]);
   const words=q.toLowerCase().replace(/[₦,!?]/g," ").split(/\s+/).filter(w=>w.length>2&&!stop.has(w)).slice(0,6);
   if(!aiDb)throw new Error("Marketplace connection is unavailable.");
@@ -3138,6 +3138,7 @@ async function showDashboard() {
   const {data,error}=await query;if(error)throw error;
   let rows=data||[];
   rows.sort((a,b)=>{
+   if(compareMode)return Number(a.price||0)-Number(b.price||0);
    const score=x=>words.reduce((n,w)=>n+((x.title||"").toLowerCase().includes(w)?4:0)+((x.category||"").toLowerCase().includes(w)?2:0)+((x.description||"").toLowerCase().includes(w)?1:0),0);
    return score(b)-score(a)||Number(a.price||0)-Number(b.price||0);
   });
@@ -3153,7 +3154,7 @@ async function showDashboard() {
     const msg="I couldn't find a matching approved listing yet. Try another keyword, category, location or budget. Sellers can also join DAVIMART and submit a listing for review.";
     bubble(msg,"bot");speak(msg);return;
    }
-   bubble("I found these approved DAVIMART listings for you:","bot");
+   bubble(/\b(compare|cheapest|lowest price|best price)\b/i.test(q)?"Here are matching approved DAVIMART listings, sorted from lowest price to highest:":"I found these approved DAVIMART listings for you:","bot");
    rows.slice(0,5).forEach(item=>messages.appendChild(resultCard(item)));
    const tail=rows.length>5?"Showing 5 matches. Tell me if you'd like to narrow the category, location or budget.":"These are search previews only. Use the main DAVIMART marketplace search to open a listing and view its full details.";
    bubble(tail,"bot");messages.scrollTop=messages.scrollHeight;
