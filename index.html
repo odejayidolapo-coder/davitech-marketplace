@@ -2948,6 +2948,11 @@ async function showDashboard() {
  function close(){panel.classList.remove("dm-ai-open");panel.setAttribute("aria-hidden","true");if(listening&&recognition)recognition.stop();stopSpeaking()}
  launcher.addEventListener("click",open);document.getElementById("dmAiClose").addEventListener("click",close);
  function bubble(text,who){const el=document.createElement("div");el.className="dm-ai-bubble "+who;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;return el}
+ // Initialise core controls before optional calculator setup, so one widget error cannot disable chat or voice.
+ if(mic)mic.addEventListener("click",startListening);
+ if(stopVoice)stopVoice.addEventListener("click",()=>{if(listening&&recognition)recognition.stop();stopSpeaking();});
+ form.addEventListener("submit",e=>{e.preventDefault();answer(input.value)});
+ messages.addEventListener("click",e=>{const b=e.target.closest("[data-prompt]");if(b)answer(b.dataset.prompt)});
  function safeCalculate(expression){
   let raw=String(expression||"").toLowerCase().replace(/,/g,"").replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-");
   raw=raw.replace(/\b(what is|calculate|work out|solve|equals|equal to)\b/g," ")
@@ -2975,6 +2980,7 @@ async function showDashboard() {
   return result;
  }
  function calcField(id,label,placeholder){return '<label style="display:block;font-weight:600;margin:8px 0 4px" for="'+id+'">'+label+'</label><input id="'+id+'" inputmode="decimal" type="number" step="any" placeholder="'+placeholder+'" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px">';}
+ try{
  const calcMode=document.getElementById("dmAiCalcMode"),calcFields=document.getElementById("dmAiCalcFields"),calcResult=document.getElementById("dmAiCalcResult");
  function renderCalcFields(){
   const mode=calcMode.value;
@@ -3000,6 +3006,7 @@ async function showDashboard() {
    calcResult.textContent=result;speak(spoken);
   }catch(e){calcResult.textContent=e.message||"Please check the numbers and try again."}
  });
+ }catch(calcInitError){status("The calculator could not initialise. Reload DAVIMART and try again.");}
 
  function resultCard(item){
   const type=item.listing_type||"product",a=document.createElement("a");a.className="dm-ai-result";
@@ -3102,10 +3109,6 @@ async function showDashboard() {
   recognition.onend=()=>{listening=false;mic.setAttribute("aria-pressed","false");mic.textContent="🎙️"};
   try{recognition.start()}catch(_){status("Couldn't start speech recognition. Please reload DAVIMART and try again.")}
  }
- mic.addEventListener("click",startListening);
- stopVoice.addEventListener("click",()=>{if(listening&&recognition)recognition.stop();stopSpeaking();});
- form.addEventListener("submit",e=>{e.preventDefault();answer(input.value)});
- messages.addEventListener("click",e=>{const b=e.target.closest("[data-prompt]");if(b)answer(b.dataset.prompt)});
  if(!SpeechRecognition)status("Voice input isn't available in this browser; typing still works.");
  if(!("speechSynthesis" in window))status("Voice replies aren't available in this browser; answers appear as text.");
 })();
