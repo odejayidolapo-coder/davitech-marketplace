@@ -3022,7 +3022,31 @@ async function showDashboard() {
  // Initialise core controls before optional calculator setup, so one widget error cannot disable chat or voice.
  if(mic)mic.addEventListener("click",startListening);
  if(stopVoice)stopVoice.addEventListener("click",()=>{if(listening&&recognition)recognition.stop();stopSpeaking();});
- form.addEventListener("submit",e=>{e.preventDefault();e.stopPropagation();panel.classList.add("dm-ai-open");panel.setAttribute("aria-hidden","false");const message=input.value;Promise.resolve().then(()=>answer(message)).catch(error=>{console.error("DAVIMART AI send error:",error);panel.classList.add("dm-ai-open");bubble("Sorry, something went wrong. Your chat is still open—please try again.","bot");});});
+ let sending=false;
+ const sendButton=document.getElementById("dmAiSend");
+ form.addEventListener("submit",async e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  if(sending)return;
+  const message=String(input.value||"").trim();
+  if(!message)return;
+  sending=true;
+  if(sendButton){sendButton.disabled=true;sendButton.textContent="Sending…";}
+  panel.classList.add("dm-ai-open");
+  panel.setAttribute("aria-hidden","false");
+  input.value="";
+  try{
+   await answer(message);
+  }catch(error){
+   console.error("DAVIMART AI send error:",error);
+   bubble("Sorry, something went wrong. Your message is still in this chat. Please try again.","bot");
+  }finally{
+   sending=false;
+   if(sendButton){sendButton.disabled=false;sendButton.textContent="Send";}
+   messages.scrollTop=messages.scrollHeight;
+   input.focus();
+  }
+ });
  messages.addEventListener("click",e=>{const b=e.target.closest("[data-prompt]");if(b)answer(b.dataset.prompt)});
  function safeCalculate(expression){
   let raw=String(expression||"").toLowerCase().replace(/,/g,"").replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-");
