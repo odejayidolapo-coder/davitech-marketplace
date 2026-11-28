@@ -55,6 +55,8 @@ body.camera-open{overflow:hidden}
 #loader{position:fixed;inset:0;background:white;display:grid;place-items:center;z-index:100;color:#102b55;font-weight:bold}
 [hidden]{display:none!important}
 @media(max-width:450px){.features{grid-template-columns:1fr}}
+.order-card{border:1px solid #dce3ed;border-radius:11px;padding:15px;margin:12px 0;background:#fff}.order-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}.order-badge{display:inline-block;padding:5px 9px;border-radius:20px;background:#edf2fa;color:#102b55;font-size:12px;font-weight:bold}.order-meta{font-size:13px;color:#667085;line-height:1.6;overflow-wrap:anywhere}.order-item{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #edf0f4}.order-item img{width:58px;height:58px;object-fit:cover;border-radius:8px;background:#f1f4f8}.order-item-info{min-width:0;flex:1}.tracking-steps{display:flex;gap:5px;margin:12px 0}.tracking-step{flex:1;height:6px;border-radius:8px;background:#e6eaf0}.tracking-step.done{background:#1d8a55}.tracking-labels{display:flex;justify-content:space-between;gap:4px;font-size:10px;color:#667085}.order-empty{padding:20px;text-align:center;color:#667085;background:#f8fafc;border-radius:9px}
+.order-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.order-actions button{flex:1;min-width:135px}.order-actions .continue-payment{background:#102b55;color:#fff}.order-actions .cancel-order{background:#c62828!important;color:#fff!important}.order-actions .cancel-order:hover{background:#a61b1b!important}.order-action-status{font-size:13px;line-height:1.5;margin:7px 0;color:#475467}
 </style>
 <style>
 /* Consistent, mobile-safe DAVIMART marketplace navigation */
@@ -269,6 +271,14 @@ body.camera-open{overflow:hidden}
 <a class="feature account-menu-link" href="close-account.html"><strong>❌ Close Account</strong><p>Request assistance with closing your account.</p></a>
 </div>
 </section>
+<section class="panel" id="buyerOrdersPanel">
+<h2>📦 My Orders &amp; Delivery Tracking</h2>
+<p>Follow each purchase from payment to delivery. Only you can see orders placed from your account.</p>
+<div class="actions"><button type="button" class="secondary" id="refreshBuyerOrders">Refresh orders</button></div>
+<p id="buyerOrdersStatus" class="form-help" aria-live="polite">Loading your orders…</p>
+<div id="buyerOrdersList"></div>
+<p class="form-help">Tracking updates are based on DAVIMART order and seller status updates. Live courier GPS or external tracking numbers will appear when a delivery partner integration is available.</p>
+</section>
 </main>
 
 <nav class="bottom-nav" aria-label="Main navigation">
@@ -444,6 +454,120 @@ document.getElementById("closeAccountPhotoLightbox").onclick=closeAccountPhotoPr
 document.getElementById("accountPhotoLightbox").addEventListener("click",event=>{if(event.target===document.getElementById("accountPhotoLightbox"))closeAccountPhotoPreview();});
 document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!document.getElementById("accountPhotoLightbox").hidden)closeAccountPhotoPreview();});
 
+function buyerOrderStage(order,item){
+ const itemStatus=item?.seller_fulfillment_status;
+ if(order.status==="cancelled"||order.status==="refunded")return order.status;
+ if(order.status==="delivered"||itemStatus==="delivered")return "delivered";
+ if(order.status==="shipped"||itemStatus==="shipped")return "shipped";
+ if(order.status==="processing"||itemStatus==="processing"||itemStatus==="accepted")return "processing";
+ if(order.payment_status==="success"||order.status==="paid")return "paid";
+ return "pending_payment";
+}
+function buyerStageLabel(stage){return ({pending_payment:"Awaiting payment",paid:"Payment confirmed",processing:"Being prepared",shipped:"Shipped",delivered:"Delivered",cancelled:"Cancelled",refunded:"Refunded"})[stage]||stage.replaceAll("_"," ");}
+function renderBuyerOrderCard(order){
+ const card=document.createElement("article");card.className="order-card";
+ const top=document.createElement("div");top.className="order-top";
+ const title=document.createElement("strong");title.textContent="Order "+String(order.id).slice(0,8).toUpperCase();
+ const badge=document.createElement("span");badge.className="order-badge";badge.textContent=buyerStageLabel(order.status==="cancelled"||order.status==="refunded"?order.status:order.items?.length?order.items.reduce((best,item)=>{const s=buyerOrderStage(order,item);const rank={pending_payment:0,paid:1,processing:2,shipped:3,delivered:4,cancelled:5,refunded:5};return (rank[s]??0)>(rank[best]??0)?s:best;},buyerOrderStage(order,order.items[0])):buyerStageLabel(order.status));
+ top.append(title,badge);card.appendChild(top);
+ const meta=document.createElement("p");meta.className="order-meta";meta.textContent="Placed: "+new Date(order.created_at).toLocaleString()+" · Payment: "+(order.payment_status||"pending")+" · Total: "+new Intl.NumberFormat("en-NG",{style:"currency",currency:order.currency||"NGN",maximumFractionDigits:2}).format(Number(order.total||0));card.appendChild(meta);
+ const items=order.items||[];
+ items.forEach(item=>{
+  const row=document.createElement("div");row.className="order-item";
+  if(item.image_url){const img=document.createElement("img");img.src=item.image_url;img.alt=item.title||"Ordered product";img.loading="lazy";row.appendChild(img);}
+  const info=document.createElement("div");info.className="order-item-info";
+  const name=document.createElement("strong");name.textContent=item.title||"Marketplace item";
+  const detail=document.createElement("p");detail.className="order-meta";detail.textContent="Qty: "+item.quantity+" · "+new Intl.NumberFormat("en-NG",{style:"currency",currency:order.currency||"NGN",maximumFractionDigits:2}).format(Number(item.unit_price||0))+" each";
+  const state=document.createElement("span");state.className="order-badge";state.textContent=buyerStageLabel(buyerOrderStage(order,item));
+  info.append(name,detail,state);row.appendChild(info);card.appendChild(row);
+  const stage=buyerOrderStage(order,item);
+  if(!["cancelled","refunded"].includes(stage)){
+   const stages=["pending_payment","paid","processing","shipped","delivered"],rank=stages.indexOf(stage);
+   const progress=document.createElement("div");progress.className="tracking-steps";stages.forEach((s,i)=>{const bar=document.createElement("span");bar.className="tracking-step"+(i<=rank?" done":"");bar.title=buyerStageLabel(s);progress.appendChild(bar);});card.appendChild(progress);
+   const labels=document.createElement("div");labels.className="tracking-labels";["Payment","Confirmed","Preparing","Shipped","Delivered"].forEach(t=>{const span=document.createElement("span");span.textContent=t;labels.appendChild(span);});card.appendChild(labels);
+  }
+ });
+ if(order.delivery_address){const address=document.createElement("p");address.className="order-meta";address.textContent="Delivery address: "+order.delivery_address;card.appendChild(address);}
+ if(order.paystack_reference){const ref=document.createElement("p");ref.className="order-meta";ref.textContent="Payment reference: "+order.paystack_reference;card.appendChild(ref);}
+ if(order.status==="pending_payment"&&["pending","failed","abandoned"].includes(order.payment_status)&&order.inventory_status==="pending"&&!order.paystack_transaction_id){
+  const actions=document.createElement("div");actions.className="order-actions";
+  const continueBtn=document.createElement("button");continueBtn.type="button";continueBtn.className="continue-payment";continueBtn.textContent="Continue Payment";
+  const cancelBtn=document.createElement("button");cancelBtn.type="button";cancelBtn.className="cancel-order";cancelBtn.textContent="Cancel Order";
+  const actionStatus=document.createElement("p");actionStatus.className="order-action-status";actionStatus.setAttribute("aria-live","polite");
+  continueBtn.addEventListener("click",async()=>{
+   continueBtn.disabled=true;cancelBtn.disabled=true;continueBtn.textContent="Opening Paystack…";actionStatus.textContent="Checking order and available stock…";
+   const {data:{session}}=await db.auth.getSession();
+   if(!session){actionStatus.textContent="Please sign in again to continue payment.";continueBtn.disabled=false;cancelBtn.disabled=false;continueBtn.textContent="Continue Payment";return;}
+   const callbackUrl=window.location.origin+window.location.pathname+"?payment=return";
+   const {data,error}=await db.functions.invoke("paystack-resume-order",{body:{order_id:order.id,callback_url:callbackUrl}});
+   if(error||!data?.authorization_url){actionStatus.textContent=data?.error||error?.message||"Could not continue payment. Please refresh and try again.";continueBtn.disabled=false;cancelBtn.disabled=false;continueBtn.textContent="Continue Payment";return;}
+   window.location.href=data.authorization_url;
+  });
+  cancelBtn.addEventListener("click",async()=>{
+   if(!confirm("Cancel this unpaid order? It will not charge you or deduct stock."))return;
+   continueBtn.disabled=true;cancelBtn.disabled=true;cancelBtn.textContent="Cancelling…";actionStatus.textContent="Cancelling unpaid order…";
+   const {data,error}=await db.rpc("cancel_unpaid_order",{p_order_id:order.id});
+   if(error||!data?.ok){actionStatus.textContent=error?.message||"Could not cancel order. Refresh and try again.";continueBtn.disabled=false;cancelBtn.disabled=false;cancelBtn.textContent="Cancel Order";return;}
+   await loadBuyerOrders(order.buyer_id);
+  });
+  actions.append(continueBtn,cancelBtn);card.appendChild(actions);card.appendChild(actionStatus);
+ } else if(order.cancellationRequest){
+  const req=order.cancellationRequest, requestStatus=document.createElement("p");
+  requestStatus.className="order-meta";
+  requestStatus.textContent=req.status==="pending"?"Cancellation request: Awaiting admin review":req.status==="approved"?"Cancellation approved — refund processing is required":"Cancellation request rejected"+(req.admin_note?": "+req.admin_note:"");
+  card.appendChild(requestStatus);
+ } else if(order.payment_status==="success"&&["paid","processing"].includes(order.status)&&order.inventory_status==="deducted"){
+  const cancel=document.createElement("button");cancel.type="button";cancel.className="secondary";cancel.textContent="Request cancellation";
+  cancel.addEventListener("click",async()=>{
+   const reason=prompt("Why would you like to cancel this order? (At least 5 characters)");
+   if(reason===null)return;
+   if(reason.trim().length<5){alert("Please enter a reason of at least 5 characters.");return;}
+   cancel.disabled=true;cancel.textContent="Submitting…";
+   const {error}=await db.from("order_cancellation_requests").insert({order_id:order.id,buyer_id:order.buyer_id,reason:reason.trim()});
+   if(error){alert("Could not submit cancellation request: "+error.message);cancel.disabled=false;cancel.textContent="Request cancellation";return;}
+   await loadBuyerOrders(order.buyer_id);
+  });
+  card.appendChild(cancel);
+ } else if(order.status==="shipped"||order.status==="delivered"){
+  const note=document.createElement("p");note.className="order-meta";note.textContent="Cancellation is unavailable after shipment. Please contact DAVIMART support.";card.appendChild(note);
+ }
+ return card;
+}
+let buyerOrdersLoadVersion=0;
+async function loadBuyerOrders(userId){
+ const host=document.getElementById("buyerOrdersList"),status=document.getElementById("buyerOrdersStatus");
+ if(!host||!status)return;
+ const loadVersion=++buyerOrdersLoadVersion;
+ host.replaceChildren();status.textContent="Loading your orders…";
+ const {data:orders,error}=await db.from("orders").select("id,buyer_id,status,payment_status,inventory_status,paystack_transaction_id,currency,subtotal,delivery_fee,total,paystack_reference,paid_at,created_at,delivery_address,order_items(id,title,image_url,unit_price,quantity,line_total,seller_fulfillment_status,created_at)").eq("buyer_id",userId).order("created_at",{ascending:false}).limit(50);
+ if(loadVersion!==buyerOrdersLoadVersion)return;
+ if(error){status.textContent="We could not load your orders. Please refresh and try again. "+error.message;return;}
+ const uniqueOrders=[...new Map((orders||[]).map(order=>[order.id,order])).values()];
+ if(!uniqueOrders.length){status.textContent="No purchases yet.";const empty=document.createElement("div");empty.className="order-empty";empty.textContent="Your orders will appear here after you place a purchase on DAVIMART.";host.appendChild(empty);return;}
+ const orderIds=uniqueOrders.map(o=>o.id);
+ const {data:requests,error:requestError}=await db.from("order_cancellation_requests").select("id,order_id,status,reason,admin_note,created_at").in("order_id",orderIds);
+ if(loadVersion!==buyerOrdersLoadVersion)return;
+ if(requestError){status.textContent="Orders loaded, but cancellation request status could not be checked: "+requestError.message;return;}
+ const requestByOrder=new Map((requests||[]).map(r=>[r.order_id,r]));
+ status.textContent=uniqueOrders.length+" order"+(uniqueOrders.length===1?"":"s")+" found.";
+ uniqueOrders.forEach(order=>{order.items=order.order_items||[];order.cancellationRequest=requestByOrder.get(order.id)||null;host.appendChild(renderBuyerOrderCard(order));});
+}
+document.getElementById("refreshBuyerOrders").addEventListener("click",async()=>{const {data:{user}}=await db.auth.getUser();if(user)await loadBuyerOrders(user.id);});
+async function handlePaystackReturn(){
+ const params=new URLSearchParams(window.location.search);
+ if(params.get("payment")!=="return")return;
+ const reference=params.get("reference")||params.get("trxref");
+ const status=document.getElementById("buyerOrdersStatus");
+ if(!reference){status.textContent="Returned from Paystack, but no payment reference was provided. Refresh orders and check payment status.";return;}
+ status.textContent="Verifying your Paystack payment…";
+ const {data,error}=await db.functions.invoke("paystack-verify",{body:{reference}});
+ if(error||!data?.paid){status.textContent=data?.error||"Payment is not confirmed yet. Use Continue Payment to try again.";return;}
+ status.textContent=data.inventory_status==="refund_required"?"Payment received, but stock needs review. Please contact DAVIMART support.":"Payment confirmed! Your order is now being processed.";
+ const cleanUrl=window.location.pathname;window.history.replaceState({},document.title,cleanUrl);
+ const {data:{user}}=await db.auth.getUser();if(user)await loadBuyerOrders(user.id);
+}
+
+
 async function loadAccount(){
  if(isPasswordRecovery){showPasswordRecovery();return;}
  const {data:{user},error} = await db.auth.getUser();
@@ -459,6 +583,7 @@ async function loadAccount(){
 
  authPanel.hidden = true;
  profilePanel.hidden = false;
+ await loadBuyerOrders(user.id);
  await loadWishlist();
  await loadNotificationCount();
 document.getElementById("welcomeName").textContent =
@@ -880,7 +1005,7 @@ db.auth.onAuthStateChange(function(event){
  setTimeout(loadAccount,0);
 });
 
-loadAccount().finally(function(){
+loadAccount().then(handlePaystackReturn).finally(function(){
   document.getElementById("loader").style.display = "none";
 
   if(new URLSearchParams(window.location.search).get("section") === "Wishlist"){
