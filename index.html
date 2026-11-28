@@ -3064,36 +3064,42 @@ async function showDashboard() {
  }
 
  function navigationTarget(q){
-  const t=String(q||"").toLowerCase().replace(/[?!.,]/g," ").replace(/\s+/g," ").trim();
-  const command=/\b(open|go to|take me to|show me|navigate to|visit|bring me to|let me see|i want to see)\b/.test(t);
+  const t=String(q||"").toLowerCase().replace(/[?!.,]/g," ").replace(/\\s+/g," ").trim();
+  const command=/\\b(open|go to|take me to|show me|navigate to|visit|bring me to|let me see|i want to see|click|tap|press)\\b/.test(t);
   if(!command)return null;
-  if(/\b(cart|basket|my cart)\b/.test(t))return {label:"Cart",href:"cart.html"};
-  if(/\b(properties|property|real estate|houses|land|rentals)\b/.test(t))return {label:"Properties",href:"real-estate.html"};
-  if(/\b(services|service marketplace|service providers)\b/.test(t))return {label:"Services",href:"services-marketplace.html"};
-  if(/\b(account|profile|my profile|settings)\b/.test(t))return {label:"Account",href:"account.html"};
-  if(/\b(seller dashboard|my shop|manage listings)\b/.test(t))return {label:"Seller Dashboard",href:"seller-dashboard.html"};
-  if(/\b(categories|all categories)\b/.test(t))return {label:"Categories",href:"categories.html"};
-  if(/\b(shop|products|product marketplace|browse products)\b/.test(t))return {label:"Shop",href:"shop.html"};
-  if(/\b(home|homepage|main page)\b/.test(t))return {label:"Home",href:"index.html"};
+  if(/\\b(cart|basket|my cart)\\b/.test(t))return {label:"Cart",selector:'a[href="cart.html"]'};
+  if(/\\b(properties|property|real estate|houses|land|rentals)\\b/.test(t))return {label:"Properties",selector:'#properties'};
+  if(/\\b(services|service marketplace|service providers)\\b/.test(t))return {label:"Services",selector:'#marketplaceServices'};
+  if(/\\b(account|profile|my profile|settings)\\b/.test(t))return {label:"Account",selector:'#accountBtn'};
+  if(/\\b(seller dashboard|my shop|manage listings)\\b/.test(t))return {label:"Seller Dashboard",selector:'#sellerDashboardBtn',requiresAccount:true};
+  if(/\\b(categories|all categories)\\b/.test(t))return {label:"Categories",selector:'#shopCategories'};
+  if(/\\b(shop|products|product marketplace|browse products)\\b/.test(t))return {label:"Shop",selector:'#products'};
+  if(/\\b(home|homepage|main page)\\b/.test(t))return {label:"Home",selector:'#home'};
+  if(/\\b(orders|my orders)\\b/.test(t))return {label:"My Orders",selector:'[onclick*="orders.html"]',requiresAccount:true};
+  if(/\\b(wishlist|saved items)\\b/.test(t))return {label:"Wishlist",selector:'[onclick*="wishlist.html"]',requiresAccount:true};
+  if(/\\b(notifications|my notifications)\\b/.test(t))return {label:"Notifications",selector:'[onclick*="notifications.html"]',requiresAccount:true};
   return null;
  }
- function navigateInsideApp(target){
-  const destination=new URL(target.href,window.location.href);
-  if(destination.origin!==window.location.origin)return false;
-  const link=Array.from(document.querySelectorAll('a[href]')).find(a=>{
-   try{return new URL(a.getAttribute("href"),window.location.href).href===destination.href}catch(_){return false}
-  });
-  if(link){link.click();return true;}
-  window.location.assign(destination.href);return true;
+ async function navigateInsideApp(target){
+  if(target.requiresAccount){
+   const account=document.querySelector(target.selector==="#sellerDashboardBtn"?"#accountBtn":'#accountBtn');
+   if(account)account.click();
+   await new Promise(resolve=>setTimeout(resolve,120));
+  }
+  const element=document.querySelector(target.selector);
+  if(!element||element.hidden||element.disabled)return false;
+  element.scrollIntoView?.({behavior:"smooth",block:"start"});
+  element.click();
+  return true;
  }
  async function answer(q){
   const clean=q.trim().slice(0,1800);if(!clean)return;
   const destination=navigationTarget(clean);
   if(destination){
    bubble(clean,"user");input.value="";
-   const confirmation="Taking you to "+destination.label+" now.";
-   bubble(confirmation,"bot");speak(confirmation);
-   navigateInsideApp(destination);return;
+   const moved=await navigateInsideApp(destination);
+   const confirmation=moved?"Opening "+destination.label+" now.": "I couldn't find the "+destination.label+" button on this screen. Please open the menu or sign in if the page requires an account.";
+   bubble(confirmation,"bot");speak(confirmation);return;
   }
   if(/^(?:what is|calculate|work out|solve)\\b/i.test(clean)||/\\b(?:plus|minus|multiplied by|divided by|percent of|square root of)\\b/i.test(clean)||/[0-9][+*/^%()\\-][0-9]/.test(clean)){
    try{const result=safeCalculate(clean);bubble(clean,"user");input.value="";const msg="The answer is "+result.toLocaleString("en-NG",{maximumFractionDigits:8})+".";bubble(msg,"bot");speak(msg);return;}catch(_){}
