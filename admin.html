@@ -96,6 +96,12 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <div class="actions"><button class="btn btn-light" id="refreshUsers">Refresh users</button></div>
 <p id="usersActionStatus" role="status" aria-live="polite"></p>
 <div id="usersTable">Loading users…</div>
+<h3 style="margin-top:26px">Seller verification applications</h3>
+<p>View submitted applications and their private documents. Pending, approved and rejected applications remain available here.</p>
+<div class="actions"><button class="btn btn-light" id="refreshSellerApplications" type="button">Refresh applications</button></div>
+<p id="sellerApplicationsStatus" role="status" aria-live="polite"></p>
+<div id="sellerApplicationsTable">Loading seller applications…</div>
+<dialog id="sellerApplicationDetailsDialog" aria-labelledby="sellerApplicationDetailsTitle"><h3 id="sellerApplicationDetailsTitle">Seller verification application</h3><div id="sellerApplicationDetailsBody"></div><div class="actions"><button class="btn btn-gold" id="closeSellerApplicationDetails" type="button">Close</button></div></dialog>
 <dialog id="registrationDetailsDialog" aria-labelledby="registrationDetailsTitle"><h3 id="registrationDetailsTitle">User registration details</h3><div id="registrationDetailsBody"></div><div class="actions"><button class="btn btn-gold" id="closeRegistrationDetails" type="button">Close</button></div></dialog>
 </section>
 <section class="panel admin-feature" id="listingsPanel" hidden>
@@ -399,6 +405,7 @@ document.getElementById("marketplaceCard").addEventListener("click",()=>{window.
 document.getElementById("openBanner").onclick=()=>{window.location.href="homepage-banner.html";};
 document.getElementById("bannerNav").onclick=()=>{window.location.href="homepage-banner.html";};
 document.getElementById("refreshUsers").onclick=loadUsers;
+document.getElementById('refreshUsers').addEventListener('click',loadSellerApplications);
 document.getElementById("refreshListings").onclick=loadListings;
 
 function cellText(row,value){const td=document.createElement("td");td.textContent=value??"—";row.appendChild(td);return td;}
@@ -575,6 +582,95 @@ function showRegistrationDetails(user){
 }
 document.getElementById("closeRegistrationDetails").onclick=()=>document.getElementById("registrationDetailsDialog").close();
 document.getElementById("registrationDetailsDialog").addEventListener("click",event=>{
+ if(event.target===event.currentTarget)event.currentTarget.close();
+});
+function addApplicationDetail(host,label,value){
+ const item=document.createElement("div");item.className="registration-detail";
+ const heading=document.createElement("b");heading.textContent=label;
+ const content=document.createElement("span");content.textContent=value==null||value===""?"Not provided":String(value);
+ item.append(heading,content);host.appendChild(item);
+}
+async function showSellerApplicationDetails(application){
+ const dialog=document.getElementById("sellerApplicationDetailsDialog");
+ const body=document.getElementById("sellerApplicationDetailsBody");
+ const status=document.getElementById("sellerApplicationsStatus");
+ body.replaceChildren();
+ addApplicationDetail(body,"Application ID",application.id);
+ addApplicationDetail(body,"Applicant",application.full_name||"Name unavailable");
+ addApplicationDetail(body,"Email",application.email||"Email unavailable");
+ addApplicationDetail(body,"Seller application status",application.status);
+ addApplicationDetail(body,"Seller type",application.seller_type);
+ addApplicationDetail(body,"Contact phone",application.contact_phone);
+ addApplicationDetail(body,"Residential / business address",application.seller_address);
+ addApplicationDetail(body,"Business name",application.business_name);
+ addApplicationDetail(body,"CAC registration number",application.cac_registration_number);
+ addApplicationDetail(body,"Identity document type",application.identity_document_type);
+ addApplicationDetail(body,"Regulated products / services details",application.regulated_category_details?.details);
+ addApplicationDetail(body,"AI screening result",application.regulated_category_details?.ai_screening?.decision);
+ addApplicationDetail(body,"AI screening summary",application.regulated_category_details?.ai_screening?.summary);
+ addApplicationDetail(body,"Submitted",application.submitted_at?new Date(application.submitted_at).toLocaleString():"Not available");
+ addApplicationDetail(body,"Reviewed",application.reviewed_at?new Date(application.reviewed_at).toLocaleString():"Not reviewed");
+ addApplicationDetail(body,"Admin notes",application.admin_notes);
+ const files=[
+  ["Identity document",application.identity_document_path],
+  ["Guided selfie",application.selfie_path],
+  ["Proof of address",application.proof_of_address_path],
+  ["CAC document",application.cac_document_path],
+  ["Business shop photo",application.regulated_category_details?.business_shop_photo_path]
+ ];
+ const heading=document.createElement("h4");heading.textContent="Submitted documents and photos";body.appendChild(heading);
+ for(const [label,path] of files){
+  if(!path)continue;
+  const section=document.createElement("div");section.className="registration-detail";
+  const title=document.createElement("b");title.textContent=label;section.appendChild(title);
+  const loading=document.createElement("span");loading.textContent="Creating secure preview…";section.appendChild(loading);body.appendChild(section);
+  try{
+   const {data,error}=await db.storage.from("seller-verification-docs").createSignedUrl(path,300);
+   if(error)throw error;
+   loading.replaceChildren();
+   if(/\.(pdf)$/i.test(path)){
+    const link=document.createElement("a");link.href=data.signedUrl;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Open private PDF (link expires in 5 minutes)";loading.appendChild(link);
+   }else{
+    const image=document.createElement("img");image.src=data.signedUrl;image.alt=label;image.loading="lazy";image.style.cssText="display:block;max-width:100%;max-height:360px;object-fit:contain;margin-top:8px;border:1px solid #dbe2ed;border-radius:9px";
+    image.onerror=()=>{loading.textContent="Preview could not be loaded. Try reopening the application.";};
+    loading.appendChild(image);
+    const link=document.createElement("a");link.href=data.signedUrl;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Open full-size image";link.style.display="block";link.style.marginTop="8px";loading.appendChild(link);
+   }
+  }catch(error){loading.textContent="Secure file access failed: "+(error.message||"Unknown error");}
+ }
+ if(typeof dialog.showModal==="function")dialog.showModal();
+ else status.textContent="Your browser does not support the application details window.";
+}
+async function loadSellerApplications(){
+ const host=document.getElementById("sellerApplicationsTable");
+ const status=document.getElementById("sellerApplicationsStatus");
+ host.textContent="Loading seller applications…";status.textContent="";
+ const {data,error}=await db.from("seller_verification_applications")
+  .select("id,user_id,seller_type,contact_phone,seller_address,business_name,cac_registration_number,identity_document_type,identity_document_path,selfie_path,proof_of_address_path,cac_document_path,regulated_category_details,status,verified_level,admin_notes,reviewed_by,reviewed_at,submitted_at,created_at")
+  .order("submitted_at",{ascending:false}).limit(300);
+ if(error){host.textContent="Could not load seller applications: "+error.message;return;}
+ if(!data?.length){host.textContent="No seller verification applications have been submitted yet.";return;}
+ const ids=[...new Set(data.map(a=>a.user_id))];
+ const {data:profiles,error:profileError}=await db.from("profiles").select("id,full_name,email").in("id",ids);
+ if(profileError){host.textContent="Could not load applicant names: "+profileError.message;return;}
+ const profileMap=new Map((profiles||[]).map(p=>[p.id,p]));
+ const rows=data.map(application=>{
+  const profile=profileMap.get(application.user_id)||{};
+  application.full_name=profile.full_name;application.email=profile.email;
+  const tr=document.createElement("tr");
+  cellText(tr,profile.full_name||"Unnamed");cellText(tr,profile.email||"—");
+  cellText(tr,application.seller_type);cellText(tr,application.status);
+  cellText(tr,application.submitted_at?new Date(application.submitted_at).toLocaleString():"—");
+  const td=document.createElement("td");
+  const view=document.createElement("button");view.className="btn-light";view.textContent="View full application";view.onclick=()=>showSellerApplicationDetails(application);td.appendChild(view);
+  tr.appendChild(td);return tr;
+ });
+ makeTable("sellerApplicationsTable",["Applicant","Email","Type","Application status","Submitted","Details"],rows);
+ status.textContent="Showing "+data.length+" application(s), including pending, approved and rejected.";
+}
+document.getElementById("refreshSellerApplications").onclick=loadSellerApplications;
+document.getElementById("closeSellerApplicationDetails").onclick=()=>document.getElementById("sellerApplicationDetailsDialog").close();
+document.getElementById("sellerApplicationDetailsDialog").addEventListener("click",event=>{
  if(event.target===event.currentTarget)event.currentTarget.close();
 });
 async function changeSeller(id,statusValue){
