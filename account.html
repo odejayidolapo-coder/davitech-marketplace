@@ -431,6 +431,26 @@ function renderBuyerOrderCard(order){
  });
  if(order.delivery_address){const address=document.createElement("p");address.className="order-meta";address.textContent="Delivery address: "+order.delivery_address;card.appendChild(address);}
  if(order.paystack_reference){const ref=document.createElement("p");ref.className="order-meta";ref.textContent="Payment reference: "+order.paystack_reference;card.appendChild(ref);}
+ if(order.cancellationRequest){
+  const req=order.cancellationRequest, requestStatus=document.createElement("p");
+  requestStatus.className="order-meta";
+  requestStatus.textContent=req.status==="pending"?"Cancellation request: Awaiting admin review":req.status==="approved"?"Cancellation approved — refund processing is required":"Cancellation request rejected"+(req.admin_note?": "+req.admin_note:"");
+  card.appendChild(requestStatus);
+ } else if(order.payment_status==="success"&&["paid","processing"].includes(order.status)&&order.inventory_status==="deducted"){
+  const cancel=document.createElement("button");cancel.type="button";cancel.className="secondary";cancel.textContent="Request cancellation";
+  cancel.addEventListener("click",async()=>{
+   const reason=prompt("Why would you like to cancel this order? (At least 5 characters)");
+   if(reason===null)return;
+   if(reason.trim().length<5){alert("Please enter a reason of at least 5 characters.");return;}
+   cancel.disabled=true;cancel.textContent="Submitting…";
+   const {error}=await db.from("order_cancellation_requests").insert({order_id:order.id,buyer_id:order.buyer_id,reason:reason.trim()});
+   if(error){alert("Could not submit cancellation request: "+error.message);cancel.disabled=false;cancel.textContent="Request cancellation";return;}
+   await loadBuyerOrders(order.buyer_id);
+  });
+  card.appendChild(cancel);
+ } else if(order.status==="shipped"||order.status==="delivered"){
+  const note=document.createElement("p");note.className="order-meta";note.textContent="Cancellation is unavailable after shipment. Please contact DAVIMART support.";card.appendChild(note);
+ }
  return card;
 }
 async function loadBuyerOrders(userId){
@@ -440,8 +460,12 @@ async function loadBuyerOrders(userId){
  const {data:orders,error}=await db.from("orders").select("id,status,payment_status,currency,subtotal,delivery_fee,total,paystack_reference,paid_at,created_at,delivery_address,order_items(id,title,image_url,unit_price,quantity,line_total,seller_fulfillment_status,created_at)").eq("buyer_id",userId).order("created_at",{ascending:false}).limit(50);
  if(error){status.textContent="We could not load your orders. Please refresh and try again. "+error.message;return;}
  if(!orders?.length){status.textContent="No purchases yet.";const empty=document.createElement("div");empty.className="order-empty";empty.textContent="Your orders will appear here after you place a purchase on DAVIMART.";host.appendChild(empty);return;}
+ const orderIds=orders.map(o=>o.id);
+ const {data:requests, error:requestError}=await db.from("order_cancellation_requests").select("id,order_id,status,reason,admin_note,created_at").in("order_id",orderIds);
+ if(requestError){status.textContent="Orders loaded, but cancellation request status could not be checked: "+requestError.message;return;}
+ const requestByOrder=new Map((requests||[]).map(r=>[r.order_id,r]));
  status.textContent=orders.length+" order"+(orders.length===1?"":"s")+" found.";
- orders.forEach(order=>{order.items=order.order_items||[];host.appendChild(renderBuyerOrderCard(order));});
+ orders.forEach(order=>{order.items=order.order_items||[];order.cancellationRequest=requestByOrder.get(order.id)||null;host.appendChild(renderBuyerOrderCard(order));});
 }
 document.getElementById("refreshBuyerOrders").addEventListener("click",async()=>{const {data:{user}}=await db.auth.getUser();if(user)await loadBuyerOrders(user.id);});
 
