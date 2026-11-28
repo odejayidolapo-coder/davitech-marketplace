@@ -93,6 +93,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <h2>Users & seller applications</h2>
 <p>Review accounts and approve or reject seller applications. Account access is protected by the admin-only database rules.</p>
 <div class="actions"><button class="btn btn-light" id="refreshUsers">Refresh users</button></div>
+<p id="usersActionStatus" role="status" aria-live="polite"></p>
 <div id="usersTable">Loading users…</div>
 </section>
 <section class="panel admin-feature" id="listingsPanel" hidden>
@@ -547,10 +548,27 @@ async function loadUsers(){
 async function changeSeller(id,statusValue){
  const label=statusValue==="approved"?"approve":"reject";
  if(!confirm("Are you sure you want to "+label+" this seller application?"))return;
- const {error}=await db.from("profiles").update(statusValue==="approved"?{seller_status:statusValue,role:"seller"}:{seller_status:statusValue}).eq("id",id);
- if(error){alert("Could not update seller: "+error.message);return;}
- await db.from("notifications").insert({user_id:id,title:"Seller application update",message:statusValue==="approved"?"Your DAVIMART seller application has been approved. You can now submit listings.":"Your DAVIMART seller application was not approved. You may apply again."});
- await loadUsers();
+ const status=document.getElementById("usersActionStatus");
+ status.textContent="Updating seller application…";
+ try{
+  // approval_status is the separate account-approval field; seller applications use seller_status.
+  // Keep that account field unchanged and update the seller role consistently.
+  const {data:updated,error:updateError}=await db.from("profiles")
+   .update({seller_status:statusValue,role:statusValue==="approved"?"seller":"buyer"})
+   .eq("id",id).select("id").maybeSingle();
+  if(updateError)throw updateError;
+  if(!updated){status.textContent="No account was updated. Refresh the users list and try again.";return;}
+  const notification={user_id:id,title:"Seller application update",message:statusValue==="approved"?"Your DAVIMART seller application has been approved. You can now submit listings.":"Your DAVIMART seller application was not approved. You may apply again."};
+  const {error:notificationError}=await db.from("notifications").insert(notification);
+  await loadUsers();
+  if(notificationError){
+   status.textContent="Seller application "+statusValue+" successfully, but the notification could not be saved: "+notificationError.message;
+  }else{
+   status.textContent="Seller application "+statusValue+" and notification saved successfully.";
+  }
+ }catch(error){
+  status.textContent="Could not update seller application: "+(error?.message||String(error));
+ }
 }
 async function loadListings(){
  const host=document.getElementById("listingsTable");host.textContent="Loading listings…";
