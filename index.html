@@ -3063,7 +3063,7 @@ async function showDashboard() {
    }
    bubble("I found these approved DAVIMART listings for you:","bot");
    rows.slice(0,5).forEach(item=>messages.appendChild(resultCard(item)));
-   const tail=rows.length>5?"Showing 5 matches. Tell me if you'd like to narrow the category, location or budget.":"Open a listing to see its full details and available seller contact options. Ready to buy? Continue through DAVIMART checkout.";
+   const tail=rows.length>5?"Showing 5 matches. Tell me if you'd like to narrow the category, location or budget.":"These are search previews only. Use the main DAVIMART marketplace search to open a listing and view its full details.";
    bubble(tail,"bot");messages.scrollTop=messages.scrollHeight;
    const types=[...new Set(rows.slice(0,5).map(x=>x.listing_type))].join(", ");
    speak("I found "+rows.length+" matching approved listings, including "+types+". Open a result to see details and continue on DAVIMART.");
