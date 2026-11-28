@@ -2951,9 +2951,9 @@ async function showDashboard() {
    <select id="dmAiCalcMode" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;margin-bottom:10px">
     <option value="math">Scientific calculator</option><option value="discount">Discount & savings</option><option value="profit">Seller profit & margin</option><option value="percent">Percentage calculator</option>
    </select>
-   <button type="button" id="dmAiCalcRun" style="width:100%;padding:13px;margin:8px 0 12px;border:0;border-radius:8px;background:#e4b449;color:#102b55;font-weight:900;font-size:16px;position:sticky;top:0;z-index:2">Calculate</button>
+   <button type="button" id="dmAiCalcRun" style="width:100%;padding:13px;margin:8px 0 12px;border:0;border-radius:8px;background:#e4b449;color:#102b55;font-weight:900;font-size:16px">Calculate</button>
+   <div id="dmAiCalcResult" role="status" aria-live="polite" style="display:none;margin:10px 0;padding:14px;border:2px solid #e4b449;border-radius:12px;background:#fff8e5;color:#102b55;font-size:17px;line-height:1.6;font-weight:800;white-space:pre-wrap;overflow-wrap:anywhere"></div>
    <div id="dmAiCalcFields"></div>
-   <div id="dmAiCalcResult" role="status" aria-live="polite" style="margin-top:10px;font-weight:700;white-space:pre-wrap"></div>
    <small style="display:block;margin-top:8px;color:#526176">Calculations run on your device; no Gemini quota is needed. Check important business figures before making decisions.</small>
   </div>
  </div>
@@ -3079,7 +3079,7 @@ async function showDashboard() {
   if(mode==="discount")calcFields.innerHTML=calcField("dmAiCalcOriginal","Original price (₦)","e.g. 25000")+calcField("dmAiCalcDiscount","Discount (%)","e.g. 15");
   if(mode==="profit")calcFields.innerHTML=calcField("dmAiCalcCost","Cost price per item (₦)","e.g. 8000")+calcField("dmAiCalcSale","Selling price per item (₦)","e.g. 11000")+calcField("dmAiCalcQuantity","Quantity","e.g. 5");
   if(mode==="percent")calcFields.innerHTML=calcField("dmAiCalcAmount","Amount","e.g. 50000")+calcField("dmAiCalcRate","Percentage (%)","e.g. 7.5");
-  calcResult.textContent="";
+  calcResult.textContent="";calcResult.style.display="none";
  }
  calcMode.addEventListener("change",renderCalcFields);renderCalcFields();
  document.getElementById("dmAiCalcToggle").addEventListener("click",()=>{
@@ -3094,8 +3094,8 @@ async function showDashboard() {
    if(calcMode.value==="discount"){const original=numericField("dmAiCalcOriginal"),rate=numericField("dmAiCalcDiscount");if(original<0||rate<0||rate>100)throw new Error("Price must be positive and discount must be between 0 and 100.");const saving=original*rate/100,final=original-saving;result="You save "+money(saving)+".\nNew price: "+money(final);spoken="You save "+money(saving)+". The discounted price is "+money(final);}
    if(calcMode.value==="profit"){const cost=numericField("dmAiCalcCost"),sale=numericField("dmAiCalcSale"),qty=numericField("dmAiCalcQuantity");if(cost<0||sale<0||qty<=0)throw new Error("Costs and selling prices cannot be negative; quantity must be above zero.");const per=sale-cost,total=per*qty,revenue=sale*qty,margin=sale>0?per/sale*100:0;result="Profit per item: "+money(per)+"\nTotal profit: "+money(total)+"\nTotal sales: "+money(revenue)+"\nProfit margin: "+margin.toFixed(2)+"%";spoken="Profit per item "+money(per)+". Total profit "+money(total)+". Profit margin "+margin.toFixed(2)+" percent.";}
    if(calcMode.value==="percent"){const amount=numericField("dmAiCalcAmount"),rate=numericField("dmAiCalcRate");result=rate+"% of "+amount+" = "+(amount*rate/100);spoken=result;}
-   calcResult.textContent=result;speak(spoken);
-  }catch(e){calcResult.textContent=e.message||"Please check the numbers and try again."}
+   calcResult.textContent=result;calcResult.style.display="block";calcResult.scrollIntoView({behavior:"smooth",block:"nearest"});speak(spoken);
+  }catch(e){calcResult.textContent=e.message||"Please check the numbers and try again.";calcResult.style.display="block";calcResult.scrollIntoView({behavior:"smooth",block:"nearest"});}
  });
  }catch(calcInitError){status("The calculator could not initialise. Reload DAVIMART and try again.");}
 
