@@ -27,6 +27,20 @@
 <div id="checking" class="panel">Checking your seller account…</div>
 <div id="denied" class="panel" hidden><h2>Seller access not available</h2><p id="deniedText">Sign in with your approved seller account to continue.</p><a class="btn primary" href="index.html">Return to DAVIMART</a></div>
 <div id="sellerApp" hidden>
+<section class="panel" id="agreementGate" hidden>
+ <h2>DAVIMART Seller Partnership Agreement</h2>
+ <p class="muted">Please read and accept the agreement before using your seller dashboard. This applies to retail and wholesale selling.</p>
+ <div id="agreementText" style="white-space:pre-wrap;line-height:1.65;max-height:420px;overflow:auto;border:1px solid #e5eaf2;border-radius:10px;padding:14px;background:#fafbfd"></div>
+ <form id="agreementForm">
+  <label for="agreementSigner">Your full legal name (electronic signature)</label>
+  <input id="agreementSigner" maxlength="120" minlength="2" required autocomplete="name" placeholder="Enter your full name">
+  <label style="display:flex;gap:10px;align-items:flex-start;font-weight:400;line-height:1.5"><input id="agreementConsent" type="checkbox" required style="width:auto;margin:2px 0 0"> I have read and agree to the DAVIMART Seller & Supplier Partnership Agreement, version 2.0.</label>
+  <button class="btn primary" id="acceptAgreementBtn" type="submit">Accept agreement and continue</button>
+  <p id="agreementStatus" class="status" role="status" aria-live="polite"></p>
+ </form>
+</section>
+<div id="sellerWorkspace" hidden>
+
 <div class="panel"><h1>Seller Dashboard</h1><p id="sellerWelcome" class="muted">Manage your DAVIMART products and listings.</p>
 <div class="grid"><div class="stat"><b id="totalCount">0</b>Total listings</div><div class="stat"><b id="pendingCount">0</b>Awaiting review</div><div class="stat"><b id="approvedCount">0</b>Published</div></div></div>
 <section class="panel"><h2>Create a listing</h2><p class="muted">One seller account can publish products, services and properties. Complete the fields for the type you choose. Every new listing is reviewed before publication.</p>
@@ -79,11 +93,28 @@
 <button class="btn primary" type="submit" id="submitListing">Submit for review</button><p id="formStatus" class="status" role="status"></p>
 </form></section>
 <section class="panel"><h2>Seller Centre</h2><p class="muted">Use your one seller account to manage listings in all three marketplace areas.</p><div class="grid listing-shortcuts"><button class="stat category-shortcut" type="button" data-listing-type="product"><b>Products</b><span>Goods and inventory</span><small>+ Create product listing</small></button><button class="stat category-shortcut" type="button" data-listing-type="service"><b>Services</b><span>Services, bookings and enquiries</span><small>+ Create service listing</small></button><button class="stat category-shortcut" type="button" data-listing-type="property"><b>Properties</b><span>Sale, rent and lease</span><small>+ Create property listing</small></button></div></section>
-<section class="panel"><h2>Orders & Sales</h2><p class="muted">View paid orders for your products, see buyer delivery details, accept orders and update fulfilment progress.</p><a class="btn primary" href="seller-orders.html">Open Seller Orders</a></section><section class="panel"><h2>Messages</h2><p class="muted">Reply to buyers and contact DAVIMART admin.</p><a class="btn gold" href="messages.html">Open messages</a></section><section class="panel"><h2>My listings</h2><button class="btn gold" id="refreshListings" type="button">Refresh listings</button><div id="myListings" class="muted">Loading your listings…</div></section>
+<section class="panel"><h2>Orders & Sales</h2><p class="muted">View paid orders for your products, see buyer delivery details, accept orders and update fulfilment progress.</p><a class="btn primary" href="seller-orders.html">Open Seller Orders</a></section><section class="panel"><h2>Messages</h2><p class="muted">Reply to buyers and contact DAVIMART admin.</p><a class="btn gold" href="messages.html">Open messages</a></section><section class="panel" id="sellerPayoutPanel">
+<h2>Bank details & seller earnings</h2>
+<p class="muted">Add the bank account where DAVIMART should pay you after an eligible order is delivered and reviewed. Only you and the DAVIMART administrator can view these details.</p>
+<form id="payoutBankForm">
+<label for="payoutBankName">Bank name</label><input id="payoutBankName" maxlength="100" required placeholder="e.g. Access Bank">
+<label for="payoutAccountName">Account holder name</label><input id="payoutAccountName" maxlength="120" required placeholder="Name registered with your bank">
+<label for="payoutAccountNumber">10-digit account number</label><input id="payoutAccountNumber" inputmode="numeric" autocomplete="off" pattern="[0-9]{10}" maxlength="10" minlength="10" required placeholder="0123456789">
+<button class="btn primary" id="savePayoutBank" type="submit">Save bank details</button><p id="payoutBankStatus" class="status" role="status"></p>
+</form>
+<div class="grid"><div class="stat"><b id="sellerPayoutTotal">₦0</b>Total paid out</div><div class="stat"><b id="sellerPayoutCount">0</b>Completed payouts</div></div>
+<h3>My payout history</h3><div id="sellerPayoutHistory" class="muted">Loading payout history…</div>
+<p class="muted">There is no seller withdrawal button. DAVIMART admin makes manual bank transfers and records each completed payment here.</p>
+</section>
+<section class="panel"><h2>My listings</h2><button class="btn gold" id="refreshListings" type="button">Refresh listings</button><div id="myListings" class="muted">Loading your listings…</div></section>
+</div>
 </div></main>
 <script>
 const db=window.supabase.createClient("https://vaghptbqfjvfhjdhpxrz.supabase.co","sb_publishable_jhln20nV5QABwMl39RKv3w_wGy5x72p");
 const IMAGE_BUCKET="listing-images";
+const SELLER_AGREEMENT_VERSION="2.0";
+const SELLER_AGREEMENT_TITLE="DAVIMART Seller & Supplier Partnership Agreement";
+const SELLER_AGREEMENT_CONTENT="DAVIMART SELLER & SUPPLIER PARTNERSHIP AGREEMENT\nVersion: 2.0 | Reference: DAV-SELL-001\n\nPARTIES\nThis agreement is between DAVIMART, a marketplace operated under DAVITECH (\"DAVIMART\"), and the approved seller whose authenticated account accepts these terms (\"Seller\").\n\n1. PURPOSE\nDAVIMART provides an online marketplace where approved sellers may offer products to retail customers and wholesale buyers. This agreement governs the Seller's participation on DAVIMART.\n\n2. SELLER RESPONSIBILITIES\nThe Seller must provide genuine and legally saleable products; accurate descriptions, photographs, prices and stock information; honour confirmed prices and orders; package goods safely; meet agreed dispatch and delivery timelines; promptly report shortages or delays; and cooperate with customer support, returns and complaint resolution.\n\n3. DAVIMART RESPONSIBILITIES\nDAVIMART provides marketplace listing and discovery facilities, order records, payment-status records and relevant marketplace communications. DAVIMART may review listings and monitor compliance with marketplace policies. Marketplace access does not guarantee sales.\n\n4. RETAIL AND WHOLESALE\nSellers may offer retail quantities and wholesale/bulk quantities. The Seller must clearly state retail prices, wholesale prices, minimum wholesale quantities, stock availability and any price conditions. A wholesale price or minimum quantity must be honoured for an order accepted at that price.\n\n5. CUSTOMER PAYMENTS COLLECTED BY DAVIMART\nWhere the checkout expressly identifies DAVIMART as the payment recipient, the customer pays DAVIMART through the payment provider shown at checkout. The Seller must not separately collect the same order payment unless DAVIMART authorises it in writing. A payment is treated as paid only after DAVIMART receives reliable confirmation from its payment provider. A browser redirect, screenshot or customer claim alone is not proof of payment.\n\n6. SELLER EARNINGS, COMMISSION AND MANUAL BANK PAYOUTS\nThe Seller must provide accurate bank account details held in the Seller's name or an account the Seller is legally authorised to use. Before a product is activated for this payment model, DAVIMART and the Seller must agree the applicable commission rate and calculation basis. Seller earnings are calculated from the relevant paid order item, less the agreed DAVIMART commission and any properly documented adjustment, refund or chargeback. DAVIMART will review fulfilment and delivery status before approving a payout. The initial payout process is manual: DAVIMART makes a bank transfer to the saved seller account and records the amount, commission, date and transfer reference. The Seller cannot withdraw funds directly from the dashboard. An order is not payout-eligible while unpaid, undelivered, cancelled, refunded or subject to an unresolved dispute. The Seller must keep bank details accurate and promptly report any error. Payout timing is subject to payment-provider settlement, order verification, refunds, disputes and applicable law; this agreement does not promise a fixed settlement date.\n\n7. DELIVERY AND PAY ON DELIVERY\nThe Seller is responsible for accurate order preparation and packaging. Delivery provider, delivery charges, delivery area, delivery time and responsibility for failed delivery must be agreed before dispatch. Pay on Delivery may only be offered where the Seller and delivery provider expressly support cash collection and settlement. The parties must agree who collects the cash and how the Seller and DAVIMART are paid. Do not dispatch an order as Pay on Delivery without confirmed logistics arrangements.\n\n8. RETURNS, REFUNDS AND PRODUCT QUALITY\nThe Seller must ensure goods match their listing and are not counterfeit, defective, unsafe or misrepresented. The Seller must cooperate with investigations and applicable returns, replacements and refunds. Responsibility for costs will depend on the cause of the problem, the agreed seller policy and applicable Nigerian law. Nothing in this agreement removes customers' statutory rights. Refunds, chargebacks and reversals may affect amounts otherwise due to the Seller.\n\n9. CUSTOMER INFORMATION AND NON-CIRCUMVENTION\nThe Seller may use customer information received through DAVIMART only to fulfil the relevant order and provide related support, and must protect it from unauthorised disclosure. The Seller must not deliberately misattribute DAVIMART-generated orders or evade a commission already agreed for those orders. Both parties must comply with applicable privacy and data-protection requirements.\n\n10. PRODUCT LEGALITY AND COMPLIANCE\nThe Seller confirms that they are entitled to sell the products listed and will comply with applicable Nigerian laws, product safety requirements, labelling rules and regulatory approvals. DAVIMART may remove prohibited, misleading or non-compliant listings.\n\n11. APPROVAL, MONITORING AND SUSPENSION\nApplying to sell does not guarantee approval. Only sellers approved by DAVIMART may list products. DAVIMART may restrict or suspend marketplace access for fraud, counterfeit goods, repeated non-fulfilment, misleading listings, misuse of customer information or serious policy breaches. Where reasonably possible, DAVIMART will communicate the reason and any review process.\n\n12. TERM AND TERMINATION\nThis agreement starts when the Seller accepts it and remains in force until ended by either party on 14 days' written notice, or immediately where required to address fraud, unlawful activity, serious customer risk or a material breach. Outstanding orders, refunds, chargebacks and agreed commissions remain subject to reconciliation after termination.\n\n13. DISPUTES AND GOVERNING LAW\nThe parties will first attempt to resolve disputes in good faith. If unresolved, either party may pursue lawful dispute-resolution procedures in Nigeria. This agreement is governed by the laws of the Federal Republic of Nigeria.\n\n14. ACCEPTANCE\nBy ticking the acceptance box and submitting their full legal name, the Seller confirms that they have read and agree to this agreement. DAVIMART will retain the agreement version, text, authenticated account identifier, typed name and acceptance timestamp as an electronic acceptance record. The Seller may request a copy from DAVIMART support.\n\nThis agreement describes the proposed marketplace operating arrangement and does not replace any mandatory payment-provider terms, licences, consumer protections or legal requirements. DAVIMART will activate marketplace-collected payments only after confirming the arrangement is permitted by its payment provider and applicable law. This agreement does not make the Seller an employee, agent, franchisee or legal representative of DAVIMART.\n\nDAVIMART — Fast. Reliable. Affordable.";
 let currentUser=null;
 const $=id=>document.getElementById(id);
 function statusPill(value){const s=document.createElement("span");s.className="pill "+value;s.textContent=value;return s;}
@@ -175,6 +206,32 @@ async function loadMyListings(){
  });
 }
 $("refreshListings").onclick=loadMyListings;
+async function loadSellerPayouts(){
+ const {data:bank,error:bankError}=await db.from("seller_payout_accounts").select("bank_name,account_name,account_number").eq("seller_id",currentUser.id).maybeSingle();
+ if(bankError){$("payoutBankStatus").textContent="Could not load bank details: "+bankError.message;}
+ else if(bank){$("payoutBankName").value=bank.bank_name;$("payoutAccountName").value=bank.account_name;$("payoutAccountNumber").value=bank.account_number;}
+ const {data:rows,error}=await db.from("seller_payouts").select("id,order_id,gross_amount,commission_rate,commission_amount,net_amount,bank_name,account_name,account_number,transfer_reference,paid_at").eq("seller_id",currentUser.id).order("paid_at",{ascending:false});
+ if(error){$("sellerPayoutHistory").textContent="Could not load payout history: "+error.message;return;}
+ const list=rows||[];$("sellerPayoutCount").textContent=list.length;
+ $("sellerPayoutTotal").textContent="₦"+list.reduce((sum,x)=>sum+Number(x.net_amount||0),0).toLocaleString("en-NG",{minimumFractionDigits:2,maximumFractionDigits:2});
+ $("sellerPayoutHistory").innerHTML="";
+ if(!list.length){$("sellerPayoutHistory").textContent="No payouts recorded yet.";return;}
+ list.forEach(p=>{
+  const card=document.createElement("article");card.className="listing";
+  const info=document.createElement("div");info.className="info";
+  const title=document.createElement("strong");title.textContent="₦"+Number(p.net_amount).toLocaleString("en-NG",{minimumFractionDigits:2})+" paid";
+  const detail=document.createElement("p");detail.className="muted";detail.textContent="Order "+p.order_id+" · Gross ₦"+Number(p.gross_amount).toLocaleString("en-NG")+" · Commission "+p.commission_rate+"% (₦"+Number(p.commission_amount).toLocaleString("en-NG")+")";
+  const ref=document.createElement("small");ref.textContent="Bank transfer reference: "+p.transfer_reference+" · "+new Date(p.paid_at).toLocaleString();
+  info.append(title,detail,ref);card.append(info,statusPill("paid"));$("sellerPayoutHistory").appendChild(card);
+ });
+}
+$("payoutBankForm").onsubmit=async e=>{
+ e.preventDefault();$("savePayoutBank").disabled=true;$("payoutBankStatus").textContent="Saving bank details…";
+ const bank={seller_id:currentUser.id,bank_name:$("payoutBankName").value.trim(),account_name:$("payoutAccountName").value.trim(),account_number:$("payoutAccountNumber").value.trim()};
+ const {error}=await db.from("seller_payout_accounts").upsert(bank,{onConflict:"seller_id"});
+ $("payoutBankStatus").textContent=error?"Could not save bank details: "+error.message:"Bank details saved securely.";
+ $("savePayoutBank").disabled=false;
+};
 const typeSelect=$("type");
 function syncListingTypeFields(){
  const type=typeSelect.value;
@@ -223,9 +280,41 @@ $("listingForm").onsubmit=async e=>{
  if(profileError||profile?.seller_status!=="approved"){
   $("denied").hidden=false;$("deniedText").textContent=profile?.seller_status==="pending"?"Your seller application is awaiting admin approval.":"Only approved DAVIMART sellers can access this dashboard.";return;
  }
- $("sellerApp").hidden=false;$("sellerWelcome").textContent="Welcome, "+(profile.full_name||user.email)+". Manage your DAVIMART listings here.";
- await loadMyListings();
-})();
+ $("sellerApp").hidden=false;
+ $("sellerWelcome").textContent="Welcome, "+(profile.full_name||user.email)+". Manage your DAVIMART listings here.";
+ $("agreementText").textContent=SELLER_AGREEMENT_CONTENT;
+ const {data:acceptance,error:acceptanceError}=await db.from("seller_agreement_acceptances").select("id,agreement_version,accepted_by_name,accepted_at").eq("seller_id",user.id).eq("agreement_version",SELLER_AGREEMENT_VERSION).maybeSingle();
+ if(acceptanceError){$("agreementGate").hidden=false;$("agreementStatus").textContent="We could not verify your agreement status: "+acceptanceError.message+". Please refresh or contact DAVIMART support.";$("acceptAgreementBtn").disabled=true;return;}
+ if(acceptance){$("sellerWorkspace").hidden=false;await loadMyListings();await loadSellerPayouts();}
+ else $("agreementGate").hidden=false;
+})();;
+$("agreementForm").onsubmit=async event=>{
+ event.preventDefault();
+ const signer=$("agreementSigner").value.trim();
+ if(signer.length<2||!$("agreementConsent").checked)return;
+ $("acceptAgreementBtn").disabled=true;
+ $("agreementStatus").textContent="Saving your agreement acceptance securely…";
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();
+  if(userError||!user)throw new Error("Your session has expired. Please sign in again.");
+  const {error}=await db.from("seller_agreement_acceptances").insert({
+   seller_id:user.id,
+   agreement_version:SELLER_AGREEMENT_VERSION,
+   agreement_title:SELLER_AGREEMENT_TITLE,
+   agreement_content:SELLER_AGREEMENT_CONTENT,
+   accepted_by_name:signer
+  });
+  if(error)throw error;
+  $("agreementStatus").textContent="Agreement accepted and saved. Your seller dashboard is now available.";
+  $("agreementGate").hidden=true;
+  $("sellerWorkspace").hidden=false;
+  await loadMyListings();
+  await loadSellerPayouts();
+ }catch(error){
+  $("agreementStatus").textContent="Could not save acceptance: "+(error.message||"Please try again.");
+  $("acceptAgreementBtn").disabled=false;
+ }
+};
 </script><nav class="bottom-nav" aria-label="Main navigation">
 <a href="index.html"><span>⌂</span>Home</a>
 <a href="shop.html"><span>▦</span>Shop</a>

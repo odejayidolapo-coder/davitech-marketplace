@@ -34,6 +34,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 .admin-table td button{padding:8px 10px;margin:2px;font-size:12px}
 .action-approve{background:#e7f7ee;color:#176b3a}.action-reject{background:#fff0f0;color:#a32929}
 .status-pill{display:inline-block;padding:4px 8px;border-radius:20px;background:#edf2fa;font-size:11px}
+#registrationDetailsDialog{width:min(560px,calc(100% - 28px));max-height:85vh;overflow:auto;border:0;border-radius:16px;padding:22px;color:var(--ink);box-shadow:0 20px 70px #071f5050}#registrationDetailsDialog::backdrop{background:#071f5080}#registrationDetailsDialog h3{margin:0 0 14px;color:var(--navy)}.registration-detail{padding:10px 0;border-bottom:1px solid #e8edf4;overflow-wrap:anywhere}.registration-detail b{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}.registration-detail span{display:block;font-size:14px}
 
 .hidden{display:none!important}
 @media(max-width:700px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}aside{display:flex;gap:6px;overflow:auto}aside button{white-space:nowrap;width:auto}.panel{padding:17px}header{align-items:flex-start;flex-direction:column}}
@@ -71,6 +72,7 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <button class="active" type="button" data-panel="overview">▣ Overview</button>
 <button type="button" data-panel="usersPanel">👥 Users & sellers</button>
 <button type="button" data-panel="listingsPanel">▤ Listings review</button>
+<button type="button" data-panel="payoutsPanel">₦ Seller payouts</button>
 <button type="button" data-panel="notifyPanel">🔔 Notifications</button>
 <a href="admin-conversations.html" style="display:block;padding:12px 10px;margin:3px 0;border-radius:9px;background:#edf3ff;color:#0b56c5;text-decoration:none;font-weight:700">🔒 All Conversations</a>
 <button type="button" data-panel="productUploadPanel">🛍️ Add product</button>
@@ -92,13 +94,32 @@ input[type=file]{max-width:100%;margin:14px 0}#previewGrid{display:grid;grid-tem
 <h2>Users & seller applications</h2>
 <p>Review accounts and approve or reject seller applications. Account access is protected by the admin-only database rules.</p>
 <div class="actions"><button class="btn btn-light" id="refreshUsers">Refresh users</button></div>
+<p id="usersActionStatus" role="status" aria-live="polite"></p>
 <div id="usersTable">Loading users…</div>
+<h3 style="margin-top:26px">Seller verification applications</h3>
+<p>View submitted applications and their private documents. Pending, approved and rejected applications remain available here.</p>
+<div class="actions"><button class="btn btn-light" id="refreshSellerApplications" type="button">Refresh applications</button></div>
+<p id="sellerApplicationsStatus" role="status" aria-live="polite"></p>
+<div id="sellerApplicationsTable">Loading seller applications…</div>
+<dialog id="sellerApplicationDetailsDialog" aria-labelledby="sellerApplicationDetailsTitle"><h3 id="sellerApplicationDetailsTitle">Seller verification application</h3><div id="sellerApplicationDetailsBody"></div><div class="actions"><button class="btn btn-gold" id="closeSellerApplicationDetails" type="button">Close</button></div></dialog>
+<dialog id="registrationDetailsDialog" aria-labelledby="registrationDetailsTitle"><h3 id="registrationDetailsTitle">User registration details</h3><div id="registrationDetailsBody"></div><div class="actions"><button class="btn btn-gold" id="closeRegistrationDetails" type="button">Close</button></div></dialog>
 </section>
 <section class="panel admin-feature" id="listingsPanel" hidden>
 <h2>Product, service & property review</h2>
 <p>Review product, service and property listings before they appear publicly. You can approve or reject each submission.</p>
 <div class="actions"><button class="btn btn-light" id="refreshListings">Refresh listings</button></div>
 <div id="listingsTable">Loading listings…</div>
+</section>
+<section class="panel admin-feature" id="payoutsPanel" hidden>
+<h2>Seller bank accounts & manual payouts</h2>
+<p>Set the commission rate, review paid and delivered seller order items, then transfer the net amount manually from your Access Bank account. Record the bank transfer reference only after the transfer succeeds.</p>
+<div class="notice">Payout eligibility requires a successful payment, a delivered order and a delivered seller order item. Disputed or undelivered orders must not be paid. Commission starts at 0% until you set the agreed rate.</div>
+<label for="payoutCommissionRate">DAVIMART commission (%)</label>
+<input id="payoutCommissionRate" type="number" min="0" max="100" step="0.01" style="max-width:260px" placeholder="0">
+<div class="actions"><button class="btn btn-gold" id="savePayoutCommission" type="button">Save commission rate</button><button class="btn btn-light" id="refreshPayouts" type="button">Refresh payout records</button></div>
+<p id="payoutAdminStatus" role="status"></p>
+<h3>Eligible seller order items</h3><div id="eligiblePayouts">Loading eligible orders…</div>
+<h3 style="margin-top:25px">Completed bank transfers</h3><div id="completedPayouts">Loading payout history…</div>
 </section>
 <section class="panel admin-feature" id="notifyPanel" hidden>
 <h2>Send a user notification</h2>
@@ -371,6 +392,7 @@ function showAdminPanel(id){
  document.querySelectorAll("aside button[data-panel]").forEach(b=>b.classList.toggle("active",b.dataset.panel===id));
  if(id==="usersPanel") loadUsers();
  if(id==="listingsPanel") loadListings();
+ if(id==="payoutsPanel") loadPayoutManagement();
  if(id==="notifyPanel") loadNotificationRecipients();
  if(id==="flashSalePanel") loadFlashSaleGallery();
  if(id==="davitechBannerPanel") loadDavitechBannerGallery();
@@ -383,6 +405,7 @@ document.getElementById("marketplaceCard").addEventListener("click",()=>{window.
 document.getElementById("openBanner").onclick=()=>{window.location.href="homepage-banner.html";};
 document.getElementById("bannerNav").onclick=()=>{window.location.href="homepage-banner.html";};
 document.getElementById("refreshUsers").onclick=loadUsers;
+document.getElementById('refreshUsers').addEventListener('click',loadSellerApplications);
 document.getElementById("refreshListings").onclick=loadListings;
 
 function cellText(row,value){const td=document.createElement("td");td.textContent=value??"—";row.appendChild(td);return td;}
@@ -428,6 +451,94 @@ document.getElementById("adminProductForm").onsubmit=async(e)=>{
  status.textContent=error?"Could not publish product: "+error.message:"Product published successfully and is now live on DAVIMART.";
  if(!error){document.getElementById("adminProductForm").reset();document.getElementById("adminProductPreview").innerHTML="";}
 };
+async function loadPayoutManagement(){
+ const status=document.getElementById("payoutAdminStatus");
+ status.textContent="Loading payout settings and seller orders…";
+ const {data:settings,error:settingsError}=await db.from("marketplace_payout_settings").select("commission_rate,is_configured").eq("id",true).single();
+ if(settingsError){status.textContent="Could not load commission settings: "+settingsError.message;return;}
+ document.getElementById("payoutCommissionRate").value=settings.commission_rate;
+ await Promise.all([loadEligiblePayoutItems(),loadCompletedPayouts()]);
+ status.textContent=settings.is_configured?"Commission rate: "+settings.commission_rate+"%. Eligible orders are checked against successful payment and delivery status.":"Set and save the agreed commission rate before recording any seller payout.";
+}
+document.getElementById("savePayoutCommission").onclick=async()=>{
+ const rate=Number(document.getElementById("payoutCommissionRate").value),status=document.getElementById("payoutAdminStatus");
+ if(!Number.isFinite(rate)||rate<0||rate>100){status.textContent="Enter a commission rate from 0 to 100.";return;}
+ if(!confirm("Save DAVIMART commission at "+rate+"% for future seller payouts?"))return;
+ const {data:{user}}=await db.auth.getUser();
+ if(!user||user.id!==ADMIN_ID){status.textContent="Access denied.";return;}
+ const {error}=await db.from("marketplace_payout_settings").upsert({id:true,commission_rate:rate,is_configured:true,updated_at:new Date().toISOString(),updated_by:user.id},{onConflict:"id"});
+ status.textContent=error?"Could not save commission: "+error.message:"Commission rate saved. This rate will be used for payouts recorded from now on.";
+};
+document.getElementById("refreshPayouts").onclick=loadPayoutManagement;
+async function loadEligiblePayoutItems(){
+ const host=document.getElementById("eligiblePayouts");host.textContent="Loading eligible order items…";
+ const {data:items,error}=await db.from("order_items").select("id,order_id,seller_id,title,unit_price,quantity,line_total,seller_fulfillment_status").eq("seller_fulfillment_status","delivered").order("created_at",{ascending:false}).limit(300);
+ if(error){host.textContent="Could not load order items: "+error.message;return;}
+ const [ordersResult,banksResult,profilesResult,paidResult]=await Promise.all([
+  db.from("orders").select("id,status,payment_status,paid_at,customer_name").eq("status","delivered").eq("payment_status","success").limit(500),
+  db.from("seller_payout_accounts").select("seller_id,bank_name,account_name,account_number"),
+  db.from("profiles").select("id,full_name,email"),
+  db.from("seller_payouts").select("order_item_id")
+ ]);
+ if(ordersResult.error||banksResult.error||profilesResult.error||paidResult.error){host.textContent="Could not load payout details: "+[ordersResult.error,banksResult.error,profilesResult.error,paidResult.error].filter(Boolean).map(x=>x.message).join("; ");return;}
+ const orderMap=new Map((ordersResult.data||[]).map(x=>[x.id,x]));
+ const bankMap=new Map((banksResult.data||[]).map(x=>[x.seller_id,x]));
+ const profileMap=new Map((profilesResult.data||[]).map(x=>[x.id,x]));
+ const paidSet=new Set((paidResult.data||[]).map(x=>x.order_item_id));
+ const eligible=(items||[]).filter(x=>orderMap.has(x.order_id)&&!paidSet.has(x.id));
+ if(!eligible.length){host.textContent="No unpaid, successfully paid and delivered seller order items are currently eligible.";return;}
+ const rows=eligible.map(item=>{
+  const tr=document.createElement("tr"),order=orderMap.get(item.order_id),bank=bankMap.get(item.seller_id),profile=profileMap.get(item.seller_id);
+  cellText(tr,item.title);cellText(tr,profile?.full_name||profile?.email||item.seller_id);cellText(tr,"₦"+Number(item.line_total).toLocaleString("en-NG",{minimumFractionDigits:2}));
+  const bankCell=document.createElement("td");bankCell.textContent=bank?bank.bank_name+" · "+bank.account_name+" · "+bank.account_number:"Bank details not saved";tr.appendChild(bankCell);
+  cellText(tr,order.customer_name||"—");
+  const action=document.createElement("td");
+  if(bank){
+   const button=document.createElement("button");button.className="action-approve";button.textContent="Record bank transfer";button.onclick=()=>recordSellerPayout(item,bank,profile);action.appendChild(button);
+  }else action.textContent="Seller must add bank details";
+  tr.appendChild(action);return tr;
+ });
+ makeTable("eligiblePayouts",["Order item","Seller","Gross amount","Seller bank account","Buyer","Admin action"],rows);
+}
+async function recordSellerPayout(item,bank,profile){
+ const rate=Number(document.getElementById("payoutCommissionRate").value);
+ if(!Number.isFinite(rate)||rate<0||rate>100){alert("Set a valid commission rate first.");return;}
+ const commission=Math.round(Number(item.line_total)*rate)/100;
+ const roundedCommission=Math.round(commission*100)/100;
+ const net=Math.round((Number(item.line_total)-roundedCommission)*100)/100;
+ const reference=prompt("After transferring ₦"+net.toLocaleString("en-NG",{minimumFractionDigits:2})+" to "+bank.bank_name+" account "+bank.account_number+" ("+bank.account_name+"), enter the bank transfer reference. Cancel if you have not transferred the money.");
+ if(!reference||reference.trim().length<3){alert("No payout was recorded. Enter a valid transfer reference after the transfer succeeds.");return;}
+ if(!confirm("Confirm that you have successfully transferred ₦"+net.toLocaleString("en-NG",{minimumFractionDigits:2})+" to "+bank.account_name+"? This creates a permanent payout record."))return;
+ const {data:{user}}=await db.auth.getUser();
+ if(!user||user.id!==ADMIN_ID){alert("Access denied.");return;}
+ const {error}=await db.from("seller_payouts").insert({
+  seller_id:item.seller_id,order_item_id:item.id,order_id:item.order_id,
+  gross_amount:Number(item.line_total),commission_rate:rate,commission_amount:roundedCommission,net_amount:net,
+  transfer_reference:reference.trim(),approved_by:user.id,status:"paid"
+ });
+ if(error){alert("Payout record was not saved: "+error.message);return;}
+ // Seller email notification is not activated yet; payout is visible in the seller dashboard history.
+ await loadEligiblePayoutItems();await loadCompletedPayouts();
+}
+async function loadCompletedPayouts(){
+ const host=document.getElementById("completedPayouts");host.textContent="Loading payout history…";
+ const {data:rows,error}=await db.from("seller_payouts").select("id,seller_id,order_id,gross_amount,commission_rate,commission_amount,net_amount,bank_name,account_name,account_number,transfer_reference,paid_at").order("paid_at",{ascending:false}).limit(300);
+ if(error){host.textContent="Could not load payout history: "+error.message;return;}
+ if(!rows?.length){host.textContent="No seller payouts have been recorded yet.";return;}
+ const profileIds=[...new Set(rows.map(x=>x.seller_id))];
+ const {data:profiles,error:profileError}=await db.from("profiles").select("id,full_name,email").in("id",profileIds);
+ if(profileError){host.textContent="Could not load seller names: "+profileError.message;return;}
+ const names=new Map((profiles||[]).map(x=>[x.id,x.full_name||x.email||x.id]));
+ const tableRows=rows.map(p=>{
+  const tr=document.createElement("tr");cellText(tr,names.get(p.seller_id));cellText(tr,p.order_id);
+  cellText(tr,"₦"+Number(p.gross_amount).toLocaleString("en-NG",{minimumFractionDigits:2}));
+  cellText(tr,p.commission_rate+"% · ₦"+Number(p.commission_amount).toLocaleString("en-NG",{minimumFractionDigits:2}));
+  cellText(tr,"₦"+Number(p.net_amount).toLocaleString("en-NG",{minimumFractionDigits:2}));
+  cellText(tr,p.bank_name+" · "+p.account_name+" · "+p.account_number);
+  cellText(tr,p.transfer_reference);cellText(tr,new Date(p.paid_at).toLocaleString());return tr;
+ });
+ makeTable("completedPayouts",["Seller","Order","Gross","Commission","Paid to seller","Bank account","Transfer reference","Date"],tableRows);
+}
 async function loadUsers(){
  const host=document.getElementById("usersTable");host.textContent="Loading users…";
  const {data,error}=await db.from("profiles").select("id,full_name,email,role,approval_status,seller_status,created_at").order("created_at",{ascending:false}).limit(200);
@@ -435,6 +546,7 @@ async function loadUsers(){
  const rows=(data||[]).map(u=>{
   const tr=document.createElement("tr");cellText(tr,u.full_name||"Unnamed");cellText(tr,u.email||"—");cellText(tr,u.role);cellText(tr,u.seller_status);
   const action= document.createElement("td");
+  const view=document.createElement("button");view.className="btn-light";view.textContent="View registration";view.onclick=()=>showRegistrationDetails(u);action.appendChild(view);
   if(u.seller_status==="pending"){
    const yes=document.createElement("button");yes.className="action-approve";yes.textContent="Approve seller";yes.onclick=()=>changeSeller(u.id,"approved");
    const no=document.createElement("button");no.className="action-reject";no.textContent="Reject";no.onclick=()=>changeSeller(u.id,"rejected");action.append(yes,no);
@@ -443,13 +555,148 @@ async function loadUsers(){
  });
  makeTable("usersTable",["Name","Email","Role","Seller status","Action"],rows);
 }
+function showRegistrationDetails(user){
+ const dialog=document.getElementById("registrationDetailsDialog");
+ const body=document.getElementById("registrationDetailsBody");
+ body.replaceChildren();
+ const details=[
+  ["Full name",user.full_name||"Not provided"],
+  ["Email address",user.email||"Not provided"],
+  ["Account type selected at registration",user.role||"Not available"],
+  ["Registration date",user.created_at?new Date(user.created_at).toLocaleString():"Not available"],
+  ["Account approval status",user.approval_status||"Not available"],
+  ["Seller application status",user.seller_status||"Not applied"]
+ ];
+ details.forEach(([label,value])=>{
+  const item=document.createElement("div");item.className="registration-detail";
+  const heading=document.createElement("b");heading.textContent=label;
+  const content=document.createElement("span");content.textContent=value;
+  item.append(heading,content);body.appendChild(item);
+ });
+ const note=document.createElement("p");
+ note.className="notice";
+ note.textContent="DAVIMART's current registration form collects full name, email address, password and account type. Passwords are never shown to administrators. Phone number and business details are not part of this registration form; seller business information should be collected separately during seller application.";
+ body.appendChild(note);
+ if(typeof dialog.showModal==="function")dialog.showModal();
+ else alert(details.map(([k,v])=>k+": "+v).join("\\n"));
+}
+document.getElementById("closeRegistrationDetails").onclick=()=>document.getElementById("registrationDetailsDialog").close();
+document.getElementById("registrationDetailsDialog").addEventListener("click",event=>{
+ if(event.target===event.currentTarget)event.currentTarget.close();
+});
+function addApplicationDetail(host,label,value){
+ const item=document.createElement("div");item.className="registration-detail";
+ const heading=document.createElement("b");heading.textContent=label;
+ const content=document.createElement("span");content.textContent=value==null||value===""?"Not provided":String(value);
+ item.append(heading,content);host.appendChild(item);
+}
+async function showSellerApplicationDetails(application){
+ const dialog=document.getElementById("sellerApplicationDetailsDialog");
+ const body=document.getElementById("sellerApplicationDetailsBody");
+ const status=document.getElementById("sellerApplicationsStatus");
+ body.replaceChildren();
+ addApplicationDetail(body,"Application ID",application.id);
+ addApplicationDetail(body,"Applicant",application.full_name||"Name unavailable");
+ addApplicationDetail(body,"Email",application.email||"Email unavailable");
+ addApplicationDetail(body,"Seller application status",application.status);
+ addApplicationDetail(body,"Seller type",application.seller_type);
+ addApplicationDetail(body,"Contact phone",application.contact_phone);
+ addApplicationDetail(body,"Residential / business address",application.seller_address);
+ addApplicationDetail(body,"Business name",application.business_name);
+ addApplicationDetail(body,"CAC registration number",application.cac_registration_number);
+ addApplicationDetail(body,"Identity document type",application.identity_document_type);
+ addApplicationDetail(body,"Regulated products / services details",application.regulated_category_details?.details);
+ addApplicationDetail(body,"AI screening result",application.regulated_category_details?.ai_screening?.decision);
+ addApplicationDetail(body,"AI screening summary",application.regulated_category_details?.ai_screening?.summary);
+ addApplicationDetail(body,"Submitted",application.submitted_at?new Date(application.submitted_at).toLocaleString():"Not available");
+ addApplicationDetail(body,"Reviewed",application.reviewed_at?new Date(application.reviewed_at).toLocaleString():"Not reviewed");
+ addApplicationDetail(body,"Admin notes",application.admin_notes);
+ const files=[
+  ["Identity document",application.identity_document_path],
+  ["Guided selfie",application.selfie_path],
+  ["Proof of address",application.proof_of_address_path],
+  ["CAC document",application.cac_document_path],
+  ["Business shop photo",application.regulated_category_details?.business_shop_photo_path]
+ ];
+ const heading=document.createElement("h4");heading.textContent="Submitted documents and photos";body.appendChild(heading);
+ for(const [label,path] of files){
+  if(!path)continue;
+  const section=document.createElement("div");section.className="registration-detail";
+  const title=document.createElement("b");title.textContent=label;section.appendChild(title);
+  const loading=document.createElement("span");loading.textContent="Creating secure preview…";section.appendChild(loading);body.appendChild(section);
+  try{
+   const {data,error}=await db.storage.from("seller-verification-docs").createSignedUrl(path,300);
+   if(error)throw error;
+   loading.replaceChildren();
+   if(/\.(pdf)$/i.test(path)){
+    const link=document.createElement("a");link.href=data.signedUrl;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Open private PDF (link expires in 5 minutes)";loading.appendChild(link);
+   }else{
+    const image=document.createElement("img");image.src=data.signedUrl;image.alt=label;image.loading="lazy";image.style.cssText="display:block;max-width:100%;max-height:360px;object-fit:contain;margin-top:8px;border:1px solid #dbe2ed;border-radius:9px";
+    image.onerror=()=>{loading.textContent="Preview could not be loaded. Try reopening the application.";};
+    loading.appendChild(image);
+    const link=document.createElement("a");link.href=data.signedUrl;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Open full-size image";link.style.display="block";link.style.marginTop="8px";loading.appendChild(link);
+   }
+  }catch(error){loading.textContent="Secure file access failed: "+(error.message||"Unknown error");}
+ }
+ if(typeof dialog.showModal==="function")dialog.showModal();
+ else status.textContent="Your browser does not support the application details window.";
+}
+async function loadSellerApplications(){
+ const host=document.getElementById("sellerApplicationsTable");
+ const status=document.getElementById("sellerApplicationsStatus");
+ host.textContent="Loading seller applications…";status.textContent="";
+ const {data,error}=await db.from("seller_verification_applications")
+  .select("id,user_id,seller_type,contact_phone,seller_address,business_name,cac_registration_number,identity_document_type,identity_document_path,selfie_path,proof_of_address_path,cac_document_path,regulated_category_details,status,verified_level,admin_notes,reviewed_by,reviewed_at,submitted_at,created_at")
+  .order("submitted_at",{ascending:false}).limit(300);
+ if(error){host.textContent="Could not load seller applications: "+error.message;return;}
+ if(!data?.length){host.textContent="No seller verification applications have been submitted yet.";return;}
+ const ids=[...new Set(data.map(a=>a.user_id))];
+ const {data:profiles,error:profileError}=await db.from("profiles").select("id,full_name,email").in("id",ids);
+ if(profileError){host.textContent="Could not load applicant names: "+profileError.message;return;}
+ const profileMap=new Map((profiles||[]).map(p=>[p.id,p]));
+ const rows=data.map(application=>{
+  const profile=profileMap.get(application.user_id)||{};
+  application.full_name=profile.full_name;application.email=profile.email;
+  const tr=document.createElement("tr");
+  cellText(tr,profile.full_name||"Unnamed");cellText(tr,profile.email||"—");
+  cellText(tr,application.seller_type);cellText(tr,application.status);
+  cellText(tr,application.submitted_at?new Date(application.submitted_at).toLocaleString():"—");
+  const td=document.createElement("td");
+  const view=document.createElement("button");view.className="btn-light";view.textContent="View full application";view.onclick=()=>showSellerApplicationDetails(application);td.appendChild(view);
+  tr.appendChild(td);return tr;
+ });
+ makeTable("sellerApplicationsTable",["Applicant","Email","Type","Application status","Submitted","Details"],rows);
+ status.textContent="Showing "+data.length+" application(s), including pending, approved and rejected.";
+}
+document.getElementById("refreshSellerApplications").onclick=loadSellerApplications;
+document.getElementById("closeSellerApplicationDetails").onclick=()=>document.getElementById("sellerApplicationDetailsDialog").close();
+document.getElementById("sellerApplicationDetailsDialog").addEventListener("click",event=>{
+ if(event.target===event.currentTarget)event.currentTarget.close();
+});
 async function changeSeller(id,statusValue){
  const label=statusValue==="approved"?"approve":"reject";
  if(!confirm("Are you sure you want to "+label+" this seller application?"))return;
- const {error}=await db.from("profiles").update(statusValue==="approved"?{seller_status:statusValue,role:"seller"}:{seller_status:statusValue}).eq("id",id);
- if(error){alert("Could not update seller: "+error.message);return;}
- await db.from("notifications").insert({user_id:id,title:"Seller application update",message:statusValue==="approved"?"Your DAVIMART seller application has been approved. You can now submit listings.":"Your DAVIMART seller application was not approved. You may apply again."});
- await loadUsers();
+ const status=document.getElementById("usersActionStatus");
+ status.textContent="Updating seller application…";
+ try{
+  // approval_status is the separate account-approval field; seller applications use seller_status.
+  // Keep that account field unchanged and update the seller role consistently.
+  const {data:updated,error:updateError}=await db.from("profiles")
+   .update({seller_status:statusValue,role:statusValue==="approved"?"seller":"buyer"})
+   .eq("id",id).select("id").maybeSingle();
+  if(updateError)throw updateError;
+  if(!updated){status.textContent="No account was updated. Refresh the users list and try again.";return;}
+  const notification={user_id:id,title:"Seller application update",message:statusValue==="approved"?"Your DAVIMART seller application has been approved. You can now submit listings.":"Your DAVIMART seller application was not approved. You may apply again."};
+  const {error:notificationError}=await db.from("notifications").insert(notification);
+  await loadUsers();
+  if(notificationError){
+   status.textContent="Seller application "+statusValue+" successfully, but the notification could not be saved: "+notificationError.message;
+  }else{
+   status.textContent="Seller application "+statusValue+" and notification saved successfully.";
+  }
+ }catch(error){
+  status.textContent="Could not update seller application: "+(error?.message||String(error));
+ }
 }
 async function loadListings(){
  const host=document.getElementById("listingsTable");host.textContent="Loading listings…";
