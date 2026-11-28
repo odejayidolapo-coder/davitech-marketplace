@@ -2939,7 +2939,7 @@ async function showDashboard() {
  function status(text){if(voiceStatus)voiceStatus.textContent=text}
  function speak(text){
   if(!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
-  window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang="en-NG";utterance.rate=1;
+  window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang="en-US";utterance.rate=1;
   utterance.onstart=()=>status("DAVIMART AI is speaking…");utterance.onend=()=>status("You can type or tap the microphone to speak.");
   window.speechSynthesis.speak(utterance);
  }
@@ -3065,44 +3065,8 @@ async function showDashboard() {
   }
  }
 
- function navigationTarget(q){
-  const t=String(q||"").toLowerCase().replace(/[?!.,]/g," ").replace(/\\s+/g," ").trim();
-  const command=/\\b(open|go to|take me to|show me|navigate to|visit|bring me to|let me see|i want to see|click|tap|press)\\b/.test(t);
-  if(!command)return null;
-  if(/\\b(cart|basket|my cart)\\b/.test(t))return {label:"Cart",selector:'a[href="cart.html"]'};
-  if(/\\b(properties|property|real estate|houses|land|rentals)\\b/.test(t))return {label:"Properties",selector:'#properties'};
-  if(/\\b(services|service marketplace|service providers)\\b/.test(t))return {label:"Services",selector:'#marketplaceServices'};
-  if(/\\b(account|profile|my profile|settings)\\b/.test(t))return {label:"Account",selector:'#accountBtn'};
-  if(/\\b(seller dashboard|my shop|manage listings)\\b/.test(t))return {label:"Seller Dashboard",selector:'#sellerDashboardBtn',requiresAccount:true};
-  if(/\\b(categories|all categories)\\b/.test(t))return {label:"Categories",selector:'#shopCategories'};
-  if(/\\b(shop|products|product marketplace|browse products)\\b/.test(t))return {label:"Shop",selector:'#products'};
-  if(/\\b(home|homepage|main page)\\b/.test(t))return {label:"Home",selector:'#home'};
-  if(/\\b(orders|my orders)\\b/.test(t))return {label:"My Orders",selector:'[onclick*="orders.html"]',requiresAccount:true};
-  if(/\\b(wishlist|saved items)\\b/.test(t))return {label:"Wishlist",selector:'[onclick*="wishlist.html"]',requiresAccount:true};
-  if(/\\b(notifications|my notifications)\\b/.test(t))return {label:"Notifications",selector:'[onclick*="notifications.html"]',requiresAccount:true};
-  return null;
- }
- async function navigateInsideApp(target){
-  if(target.requiresAccount){
-   const account=document.querySelector(target.selector==="#sellerDashboardBtn"?"#accountBtn":'#accountBtn');
-   if(account)account.click();
-   await new Promise(resolve=>setTimeout(resolve,120));
-  }
-  const element=document.querySelector(target.selector);
-  if(!element||element.hidden||element.disabled)return false;
-  element.scrollIntoView?.({behavior:"smooth",block:"start"});
-  element.click();
-  return true;
- }
  async function answer(q){
   const clean=q.trim().slice(0,1800);if(!clean)return;
-  const destination=navigationTarget(clean);
-  if(destination){
-   bubble(clean,"user");input.value="";
-   const moved=await navigateInsideApp(destination);
-   const confirmation=moved?"Opening "+destination.label+" now.": "I couldn't find the "+destination.label+" button on this screen. Please open the menu or sign in if the page requires an account.";
-   bubble(confirmation,"bot");speak(confirmation);return;
-  }
   if(/^(?:what is|calculate|work out|solve)\\b/i.test(clean)||/\\b(?:plus|minus|multiplied by|divided by|percent of|square root of)\\b/i.test(clean)||/[0-9][+*/^%()\\-][0-9]/.test(clean)){
    try{const result=safeCalculate(clean);bubble(clean,"user");input.value="";const msg="The answer is "+result.toLocaleString("en-NG",{maximumFractionDigits:8})+".";bubble(msg,"bot");speak(msg);return;}catch(_){}
   }
@@ -3125,12 +3089,12 @@ async function showDashboard() {
   }
  }
  function startListening(){
-  if(!SpeechRecognition){status("Voice input isn't supported here. Please type your request.");return}
+  if(!SpeechRecognition){status("Voice typing is not supported in this browser or app view. Open DAVIMART in Chrome and allow microphone access, or type your request.");return}
   if(listening){recognition.stop();return}
-  recognition=new SpeechRecognition();recognition.lang="en-NG";recognition.interimResults=false;recognition.maxAlternatives=1;
+  recognition=new SpeechRecognition();recognition.lang="en-US";recognition.interimResults=false;recognition.maxAlternatives=1;
   recognition.onstart=()=>{listening=true;mic.setAttribute("aria-pressed","true");mic.textContent="⏹️";status("Listening… speak your request now.")};
   recognition.onresult=event=>{const transcript=event.results&&event.results[0]&&event.results[0][0]?event.results[0][0].transcript:"";if(transcript){input.value=transcript;answer(transcript)}else status("I couldn't hear that clearly. Please try again.")};
-  recognition.onerror=event=>{const map={"not-allowed":"Microphone permission was blocked. Allow it in browser settings or type instead.","audio-capture":"No microphone was detected.","no-speech":"I didn't hear anything. Try again.","network":"Voice recognition needs an internet connection."};status(map[event.error]||"Voice input stopped. You can type instead.")};
+  recognition.onerror=event=>{const map={"not-allowed":"Microphone permission was blocked. Allow microphone access for DAVIMART in Chrome settings.","service-not-allowed":"Voice service is blocked in this browser. Try opening DAVIMART in Chrome.","audio-capture":"No microphone was detected.","no-speech":"I didn't hear anything. Try again.","network":"Voice recognition needs an internet connection."};status(map[event.error]||"Voice input stopped ("+event.error+"). You can type instead.")};
   recognition.onend=()=>{listening=false;mic.setAttribute("aria-pressed","false");mic.textContent="🎙️"};
   try{recognition.start()}catch(_){status("Couldn't start the microphone. Please try again or type.")}
  }
